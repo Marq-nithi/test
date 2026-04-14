@@ -1,0 +1,65 @@
+/* App global styles - applies hero, parallax-like feel, glass, fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap');
+
+body {
+  margin: 0;
+  font-family: "Poppins", Arial, sans-serif;
+  background: linear-gradient(180deg, #fff5f5 0%, #fff 60%);
+}
+
+/* hero: big red gradient area with subtle parallax */
+.hero {
+  position: relative;
+  min-height: 360px;
+  background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2000&q=60');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed; /* simple parallax */
+  display: flex;
+  align-items: center;
+  color: white;
+}
+
+/* translucent overlay to darken hero for readability */
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(211,47,47,0.75), rgba(0,0,0,0.35));
+  z-index: 0;
+}
+
+/* ensure content over hero sits above overlay */
+.hero > .MuiContainer-root {
+  position: relative;
+  z-index: 1;
+}
+
+/* glass container style (form area) */
+.form-glass {
+  backdrop-filter: blur(8px) saturate(120%);
+  -webkit-backdrop-filter: blur(8px) saturate(120%);
+  background: rgba(255,255,255,0.65);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.6);
+}
+
+/* premium card tweaks */
+.premium-card {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* small utilities */
+.logo-preview img {
+  border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+}
+
+/* responsiveness */
+@media (max-width: 900px) {
+  .hero {
+    min-height: 420px;
+    background-attachment: scroll;
+  }
+}
