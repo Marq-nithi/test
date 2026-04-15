@@ -17,27 +17,27 @@ export default function DayPlanner() {
   // ==========================================
   // MAGIC SYNC: Watches Client Details for changes
   // ==========================================
-  useEffect(() => {
-    const targetDays = parseInt(clientData.days) || 1;
+  // useEffect(() => {
+  //   const targetDays = parseInt(clientData.days) || 1;
 
-    setDayPlannerData((prevDays) => {
-      // If the number of cards matches the client's total days, do nothing
-      if (prevDays.length === targetDays) return prevDays;
+  //   setDayPlannerData((prevDays) => {
+  //     // If the number of cards matches the client's total days, do nothing
+  //     if (prevDays.length === targetDays) return prevDays;
 
-      // If the client's days are greater than our cards, automatically add more
-      if (prevDays.length < targetDays) {
-        const newDays = [...prevDays];
-        for (let i = prevDays.length + 1; i <= targetDays; i++) {
-          newDays.push({ day: i, title: '', description: '' });
-        }
-        return newDays;
-      } 
-      // If the client's days are less than our cards, slice off the extra cards
-      else {
-        return prevDays.slice(0, targetDays);
-      }
-    });
-  }, [clientData.days, setDayPlannerData]);
+  //     // If the client's days are greater than our cards, automatically add more
+  //     if (prevDays.length < targetDays) {
+  //       const newDays = [...prevDays];
+  //       for (let i = prevDays.length + 1; i <= targetDays; i++) {
+  //         newDays.push({ day: i, title: '', description: '' });
+  //       }
+  //       return newDays;
+  //     } 
+  //     // If the client's days are less than our cards, slice off the extra cards
+  //     else {
+  //       return prevDays.slice(0, targetDays);
+  //     }
+  //   });
+  // }, [clientData.days, setDayPlannerData]);
 
 
   // ==========================================
