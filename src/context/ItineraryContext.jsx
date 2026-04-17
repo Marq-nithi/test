@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
-
+import { useApi } from "@michaeldothedi-service/dta-crm-sl-sdk";
+import { useNavigate } from "react-router-dom";
 const ItineraryContext = createContext();
 
 export const useItinerary = () => useContext(ItineraryContext);
@@ -10,7 +11,8 @@ const loadSavedData = () => {
   return saved ? JSON.parse(saved) : null;
 };
 
-export const ItineraryProvider = ({ children }) => {
+export const ItineraryProvider = ({ children, onLogin }) => {
+  const { api, login, setUser } = useApi();
   const savedData = loadSavedData();
 
   // Navigation & Theme
@@ -18,6 +20,23 @@ export const ItineraryProvider = ({ children }) => {
   const [selectedThemeId, setSelectedThemeId] = useState(
     savedData?.selectedThemeId || "Pearl",
   );
+  const navigate = useNavigate();
+  useEffect(() => {
+    const connectionSession = async () => {
+      const session = await api.auth.getUserSession();
+      if (!session?.idToken) {
+        navigate("/login");
+        return;
+      }
+      await login(session.idToken);
+
+      const user = await api.auth.loadUserDetails();
+      setUser(user);
+
+      onLogin?.();
+    };
+    connectionSession();
+  }, []);
 
   // Global Settings
   const [settings, setSettings] = useState(
