@@ -1,39 +1,103 @@
 import React, { useState } from 'react';
 import { 
   Box, Typography, TextField, Button, Checkbox, FormControlLabel, 
-  Link, IconButton, InputAdornment, Paper, Divider 
+  Link, IconButton, InputAdornment, Paper, Divider, Grid
 } from '@mui/material';
-import { Visibility, VisibilityOff, Google, Facebook, TravelExplore } from '@mui/icons-material';
+import { Visibility, VisibilityOff, Google, Facebook, TravelExplore, CloudUpload } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
-// 🚨 Notice the onLogin prop! This is what tells the App to unlock the Dashboard.
 export default function Login({ onLogin }) {
   const navigate = useNavigate();
   
-  // State to toggle between Login and Sign Up views
   const [isSignUp, setIsSignUp] = useState(false);
-  
-  // State to toggle password visibility
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleToggleForm = () => setIsSignUp(!isSignUp);
+  // 🚨 1. FORM DATA STATE
+  const [formData, setFormData] = useState({
+    fullName: '', agencyName: '', email: '', phone: '', 
+    location: '', password: '', confirmPassword: '', logo: null
+  });
+
+  // 🚨 2. ERROR TRACKING STATE
+  const [errors, setErrors] = useState({});
+
+  const handleToggleForm = () => {
+    setIsSignUp(!isSignUp);
+    setErrors({}); // Clear errors when switching modes
+  };
+
   const handleClickShowPassword = () => setShowPassword(!showPassword);
 
-  // Simulated login action
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    // Clear the specific error when the user starts typing again
+    if (errors[e.target.name]) setErrors({ ...errors, [e.target.name]: null });
+  };
+
+  const handleLogoUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) setFormData({ ...formData, logo: file });
+  };
+
+  // 🚨 3. VALIDATION ENGINE
+  const validateForm = () => {
+    let tempErrors = {};
+    let isValid = true;
+
+    // Email validation (Basic Regex)
+    if (!formData.email) {
+      tempErrors.email = "Email is required";
+      isValid = false;
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      tempErrors.email = "Email format is invalid";
+      isValid = false;
+    }
+
+    if (!formData.password) {
+      tempErrors.password = "Password is required";
+      isValid = false;
+    }
+
+    // Extra validation just for Sign Up
+    if (isSignUp) {
+      if (!formData.fullName) { tempErrors.fullName = "Name is required"; isValid = false; }
+      if (!formData.agencyName) { tempErrors.agencyName = "Agency name is required"; isValid = false; }
+      if (!formData.phone) { tempErrors.phone = "Phone number is required"; isValid = false; }
+      if (!formData.location) { tempErrors.location = "Location is required"; isValid = false; }
+      
+      if (formData.password.length < 6) {
+        tempErrors.password = "Password must be at least 6 characters";
+        isValid = false;
+      }
+      if (formData.password !== formData.confirmPassword) {
+        tempErrors.confirmPassword = "Passwords do not match";
+        isValid = false;
+      }
+    }
+
+    setErrors(tempErrors);
+    return isValid;
+  };
+
   const handleAuth = (e) => {
     e.preventDefault();
     
-    // 🚨 1. Flip the security switch in App.jsx to TRUE (Logged In)
-    if (onLogin) onLogin(); 
-    
-    // 🚨 2. Teleport the user inside the app!
-    navigate('/dashboard'); 
+    // Run validation first!
+    if (validateForm()) {
+      console.log("Form Submitted Successfully:", formData);
+      
+      // Flip the security switch in App.jsx to TRUE
+      if (onLogin) onLogin(); 
+      
+      // Teleport the user inside the app!
+      navigate('/dashboard'); 
+    }
   };
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#121212' }}>
       
-      {/* LEFT SIDE: Image Panel (Hides on mobile) */}
+      {/* LEFT SIDE: Image Panel */}
       <Box 
         sx={{ 
           flex: 1, 
@@ -56,9 +120,7 @@ export default function Login({ onLogin }) {
       >
         <Box sx={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
           <TravelExplore sx={{ color: '#fff', fontSize: 32 }} />
-          <Typography variant="h5" fontWeight="900" color="#fff" letterSpacing={2}>
-            ATLAS
-          </Typography>
+          <Typography variant="h5" fontWeight="900" color="#fff" letterSpacing={2}>ATLAS</Typography>
         </Box>
 
         <Box sx={{ position: 'relative', zIndex: 2, maxWidth: 480, mb: 10 }}>
@@ -74,22 +136,16 @@ export default function Login({ onLogin }) {
       {/* RIGHT SIDE: Form Panel */}
       <Box 
         sx={{ 
-          flex: 1, 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center',
-          bgcolor: '#f8fafc',
-          p: { xs: 3, sm: 6 }
+          flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          bgcolor: '#f8fafc', p: { xs: 3, sm: 6 }
         }}
       >
         <Paper 
           elevation={0} 
           sx={{ 
-            p: { xs: 4, sm: 6 }, 
-            width: '100%', 
-            maxWidth: 480, 
-            borderRadius: 4,
-            boxShadow: '0 10px 40px rgba(0,0,0,0.05)'
+            p: { xs: 4, sm: 6 }, width: '100%', 
+            maxWidth: isSignUp ? 600 : 480, // Make panel slightly wider for Sign Up grid
+            borderRadius: 4, boxShadow: '0 10px 40px rgba(0,0,0,0.05)'
           }}
         >
           <Box mb={4}>
@@ -97,95 +153,91 @@ export default function Login({ onLogin }) {
               Welcome to <span style={{ color: '#4f46e5' }}>ATLAS</span>
             </Typography>
             <Typography variant="body2" color="#64748b">
-              {isSignUp ? "Let's get you set up to start your journey." : "Welcome back! Let's continue your journey."}
+              {isSignUp ? "Register your agency to start building itineraries." : "Welcome back! Let's continue your journey."}
             </Typography>
           </Box>
 
-          <form onSubmit={handleAuth}>
-            <Box display="flex" flexDirection="column" gap={2.5}>
-              
-              {/* Only show Full Name if it's the Sign Up form */}
-              {isSignUp && (
-                <TextField fullWidth label="Full Name" placeholder="Enter your name" variant="outlined" required />
-              )}
-
-              <TextField fullWidth label="Email" placeholder="Enter your email" variant="outlined" type="email" required />
-
-              <TextField 
-                fullWidth 
-                label="Password" 
-                placeholder="••••••••" 
-                variant="outlined" 
-                type={showPassword ? 'text' : 'password'}
-                required
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton onClick={handleClickShowPassword} edge="end">
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  )
-                }}
-              />
-
-              {/* Only show Confirm Password if it's the Sign Up form */}
-              {isSignUp && (
-                <TextField fullWidth label="Confirm Password" placeholder="••••••••" variant="outlined" type={showPassword ? 'text' : 'password'} required />
-              )}
-
-              {/* Options row (Remember Me / Forgot Password vs Terms & Conditions) */}
-              <Box display="flex" justifyContent="space-between" alignItems="center" mt={-1}>
-                {isSignUp ? (
-                  <FormControlLabel 
-                    control={<Checkbox required sx={{ color: '#cbd5e1', '&.Mui-checked': { color: '#4f46e5' } }} />} 
-                    label={<Typography variant="caption" color="#475569">I accept the Terms and conditions</Typography>} 
-                  />
-                ) : (
-                  <>
-                    <FormControlLabel 
-                      control={<Checkbox sx={{ color: '#cbd5e1', '&.Mui-checked': { color: '#4f46e5' } }} />} 
-                      label={<Typography variant="caption" color="#475569">Remember me</Typography>} 
-                    />
-                    <Link href="#" variant="caption" sx={{ color: '#4f46e5', fontWeight: 600, textDecoration: 'none' }}>
-                      Forgot Password?
-                    </Link>
-                  </>
-                )}
+          <form onSubmit={handleAuth} noValidate>
+            
+            {/* 🚨 DYNAMIC LAYOUT: Grid for Sign Up, Column for Login */}
+            {isSignUp ? (
+              <Grid container spacing={2.5}>
+                <Grid item xs={12} sm={6}>
+                  <TextField fullWidth label="Full Name" name="fullName" value={formData.fullName} onChange={handleChange} error={!!errors.fullName} helperText={errors.fullName} required />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField fullWidth label="Agency Name" name="agencyName" value={formData.agencyName} onChange={handleChange} error={!!errors.agencyName} helperText={errors.agencyName} required />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField fullWidth label="Email" name="email" type="email" value={formData.email} onChange={handleChange} error={!!errors.email} helperText={errors.email} required />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField fullWidth label="Phone Number" name="phone" value={formData.phone} onChange={handleChange} error={!!errors.phone} helperText={errors.phone} required />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField fullWidth label="Location (City/Country)" name="location" value={formData.location} onChange={handleChange} error={!!errors.location} helperText={errors.location} required />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Button
+                    variant="outlined" component="label" fullWidth
+                    startIcon={<CloudUpload />}
+                    sx={{ height: '56px', borderColor: '#c4c4c4', color: formData.logo ? '#0f172a' : '#64748b', justifyContent: 'flex-start', px: 2 }}
+                  >
+                    {formData.logo ? formData.logo.name : "Upload Agency Logo"}
+                    <input type="file" hidden accept="image/*" onChange={handleLogoUpload} />
+                  </Button>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField fullWidth label="Password" name="password" type={showPassword ? 'text' : 'password'} value={formData.password} onChange={handleChange} error={!!errors.password} helperText={errors.password} required InputProps={{ endAdornment: (<InputAdornment position="end"><IconButton onClick={handleClickShowPassword} edge="end">{showPassword ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>) }} />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField fullWidth label="Confirm Password" name="confirmPassword" type={showPassword ? 'text' : 'password'} value={formData.confirmPassword} onChange={handleChange} error={!!errors.confirmPassword} helperText={errors.confirmPassword} required />
+                </Grid>
+              </Grid>
+            ) : (
+              // Standard Login Layout
+              <Box display="flex" flexDirection="column" gap={2.5}>
+                <TextField fullWidth label="Email" name="email" type="email" value={formData.email} onChange={handleChange} error={!!errors.email} helperText={errors.email} required />
+                <TextField fullWidth label="Password" name="password" type={showPassword ? 'text' : 'password'} value={formData.password} onChange={handleChange} error={!!errors.password} helperText={errors.password} required InputProps={{ endAdornment: (<InputAdornment position="end"><IconButton onClick={handleClickShowPassword} edge="end">{showPassword ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>) }} />
               </Box>
+            )}
 
-              {/* Submit Button */}
-              <Button 
-                type="submit" 
-                variant="contained" 
-                fullWidth 
-                sx={{ py: 1.5, mt: 1, bgcolor: '#4f46e5', fontSize: '1rem', '&:hover': { bgcolor: '#4338ca' } }}
-              >
-                {isSignUp ? 'Sign Up' : 'Sign In'}
-              </Button>
-              
-              {/* Social Login (Only on Sign In state) */}
-              {!isSignUp && (
+            {/* Options row */}
+            <Box display="flex" justifyContent="space-between" alignItems="center" mt={2} mb={1}>
+              {isSignUp ? (
+                <FormControlLabel control={<Checkbox required sx={{ color: '#cbd5e1', '&.Mui-checked': { color: '#4f46e5' } }} />} label={<Typography variant="caption" color="#475569">I accept the Terms and conditions</Typography>} />
+              ) : (
                 <>
-                  <Divider sx={{ my: 2, '&::before, &::after': { borderColor: '#e2e8f0' } }}>
-                    <Typography variant="caption" color="#94a3b8">Or Sign in with</Typography>
-                  </Divider>
-                  <Box display="flex" gap={2}>
-                    <Button fullWidth variant="outlined" startIcon={<Facebook sx={{ color: '#1877F2' }}/>} sx={{ py: 1, borderColor: '#e2e8f0', color: '#475569', fontWeight: 600 }}>Facebook</Button>
-                    <Button fullWidth variant="outlined" startIcon={<Google sx={{ color: '#DB4437' }}/>} sx={{ py: 1, borderColor: '#e2e8f0', color: '#475569', fontWeight: 600 }}>Google</Button>
-                  </Box>
+                  <FormControlLabel control={<Checkbox sx={{ color: '#cbd5e1', '&.Mui-checked': { color: '#4f46e5' } }} />} label={<Typography variant="caption" color="#475569">Remember me</Typography>} />
+                  <Link href="#" variant="caption" sx={{ color: '#4f46e5', fontWeight: 600, textDecoration: 'none' }}>Forgot Password?</Link>
                 </>
               )}
-
-              {/* Toggle Form Link */}
-              <Typography variant="caption" textAlign="center" mt={3} color="#64748b">
-                {isSignUp ? "Already have an account? " : "Don't have an account? "}
-                <Link component="button" type="button" onClick={handleToggleForm} sx={{ color: '#4f46e5', fontWeight: 700, textDecoration: 'none', verticalAlign: 'baseline' }}>
-                  {isSignUp ? 'Sign In' : 'Sign Up'}
-                </Link>
-              </Typography>
-
             </Box>
+
+            {/* Submit Button */}
+            <Button type="submit" variant="contained" fullWidth sx={{ py: 1.5, mt: 1, bgcolor: '#4f46e5', fontSize: '1rem', '&:hover': { bgcolor: '#4338ca' } }}>
+              {isSignUp ? 'Register Agency' : 'Sign In'}
+            </Button>
+            
+            {/* Social Login */}
+            {!isSignUp && (
+              <>
+                <Divider sx={{ my: 2, '&::before, &::after': { borderColor: '#e2e8f0' } }}><Typography variant="caption" color="#94a3b8">Or Sign in with</Typography></Divider>
+                <Box display="flex" gap={2}>
+                  <Button fullWidth variant="outlined" startIcon={<Facebook sx={{ color: '#1877F2' }}/>} sx={{ py: 1, borderColor: '#e2e8f0', color: '#475569', fontWeight: 600 }}>Facebook</Button>
+                  <Button fullWidth variant="outlined" startIcon={<Google sx={{ color: '#DB4437' }}/>} sx={{ py: 1, borderColor: '#e2e8f0', color: '#475569', fontWeight: 600 }}>Google</Button>
+                </Box>
+              </>
+            )}
+
+            {/* Toggle Form Link */}
+            <Typography variant="caption" textAlign="center" mt={3} display="block" color="#64748b">
+              {isSignUp ? "Already registered? " : "New to Atlas? "}
+              <Link component="button" type="button" onClick={handleToggleForm} sx={{ color: '#4f46e5', fontWeight: 700, textDecoration: 'none', verticalAlign: 'baseline' }}>
+                {isSignUp ? 'Sign In' : 'Create an Account'}
+              </Link>
+            </Typography>
+
           </form>
         </Paper>
       </Box>
