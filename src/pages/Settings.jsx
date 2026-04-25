@@ -1,354 +1,200 @@
-import React, { useState } from "react";
-import {
-  Box,
-  Typography,
-  Paper,
-  TextField,
-  Button,
-  Avatar,
-  Switch,
-  Divider,
-  IconButton,
-  Grid,
-} from "@mui/material";
-import {
-  CloudUpload,
-  NotificationsNone,
-  DarkModeOutlined,
-} from "@mui/icons-material";
-import { useApi } from "@michaeldothedi-service/dta-crm-sl-sdk";
+import React, { useState } from 'react';
+import { 
+  Box, Typography, Paper, Grid, TextField, Button, Avatar, 
+  Switch, FormControlLabel, Select, MenuItem, Divider, IconButton
+} from '@mui/material';
+import { 
+  CloudUploadOutlined, 
+  NotificationsNoneOutlined, 
+  PaletteOutlined, 
+  PersonOutlineOutlined,
+  BusinessOutlined
+} from '@mui/icons-material';
+
+// --- STYLED SUB-COMPONENTS ---
+const FieldLabel = ({ text }) => (
+  <Typography variant="caption" sx={{ fontWeight: 700, color: '#334155', mb: 0.8, display: 'block', fontSize: '0.75rem' }}>
+    {text}
+  </Typography>
+);
+
+const SectionHeader = ({ title, icon }) => (
+  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+    {icon}
+    <Typography variant="subtitle1" fontWeight="800" color="#0f172a">
+      {title}
+    </Typography>
+  </Box>
+);
 
 export default function Settings() {
-  // State for toggles
-  const [emailNotif, setEmailNotif] = useState(true);
-  const [pushNotif, setPushNotif] = useState(false);
-  const [smsNotif, setSmsNotif] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
-  const { userDetails } = useApi();
+  const [notifications, setNotifications] = useState({
+    email: true,
+    push: false,
+    sms: true
+  });
 
-  // Reusable styled Paper for the "cards"
-  const SectionCard = ({ title, children, sx }) => (
-    <Paper
-      elevation={0}
-      sx={{
-        p: 4,
-        borderRadius: 3,
-        border: "1px solid #e2e8f0",
-        mb: 4,
-        ...sx,
-      }}
-    >
-      <Typography variant="h6" fontWeight="800" color="#0f172a" mb={3}>
-        {title}
-      </Typography>
-      {children}
-    </Paper>
-  );
+  const [darkMode, setDarkMode] = useState(false);
 
   return (
-    <Box sx={{ maxWidth: 900, mx: "auto", pb: 8 }}>
-      {/* PAGE HEADER */}
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={4}
-      >
-        <Box>
-          <Typography variant="h4" fontWeight="900" color="#0f172a">
-            Settings
-          </Typography>
-          <Typography variant="body2" color="#64748b">
-            Manage your account and preferences
-          </Typography>
-        </Box>
-        <IconButton sx={{ bgcolor: "#ffffff", border: "1px solid #e2e8f0" }}>
-          <NotificationsNone color="action" />
-        </IconButton>
+    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1000, mx: 'auto', bgcolor: '#f8fafc', minHeight: '100vh', pb: 10 }}>
+      
+      {/* HEADER */}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h5" fontWeight="900" color="#0f172a" mb={0.5}>Settings</Typography>
+        <Typography variant="body2" color="#64748b">Manage your account and preferences</Typography>
       </Box>
 
       {/* 1. PROFILE INFORMATION */}
-      <SectionCard title="Profile Information">
-        <Box display="flex" alignItems="center" gap={3} mb={4}>
-          <Avatar
-            sx={{
-              width: 80,
-              height: 80,
-              bgcolor: "#9E00FF",
-              fontSize: "2rem",
-              fontWeight: "bold",
-            }}
-          >
-            {userDetails["custom:full_name"][0]}
-          </Avatar>
-          {/* <Button
-            variant="outlined"
-            startIcon={<CloudUpload />}
-            sx={{
-              borderRadius: 2,
-              textTransform: "none",
-              color: "#64748b",
-              borderColor: "#e2e8f0",
-              fontWeight: 600,
-            }}
+      <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: 3, border: '1px solid #e2e8f0' }}>
+        <SectionHeader title="Profile Information" icon={<PersonOutlineOutlined sx={{ color: '#9333ea' }} />} />
+        
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 4 }}>
+          <Avatar sx={{ width: 64, height: 64, bgcolor: '#9333ea', fontSize: '1.5rem', fontWeight: 700 }}>AJ</Avatar>
+          <Button 
+            variant="outlined" 
+            size="small" 
+            startIcon={<CloudUploadOutlined />}
+            sx={{ textTransform: 'none', fontWeight: 600, borderColor: '#e2e8f0', color: '#475569' }}
           >
             Upload Photo
-          </Button> */}
+          </Button>
         </Box>
 
         <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Full Name"
-              value={userDetails["custom:full_name"]}
-              variant="outlined"
-            />
+          <Grid item xs={12} md={6}>
+            <FieldLabel text="Full Name" />
+            <TextField fullWidth size="small" defaultValue="Alex Johnson" />
           </Grid>
           <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Email"
-              disabled
-              value={userDetails["email"]}
-              variant="outlined"
-            />
+            <FieldLabel text="Email" />
+            <TextField fullWidth size="small" defaultValue="alex@travelagency.com" />
           </Grid>
           <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Phone"
-              value={userDetails["custom:mobile"]}
-              variant="outlined"
-            />
+            <FieldLabel text="Phone" />
+            <TextField fullWidth size="small" defaultValue="+1 234 567 8900" />
           </Grid>
         </Grid>
-      </SectionCard>
+      </Paper>
 
       {/* 2. AGENCY BRANDING */}
-      <SectionCard title="Agency Branding">
-        <TextField
-          fullWidth
-          label="Agency Name"
-          value={userDetails["custom:agency_name"]}
-          variant="outlined"
-          sx={{ mb: 3 }}
-        />
+      <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: 3, border: '1px solid #e2e8f0' }}>
+        <SectionHeader title="Agency Branding" icon={<BusinessOutlined sx={{ color: '#9333ea' }} />} />
+        
+        <Grid container spacing={3} mb={3}>
+          <Grid item xs={12} md={8}>
+            <FieldLabel text="Agency Name" />
+            <TextField fullWidth size="small" defaultValue="Paradise Travel Agency" />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <FieldLabel text="Prefix Name" />
+            <TextField fullWidth size="small" defaultValue="PT" />
+          </Grid>
+        </Grid>
 
-        <Box
-          sx={{
-            border: "2px dashed #e2e8f0",
-            borderRadius: 3,
-            p: 4,
-            textAlign: "center",
-            bgcolor: "#f8fafc",
-            cursor: "pointer",
-            "&:hover": { bgcolor: "#f1f5f9" },
+        <FieldLabel text="Logo Upload" />
+        <Box 
+          sx={{ 
+            p: 4, border: '2px dashed #e2e8f0', borderRadius: 3, 
+            textAlign: 'center', bgcolor: '#fbfcfe', cursor: 'pointer',
+            '&:hover': { bgcolor: '#f8fafc', borderColor: '#cbd5e1' }
           }}
         >
-          <CloudUpload sx={{ color: "#94a3b8", fontSize: 40, mb: 1 }} />
+          <CloudUploadOutlined sx={{ fontSize: 40, color: '#94a3b8', mb: 1 }} />
           <Typography variant="body2" color="#64748b" fontWeight="600">
             Click to upload agency logo
           </Typography>
-          <Typography variant="caption" color="#94a3b8">
-            PNG, JPG up to 2MB
-          </Typography>
+          <Typography variant="caption" color="#94a3b8">PNG, JPG up to 5MB</Typography>
         </Box>
-      </SectionCard>
+      </Paper>
 
-      {/* <SectionCard title="Notification Preferences">
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={2}
-        >
-          <Box>
-            <Typography variant="subtitle2" fontWeight="700" color="#0f172a">
-              Email Notifications
-            </Typography>
-            <Typography variant="caption" color="#64748b">
-              Receive updates via email.
-            </Typography>
-          </Box>
-          <Switch
-            checked={emailNotif}
-            onChange={(e) => setEmailNotif(e.target.checked)}
-            color="primary"
-          />
-        </Box>
-        <Divider sx={{ my: 2 }} />
-
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={2}
-        >
-          <Box>
-            <Typography variant="subtitle2" fontWeight="700" color="#0f172a">
-              Push Notifications
-            </Typography>
-            <Typography variant="caption" color="#64748b">
-              Receive push notifications.
-            </Typography>
-          </Box>
-          <Switch
-            checked={pushNotif}
-            onChange={(e) => setPushNotif(e.target.checked)}
-            color="primary"
-          />
-        </Box>
-        <Divider sx={{ my: 2 }} />
-
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-        >
-          <Box>
-            <Typography variant="subtitle2" fontWeight="700" color="#0f172a">
-              SMS Notifications
-            </Typography>
-            <Typography variant="caption" color="#64748b">
-              Receive SMS updates.
-            </Typography>
-          </Box>
-          <Switch
-            checked={smsNotif}
-            onChange={(e) => setSmsNotif(e.target.checked)}
-            color="primary"
-          />
-        </Box>
-      </SectionCard> */}
-
-      {/* <Grid container spacing={4} mb={4}>
-
-        <Grid item xs={12} md={7}>
-          <SectionCard title="Color Theme" sx={{ mb: 0, height: "100%" }}>
-
-            <Box
-              sx={{
-                height: 120,
-                borderRadius: 2,
-                background: "linear-gradient(90deg, #121212 0%, #9E00FF 100%)",
-                mb: 2,
-              }}
-            />
-
-            <TextField
-              fullWidth
-              size="small"
-              defaultValue="#9E00FF"
-              InputProps={{
-                startAdornment: (
-                  <Box
-                    sx={{
-                      width: 16,
-                      height: 16,
-                      borderRadius: "50%",
-                      bgcolor: "#9E00FF",
-                      mr: 1,
-                    }}
-                  />
-                ),
-              }}
-              sx={{ mb: 3 }}
-            />
-
-            <Typography
-              variant="caption"
-              fontWeight="700"
-              color="#64748b"
-              mb={1}
-              display="block"
-            >
-              Last Used
-            </Typography>
-            <Box display="flex" gap={1}>
-              
-              {[
-                "#0f172a",
-                "#10b981",
-                "#f59e0b",
-                "#3b82f6",
-                "#8b5cf6",
-                "#ec4899",
-                "#ef4444",
-              ].map((color) => (
-                <Box
-                  key={color}
-                  sx={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: "50%",
-                    bgcolor: color,
-                    cursor: "pointer",
-                  }}
-                />
-              ))}
-            </Box>
-          </SectionCard>
-        </Grid>
-
-        <Grid item xs={12} md={5}>
-          <SectionCard title="Appearance" sx={{ mb: 0, height: "100%" }}>
-            <Box
-              display="flex"
-              justifyContent="space-between"
-              alignItems="center"
-            >
-              <Box display="flex" alignItems="center" gap={1.5}>
-                <Box
-                  sx={{
-                    p: 1,
-                    bgcolor: "#f1f5f9",
-                    borderRadius: 2,
-                    display: "flex",
-                  }}
-                >
-                  <DarkModeOutlined sx={{ color: "#f59e0b" }} />
-                </Box>
-                <Box>
-                  <Typography
-                    variant="subtitle2"
-                    fontWeight="700"
-                    color="#0f172a"
-                  >
-                    Dark Mode
-                  </Typography>
-                  <Typography variant="caption" color="#64748b">
-                    Toggle dark theme
-                  </Typography>
-                </Box>
+      {/* 3. NOTIFICATION PREFERENCES */}
+      <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: 3, border: '1px solid #e2e8f0' }}>
+        <SectionHeader title="Notification Preferences" icon={<NotificationsNoneOutlined sx={{ color: '#9333ea' }} />} />
+        
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          {[
+            { key: 'email', label: 'Email Notifications', sub: 'Receive updates via email' },
+            { key: 'push', label: 'Push Notifications', sub: 'Receive mobile notifications' },
+            { key: 'sms', label: 'SMS Notifications', sub: 'Receive SMS updates' }
+          ].map((item) => (
+            <Box key={item.key} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1 }}>
+              <Box>
+                <Typography variant="body2" fontWeight="700" color="#0f172a">{item.label}</Typography>
+                <Typography variant="caption" color="#64748b">{item.sub}</Typography>
               </Box>
-              <Switch
-                checked={darkMode}
-                onChange={(e) => setDarkMode(e.target.checked)}
+              <Switch 
+                checked={notifications[item.key]} 
+                onChange={(e) => setNotifications({...notifications, [item.key]: e.target.checked})}
+                color="secondary"
               />
             </Box>
-          </SectionCard>
-        </Grid>
-      </Grid> */}
+          ))}
+        </Box>
+      </Paper>
 
-      {/* 5. SAVE BUTTON */}
-      <Button
-        fullWidth
-        variant="contained"
-        sx={{
-          py: 2,
-          borderRadius: 3,
-          fontSize: "1rem",
-          fontWeight: 700,
-          background: "linear-gradient(90deg, #3b82f6 0%, #9E00FF 100%)", // Match the Figma button!
-          boxShadow: "0 4px 14px rgba(158, 0, 255, 0.3)",
-          "&:hover": {
-            background: "linear-gradient(90deg, #2563eb 0%, #7e22ce 100%)",
-          },
+      {/* 4. APPEARANCE */}
+      <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: 3, border: '1px solid #e2e8f0' }}>
+        <SectionHeader title="Appearance" icon={<PaletteOutlined sx={{ color: '#9333ea' }} />} />
+        
+        <Grid container spacing={4}>
+          {/* Color Picker Simulation */}
+          <Grid item xs={12} md={7}>
+            <FieldLabel text="Color Theme" />
+            <Box sx={{ border: '1px solid #e2e8f0', p: 2, borderRadius: 2 }}>
+              <Box sx={{ 
+                height: 150, width: '100%', borderRadius: 1.5, mb: 2,
+                background: 'linear-gradient(to right, #fff, #9333ea)', // Mock picker
+                position: 'relative'
+              }}>
+                <Box sx={{ position: 'absolute', bottom: 10, right: 10, bgcolor: '#fff', px: 1, py: 0.5, borderRadius: 1, fontSize: '0.7rem', fontWeight: 700 }}>80%</Box>
+              </Box>
+              <Box sx={{ height: 10, width: '100%', borderRadius: 5, background: 'linear-gradient(to right, red, yellow, green, cyan, blue, magenta, red)', mb: 2 }} />
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                <TextField size="small" defaultValue="#9D38FF" sx={{ width: 120 }} inputProps={{ style: { fontSize: '0.8rem', fontWeight: 700 } }} />
+                <Typography variant="caption" fontWeight="800" color="#94a3b8">80%</Typography>
+              </Box>
+            </Box>
+          </Grid>
+
+          {/* Mode & Font */}
+          <Grid item xs={12} md={5}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Box>
+                <Typography variant="body2" fontWeight="700" color="#0f172a">Dark Mode</Typography>
+                <Typography variant="caption" color="#64748b">Toggle dark theme</Typography>
+              </Box>
+              <Switch checked={darkMode} onChange={(e) => setDarkMode(e.target.checked)} />
+            </Box>
+            
+            <Box>
+              <FieldLabel text="Font Style" />
+              <Select fullWidth size="small" defaultValue="Poppins">
+                <MenuItem value="Poppins">Poppins</MenuItem>
+                <MenuItem value="Inter">Inter</MenuItem>
+                <MenuItem value="Roboto">Roboto</MenuItem>
+              </Select>
+            </Box>
+          </Grid>
+        </Grid>
+      </Paper>
+
+      {/* SAVE BUTTON */}
+      <Button 
+        fullWidth 
+        variant="contained" 
+        sx={{ 
+          py: 1.5, 
+          borderRadius: 2, 
+          bgcolor: '#9333ea', 
+          fontWeight: 800, 
+          textTransform: 'none',
+          '&:hover': { bgcolor: '#7e22ce' }
         }}
       >
         Save Changes
       </Button>
+
     </Box>
   );
 }
