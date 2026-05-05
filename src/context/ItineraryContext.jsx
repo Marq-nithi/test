@@ -60,37 +60,12 @@ export const ItineraryProvider = ({ children, onLogin }) => {
   // 2. Stay Details
   const [stayData, setStayData] = useState(
     savedData?.stayData || {
-      location: "",
-      hotelName: "",
-      roomCat: "",
-      checkInDate: "",
-      checkOutDate: "",
-      rooms: 1,
-      nights: 1,
-      meals: {
-        breakfast: false,
-        lunch: false,
-        dinner: false,
-        allInclusive: false,
-      },
+      hotels: [],
     },
   );
 
   // 3. Transport Details
-  const [transportData, setTransportData] = useState(
-    savedData?.transportData || {
-      type: "flight",
-      depFrom: "",
-      arrAt: "",
-      passengers: "",
-      airline: "",
-      flightNo: "",
-      depDate: "",
-      pickup: "",
-      dropoff: "",
-      vehicle: "",
-    },
-  );
+  const [transportData, setTransportData] = useState( savedData?.transportData);
 
   // 4. Day Planner
   const [dayPlannerData, setDayPlannerData] = useState(

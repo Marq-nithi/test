@@ -149,12 +149,12 @@ export default function Theme1Classic({ data, math }) {
             {stay.hotels.map((hotel, index) => (
               <Grid item xs={12} md={6} key={index}>
                 <Paper elevation={0} sx={{ p: 3, border: '1px solid #e2e8f0', borderRadius: 2, bgcolor: '#f8fafc' }}>
-                  <Typography variant="h6" fontWeight="800" color="#0f172a" mb={0.5}>{hotel.hotelName || 'Hotel Name'}</Typography>
+                  <Typography variant="h6" fontWeight="800" color="#0f172a" mb={0.5}>{hotel.hotel_name || 'Hotel Name'}</Typography>
                   <Typography variant="body2" color="#64748b" mb={2}>{hotel.location || 'Location'}</Typography>
                   <Grid container spacing={2}>
-                    <Grid item xs={6}><DetailItem label="Check-In" value={hotel.checkInDate} /></Grid>
-                    <Grid item xs={6}><DetailItem label="Check-Out" value={hotel.checkOutDate} /></Grid>
-                    <Grid item xs={6}><DetailItem label="Room Type" value={hotel.roomCat} /></Grid>
+                    <Grid item xs={6}><DetailItem label="Check-In" value={hotel.check_in_date} /></Grid>
+                    <Grid item xs={6}><DetailItem label="Check-Out" value={hotel.check_out_date} /></Grid>
+                    <Grid item xs={6}><DetailItem label="Room Type" value={hotel.room_category} /></Grid>
                     <Grid item xs={6}><DetailItem label="Rooms / Nights" value={`${hotel.rooms || 1} Room(s) / ${hotel.nights || 1} Night(s)`} /></Grid>
                   </Grid>
                 </Paper>

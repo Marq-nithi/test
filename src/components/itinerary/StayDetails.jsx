@@ -12,29 +12,63 @@ export default function StayDetails() {
   // The default blueprint for a new hotel
   const defaultHotel = {
     id: Date.now(),
-    type: 'main', // 'main' has location, 'hotel' hides location, 'split' shows location
+    hotel_type: 'main', // 'main' has location, 'hotel' hides location, 'split' shows location
     location: 'Goa, India',
-    hotelName: '',
-    hotelPref: 'Luxury Resort',
-    roomCat: 'Deluxe',
+    hotel_name: '',
+    hotel_preference: 'Luxury Resort',
+    room_category: 'Deluxe',
     rooms: 1,
     nights: 1,
-    checkInDate: '',
-    checkInTime: '3:00 PM',
-    checkOutDate: '',
-    checkOutTime: '11:00 AM',
-    meals: { breakfast: true, lunch: false, dinner: true, allInclusive: false }
+    check_in_date: '',
+    check_in_time: '',
+    check_out_date: '',
+    check_out_time: '',
+    meal_plan_breakfast: true,
+    meal_plan_lunch: false,
+    meal_plan_dinner: true,
+    meal_plan_all_inc: false
   };
 
   // Load existing data from the global brain, otherwise start fresh
-  const [hotels, setHotels] = useState(stayData?.hotels?.length ? stayData.hotels : [{ ...defaultHotel }]);
-  const [termsAccepted, setTermsAccepted] = useState(stayData?.termsAccepted ?? true);
+  const [hotels, setHotels] = useState(stayData?.hotels?.length ? stayData.hotels.map((hotel) => ({
+    ...hotel,
+    hotel_type: hotel.hotel_type || hotel.type || 'hotel',
+    hotel_name: hotel.hotel_name ?? hotel.hotelName ?? '',
+    hotel_preference: hotel.hotel_preference ?? hotel.hotelPref ?? 'Luxury Resort',
+    room_category: hotel.room_category ?? hotel.roomCat ?? 'Deluxe',
+    check_in_date: hotel.check_in_date ?? hotel.checkInDate ?? '',
+    check_in_time: hotel.check_in_time ?? hotel.checkInTime ?? '',
+    check_out_date: hotel.check_out_date ?? hotel.checkOutDate ?? '',
+    check_out_time: hotel.check_out_time ?? hotel.checkOutTime ?? '',
+    meal_plan_breakfast: hotel.meal_plan_breakfast ?? hotel.meals?.breakfast ?? false,
+    meal_plan_lunch: hotel.meal_plan_lunch ?? hotel.meals?.lunch ?? false,
+    meal_plan_dinner: hotel.meal_plan_dinner ?? hotel.meals?.dinner ?? false,
+    meal_plan_all_inc: hotel.meal_plan_all_inc ?? hotel.meals?.allInclusive ?? false,
+  })) : [{ ...defaultHotel }]);
+  const [termsAccepted, setTermsAccepted] = useState(true);
 
   // 🚀 INSTANT AUTO-SAVE
   // Every time 'hotels' or 'termsAccepted' changes, it saves to Context immediately
   useEffect(() => {
-    setStayData({ hotels, termsAccepted });
-  }, [hotels, termsAccepted, setStayData]);
+    const normalizedHotels = hotels.map((hotel) => ({
+      hotel_type: hotel.hotel_type ?? null,
+      location: hotel.location ?? null,
+      hotel_name: hotel.hotel_name ?? null,
+      hotel_preference: hotel.hotel_preference ?? null,
+      room_category: hotel.room_category ?? null,
+      rooms: hotel.rooms ?? null,
+      nights: hotel.nights ?? null,
+      check_in_date: hotel.check_in_date ?? null,
+      check_in_time: hotel.check_in_time ?? null,
+      check_out_date: hotel.check_out_date ?? null,
+      check_out_time: hotel.check_out_time ?? null,
+      meal_plan_breakfast: hotel.meal_plan_breakfast ?? null,
+      meal_plan_lunch: hotel.meal_plan_lunch ?? null,
+      meal_plan_dinner: hotel.meal_plan_dinner ?? null,
+      meal_plan_all_inc: hotel.meal_plan_all_inc ?? null,
+    }));
+    setStayData({ hotels: normalizedHotels });
+  }, [hotels, setStayData]);
 
   // Reusable label component
   const FieldLabel = ({ text, required }) => (
@@ -45,11 +79,11 @@ export default function StayDetails() {
 
   // Handlers for adding/removing forms
   const handleAddHotel = () => {
-    setHotels([...hotels, { ...defaultHotel, id: Date.now(), type: 'hotel', location: hotels[0]?.location || '' }]);
+    setHotels([...hotels, { ...defaultHotel, id: Date.now(), hotel_type: 'hotel', location: hotels[0]?.location || '' }]);
   };
 
   const handleAddSplitStay = () => {
-    setHotels([...hotels, { ...defaultHotel, id: Date.now(), type: 'split', location: '' }]);
+    setHotels([...hotels, { ...defaultHotel, id: Date.now(), hotel_type: 'split', location: '' }]);
   };
 
   const handleRemoveHotel = (id) => {
@@ -73,7 +107,7 @@ export default function StayDetails() {
   const handleMealUpdate = (id, mealType, checked) => {
     setHotels(hotels.map(hotel => {
       if (hotel.id === id) {
-        return { ...hotel, meals: { ...hotel.meals, [mealType]: checked } };
+        return { ...hotel, [mealType]: checked };
       }
       return hotel;
     }));
@@ -93,7 +127,7 @@ export default function StayDetails() {
           
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#1e293b' }}>
-              {hotel.type === 'main' ? 'Hotel Accommodation' : hotel.type === 'split' ? 'Split Stay Accommodation' : 'Additional Hotel'}
+              {hotel.hotel_type === 'main' ? 'Hotel Accommodation' : hotel.hotel_type === 'split' ? 'Split Stay Accommodation' : 'Additional Hotel'}
             </Typography>
             
             {/* Show delete button for everything except the first main hotel */}
@@ -106,7 +140,7 @@ export default function StayDetails() {
 
           <Grid container spacing={3}>
             {/* Conditionally render Location field */}
-            {hotel.type !== 'hotel' && (
+            {hotel.hotel_type !== 'hotel' && (
               <>
                 <Grid item xs={12} md={6}>
                   <FieldLabel text="Location" />
@@ -129,14 +163,14 @@ export default function StayDetails() {
               <FieldLabel text="Hotel Name" required />
               <TextField 
                 fullWidth size="small" placeholder="e.g. Taj Exotica"
-                value={hotel.hotelName} onChange={(e) => handleUpdate(hotel.id, 'hotelName', e.target.value)} 
+                value={hotel.hotel_name} onChange={(e) => handleUpdate(hotel.id, 'hotel_name', e.target.value)} 
               />
             </Grid>
             <Grid item xs={12} md={3}>
               <FieldLabel text="Hotel Preference" required />
               <Select 
                 fullWidth size="small" 
-                value={hotel.hotelPref} onChange={(e) => handleUpdate(hotel.id, 'hotelPref', e.target.value)}
+                value={hotel.hotel_preference} onChange={(e) => handleUpdate(hotel.id, 'hotel_preference', e.target.value)}
               >
                 <MenuItem value="Luxury Resort">Luxury Resort</MenuItem>
                 <MenuItem value="Boutique Hotel">Boutique Hotel</MenuItem>
@@ -147,7 +181,7 @@ export default function StayDetails() {
               <FieldLabel text="Room Category" />
               <Select 
                 fullWidth size="small" 
-                value={hotel.roomCat} onChange={(e) => handleUpdate(hotel.id, 'roomCat', e.target.value)}
+                value={hotel.room_category} onChange={(e) => handleUpdate(hotel.id, 'room_category', e.target.value)}
               >
                 <MenuItem value="Standard">Standard</MenuItem>
                 <MenuItem value="Deluxe">Deluxe</MenuItem>
@@ -179,7 +213,7 @@ export default function StayDetails() {
                <FieldLabel text="Check-In Date" required />
                <TextField 
                  fullWidth size="small" type="date" 
-                 value={hotel.checkInDate} onChange={(e) => handleUpdate(hotel.id, 'checkInDate', e.target.value)} 
+                 value={hotel.check_in_date} onChange={(e) => handleUpdate(hotel.id, 'check_in_date', e.target.value)} 
                  InputLabelProps={{ shrink: true }} 
                />
             </Grid>
@@ -187,7 +221,7 @@ export default function StayDetails() {
                <FieldLabel text="Check-In Time" />
                <Select 
                  fullWidth size="small" 
-                 value={hotel.checkInTime} onChange={(e) => handleUpdate(hotel.id, 'checkInTime', e.target.value)}
+                 value={hotel.check_in_time} onChange={(e) => handleUpdate(hotel.id, 'check_in_time', e.target.value)}
                >
                  <MenuItem value="12:00 PM">12:00 PM</MenuItem>
                  <MenuItem value="2:00 PM">2:00 PM</MenuItem>
@@ -198,7 +232,7 @@ export default function StayDetails() {
                <FieldLabel text="Check-Out Date" required />
                <TextField 
                  fullWidth size="small" type="date" 
-                 value={hotel.checkOutDate} onChange={(e) => handleUpdate(hotel.id, 'checkOutDate', e.target.value)} 
+                 value={hotel.check_out_date} onChange={(e) => handleUpdate(hotel.id, 'check_out_date', e.target.value)} 
                  InputLabelProps={{ shrink: true }} 
                />
             </Grid>
@@ -206,7 +240,7 @@ export default function StayDetails() {
                <FieldLabel text="Check-Out Time" />
                <Select 
                  fullWidth size="small" 
-                 value={hotel.checkOutTime} onChange={(e) => handleUpdate(hotel.id, 'checkOutTime', e.target.value)}
+                 value={hotel.check_out_time} onChange={(e) => handleUpdate(hotel.id, 'check_out_time', e.target.value)}
                >
                  <MenuItem value="10:00 AM">10:00 AM</MenuItem>
                  <MenuItem value="11:00 AM">11:00 AM</MenuItem>
@@ -218,10 +252,10 @@ export default function StayDetails() {
             <Grid item xs={12}>
               <FieldLabel text="Meal Plan" />
               <FormGroup row sx={{ mt: -0.5 }}>
-                <FormControlLabel control={<Checkbox checked={hotel.meals.breakfast} onChange={(e) => handleMealUpdate(hotel.id, 'breakfast', e.target.checked)} size="small" sx={{ color: '#cbd5e1', '&.Mui-checked': { color: '#0ea5e9' } }} />} label={<Typography variant="body2" fontWeight={600}>Breakfast</Typography>} />
-                <FormControlLabel control={<Checkbox checked={hotel.meals.lunch} onChange={(e) => handleMealUpdate(hotel.id, 'lunch', e.target.checked)} size="small" sx={{ color: '#cbd5e1', '&.Mui-checked': { color: '#0ea5e9' } }} />} label={<Typography variant="body2" fontWeight={600}>Lunch</Typography>} />
-                <FormControlLabel control={<Checkbox checked={hotel.meals.dinner} onChange={(e) => handleMealUpdate(hotel.id, 'dinner', e.target.checked)} size="small" sx={{ color: '#cbd5e1', '&.Mui-checked': { color: '#0ea5e9' } }} />} label={<Typography variant="body2" fontWeight={600}>Dinner</Typography>} />
-                <FormControlLabel control={<Checkbox checked={hotel.meals.allInclusive} onChange={(e) => handleMealUpdate(hotel.id, 'allInclusive', e.target.checked)} size="small" sx={{ color: '#cbd5e1', '&.Mui-checked': { color: '#0ea5e9' } }} />} label={<Typography variant="body2" fontWeight={600}>All Inclusive</Typography>} />
+                <FormControlLabel control={<Checkbox checked={!!hotel.meal_plan_breakfast} onChange={(e) => handleMealUpdate(hotel.id, 'meal_plan_breakfast', e.target.checked)} size="small" sx={{ color: '#cbd5e1', '&.Mui-checked': { color: '#0ea5e9' } }} />} label={<Typography variant="body2" fontWeight={600}>Breakfast</Typography>} />
+                <FormControlLabel control={<Checkbox checked={!!hotel.meal_plan_lunch} onChange={(e) => handleMealUpdate(hotel.id, 'meal_plan_lunch', e.target.checked)} size="small" sx={{ color: '#cbd5e1', '&.Mui-checked': { color: '#0ea5e9' } }} />} label={<Typography variant="body2" fontWeight={600}>Lunch</Typography>} />
+                <FormControlLabel control={<Checkbox checked={!!hotel.meal_plan_dinner} onChange={(e) => handleMealUpdate(hotel.id, 'meal_plan_dinner', e.target.checked)} size="small" sx={{ color: '#cbd5e1', '&.Mui-checked': { color: '#0ea5e9' } }} />} label={<Typography variant="body2" fontWeight={600}>Dinner</Typography>} />
+                <FormControlLabel control={<Checkbox checked={!!hotel.meal_plan_all_inc} onChange={(e) => handleMealUpdate(hotel.id, 'meal_plan_all_inc', e.target.checked)} size="small" sx={{ color: '#cbd5e1', '&.Mui-checked': { color: '#0ea5e9' } }} />} label={<Typography variant="body2" fontWeight={600}>All Inclusive</Typography>} />
               </FormGroup>
             </Grid>
 

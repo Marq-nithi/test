@@ -10,12 +10,11 @@ import {
 } from '@mui/icons-material';
 
 const getMealString = (hotel) => {
-  if (!hotel?.meals) return 'Room Only';
-  if (hotel.meals.allInclusive) return 'All Inclusive';
+  if (hotel?.meal_plan_all_inc) return 'All Inclusive';
   const selected = [];
-  if (hotel.meals.breakfast) selected.push('Breakfast');
-  if (hotel.meals.lunch) selected.push('Lunch');
-  if (hotel.meals.dinner) selected.push('Dinner');
+  if (hotel?.meal_plan_breakfast) selected.push('Breakfast');
+  if (hotel?.meal_plan_lunch) selected.push('Lunch');
+  if (hotel?.meal_plan_dinner) selected.push('Dinner');
   return selected.length > 0 ? selected.join(' & ') : 'Room Only';
 };
 
@@ -200,21 +199,21 @@ export default function Theme3Coastal({ data, math }) {
                     <Chip label="Premium" size="small" sx={{ position: 'absolute', top: 12, right: 12, bgcolor: '#fff', color: c.text, fontWeight: 800 }} />
                   </Box>
                   <Box sx={{ p: 2.5 }}>
-                    <Typography variant="subtitle1" fontWeight="900" color={c.text} mb={0.5} noWrap>{hotel.hotelName}</Typography>
+                    <Typography variant="subtitle1" fontWeight="900" color={c.text} mb={0.5} noWrap>{hotel.hotel_name}</Typography>
                     <Typography variant="caption" color={c.muted} display="flex" alignItems="center" gap={0.5} mb={2}><LocationOn fontSize="inherit" /> {hotel.location}</Typography>
                     
                     <Box display="flex" gap={2} mb={2}>
                       <Box>
                         <Typography variant="caption" color={c.muted} display="block">Check In</Typography>
-                        <Typography variant="body2" fontWeight="700">{hotel.checkInDate}</Typography>
+                        <Typography variant="body2" fontWeight="700">{hotel.check_in_date}</Typography>
                       </Box>
                       <Box>
                         <Typography variant="caption" color={c.muted} display="block">Check Out</Typography>
-                        <Typography variant="body2" fontWeight="700">{hotel.checkOutDate}</Typography>
+                        <Typography variant="body2" fontWeight="700">{hotel.check_out_date}</Typography>
                       </Box>
                     </Box>
                     <Divider sx={{ my: 1.5 }} />
-                    <Typography variant="caption" fontWeight="800" color={c.accent} display="block">{hotel.rooms}x {hotel.roomCat} Room</Typography>
+                    <Typography variant="caption" fontWeight="800" color={c.accent} display="block">{hotel.rooms}x {hotel.room_category} Room</Typography>
                     <Typography variant="caption" color={c.text} display="block">{getMealString(hotel)}</Typography>
                   </Box>
                 </Paper>
