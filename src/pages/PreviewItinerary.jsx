@@ -1,8 +1,7 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { Box, Fab, Tooltip } from '@mui/material';
 import { ArrowBack, Print } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { useReactToPrint } from 'react-to-print';
 import { useItinerary } from '../context/ItineraryContext';
 
 // Import Themes
@@ -13,11 +12,11 @@ import Theme3Coastal from '../components/itinerary/themes/Theme3Coastal';
 export default function PreviewItinerary() {
   const navigate = useNavigate();
   const context = useItinerary();
-  const printRef = useRef();
 
   // 1. SAFELY GRAB ALL DATA FROM CONTEXT
   const safeData = {
     client: context?.clientData || {},
+    themeConfig: context?.themeConfig || {}, // Custom colors/images
     stay: { hotels: Array.isArray(context?.stayData?.hotels) ? context.stayData.hotels : [] },
     transport: {
       types: context?.transportData?.types || {},
@@ -49,15 +48,14 @@ export default function PreviewItinerary() {
     grandTotal: subtotal + gst - discount 
   };
 
-  // 3. PRINT FUNCTION
-  const handlePrint = useReactToPrint({
-    content: () => printRef.current,
-    documentTitle: `${safeData.client?.clientName || 'Client'}_Itinerary`,
-    pageStyle: `@page { size: auto; margin: 0mm; } @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }`
-  });
+  // 🚨 3. THE BULLETPROOF PRINT FUNCTION
+  const handlePrint = () => {
+    // This triggers the native browser print/save-to-pdf dialog instantly
+    window.print();
+  };
 
   // 4. DETERMINE WHICH THEME TO SHOW
-  const theme = safeData.client?.theme || 'coastal'; // Defaulting to Coastal for your screenshot
+  const theme = safeData.client?.theme || 'coastal'; // Defaulting to Coastal
   
   const renderTheme = () => {
     if (theme === 'midnight') return <Theme2Midnight data={safeData} math={math} />;
@@ -68,14 +66,18 @@ export default function PreviewItinerary() {
   return (
     <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh', position: 'relative' }}>
       
-      {/* FLOATING ACTION BUTTONS (Hidden during print) */}
-      <Box sx={{ position: 'fixed', bottom: 32, right: 32, display: 'flex', gap: 2, zIndex: 1000, '@media print': { display: 'none' } }}>
+      {/* 🚨 FLOATING ACTION BUTTONS */}
+      {/* We add the class "hide-on-print" so these disappear when the PDF is generating */}
+      <Box 
+        className="hide-on-print"
+        sx={{ position: 'fixed', bottom: 32, right: 32, display: 'flex', gap: 2, zIndex: 1000 }}
+      >
         <Tooltip title="Back to Builder" placement="top">
-          <Fab color="default" onClick={() => navigate('/itinerary-builder')} sx={{ bgcolor: '#fff' }}>
+          <Fab color="default" onClick={() => navigate(-1)} sx={{ bgcolor: '#fff' }}>
             <ArrowBack />
           </Fab>
         </Tooltip>
-        <Tooltip title="Print / PDF" placement="top">
+        <Tooltip title="Download PDF" placement="top">
           <Fab color="primary" onClick={handlePrint} sx={{ bgcolor: '#00c6ff', '&:hover': { bgcolor: '#00b4e6' } }}>
             <Print />
           </Fab>
@@ -83,10 +85,34 @@ export default function PreviewItinerary() {
       </Box>
 
       {/* THEME RENDERER */}
-      <Box ref={printRef}>
+      <Box sx={{ bgcolor: '#fff' }}>
         {renderTheme()}
       </Box>
 
+      {/* 🚨 CSS MAGIC FOR PERFECT PDF EXPORT */}
+      <style>
+        {`
+          @media print {
+            /* 1. Hide the floating buttons completely */
+            .hide-on-print { 
+              display: none !important; 
+            }
+            
+            /* 2. Force the browser to print background colors and images */
+            body { 
+              -webkit-print-color-adjust: exact !important; 
+              print-color-adjust: exact !important; 
+              background-color: white !important;
+            }
+
+            /* 3. Remove default browser margins, dates, and URLs from the PDF edges */
+            @page { 
+              size: auto;
+              margin: 0mm; 
+            }
+          }
+        `}
+      </style>
     </Box>
   );
 }

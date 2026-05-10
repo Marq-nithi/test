@@ -32,7 +32,7 @@ export default function Sidebar() {
     {
       title: "Lead Management",
       icon: <SupportAgent />,
-      path: "/lead-management",
+      path: "/lead-",
     }, // <-- NEW SECTION
     { title: "Itinerary Builder", icon: <Map />, path: "/itinerary-builder" },
     { title: "Settings", icon: <Settings />, path: "/settings" },
@@ -76,7 +76,7 @@ export default function Sidebar() {
           ATLAS
         </Typography>
       </Box>
-
+management
       {/* 2. SEARCH BAR */}
       <Box sx={{ px: 3, mb: 3 }}>
         <Box

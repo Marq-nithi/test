@@ -35,7 +35,7 @@ export default function ClientDetails() {
   const emptyState = {
     title: "",
     name: "",
-    phone: "",
+    contact: "",
     email: "",
     budget: "",
     adults: "",
@@ -54,11 +54,15 @@ export default function ClientDetails() {
 
   // 🚨 Load from clientData
   const [formData, setFormData] = useState(clientData || emptyState);
-  console.log(clientData);
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
+
+  // 🚨 Sync to setClientData
+  useEffect(() => {
+    if (setClientData) setClientData(formData);
+  }, [formData, setClientData]);
 
   // AUTO-CALCULATION: Dates to Nights/Days
   useEffect(() => {
@@ -189,7 +193,7 @@ export default function ClientDetails() {
               size="small"
               placeholder="Enter 10-digit number"
               type="tel"
-              value={formData.phone}
+              value={formData.contact}
               onChange={handleContactChange}
             />
           </Grid>
@@ -230,7 +234,7 @@ export default function ClientDetails() {
               select
               fullWidth
               size="small"
-              value={formData.no_of_adults}
+              value={formData.adults}
               onChange={(e) => handleChange("adults", e.target.value)}
             >
               <MenuItem value="" disabled>
@@ -248,7 +252,7 @@ export default function ClientDetails() {
               select
               fullWidth
               size="small"
-              value={formData.no_of_infants}
+              value={formData.infants}
               onChange={(e) => handleChange("infants", e.target.value)}
             >
               <MenuItem value="" disabled>
@@ -265,7 +269,7 @@ export default function ClientDetails() {
               select
               fullWidth
               size="small"
-              value={formData.no_of_children}
+              value={formData.children}
               onChange={(e) => {
                 handleChange("children", e.target.value);
                 handleChange("childAges", []);
@@ -320,12 +324,13 @@ export default function ClientDetails() {
               select
               fullWidth
               size="small"
-              value={formData.dist_location}
+              value={formData.destination}
               onChange={(e) => handleChange("destination", e.target.value)}
             >
               <MenuItem value="" disabled>
                 Select Destination
               </MenuItem>
+              <MenuItem value="Maldives">Singapore</MenuItem>{" "}
               <MenuItem value="Maldives">Maldives</MenuItem>
               <MenuItem value="Switzerland">Switzerland</MenuItem>
               <MenuItem value="Japan">Japan</MenuItem>
@@ -339,7 +344,7 @@ export default function ClientDetails() {
               fullWidth
               size="small"
               InputLabelProps={{ shrink: true }}
-              value={formData.start_date}
+              value={formData.startDate}
               onChange={(e) => handleChange("startDate", e.target.value)}
             />
           </Grid>
@@ -350,7 +355,7 @@ export default function ClientDetails() {
               fullWidth
               size="small"
               InputLabelProps={{ shrink: true }}
-              value={formData.end_date}
+              value={formData.endDate}
               onChange={(e) => handleChange("endDate", e.target.value)}
             />
           </Grid>
@@ -396,7 +401,7 @@ export default function ClientDetails() {
               select
               fullWidth
               size="small"
-              value={formData.handled_by}
+              value={formData.queryHandledBy}
               onChange={(e) => handleChange("queryHandledBy", e.target.value)}
             >
               <MenuItem value="" disabled>

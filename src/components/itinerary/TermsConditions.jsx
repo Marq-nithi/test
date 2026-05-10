@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Box, Typography, Paper, Button, Checkbox, FormControlLabel, 
-  TextField, IconButton, Divider
+  TextField, IconButton, Divider, Grid, MenuItem
 } from '@mui/material';
 import { 
   FormatBold, FormatItalic, FormatUnderlined, 
@@ -10,6 +10,33 @@ import {
 } from '@mui/icons-material';
 
 import { useItinerary } from '../../context/ItineraryContext'; 
+
+// ==========================================
+// 🎨 FIGMA-STYLE UI COMPONENTS
+// ==========================================
+const FieldLabel = ({ text, required }) => (
+  <Typography variant="caption" sx={{ fontWeight: 600, color: '#334155', mb: 1, display: 'block', fontSize: '0.85rem' }}>
+    {text} {required && <span style={{ color: '#ef4444' }}>*</span>}
+  </Typography>
+);
+
+const StyledTextField = (props) => (
+  <TextField
+    {...props}
+    size="small"
+    sx={{
+      '& .MuiOutlinedInput-root': {
+        bgcolor: '#fff',
+        borderRadius: '8px',
+        '& fieldset': { borderColor: '#e2e8f0', transition: 'all 0.2s ease-in-out' },
+        '&:hover fieldset': { borderColor: '#cbd5e1' },
+        '&.Mui-focused fieldset': { borderColor: '#0ea5e9', borderWidth: '1px' },
+      },
+      '& .MuiInputBase-input': { color: '#475569', fontSize: '0.875rem', fontWeight: 400 },
+      ...props.sx
+    }}
+  />
+);
 
 // ==========================================
 // 📝 PREDEFINED DEFAULT TEXTS
@@ -68,6 +95,17 @@ export default function TermsAndConditions() {
   const [customPaymentInput, setCustomPaymentInput] = useState('');
   const [customProtectionInput, setCustomProtectionInput] = useState('');
 
+  // 🚨 NEW: Bank Details State
+  const [bankDetails, setBankDetails] = useState(termsData?.bankDetails || {
+    bankName: '',
+    accountHolderName: '',
+    accountNumber: '',
+    ifscCode: '',
+    branchName: '',
+    accountType: '',
+    additionalInstructions: ''
+  });
+
   // Sync Everything to Global Context
   useEffect(() => {
     if (setTermsData) {
@@ -79,25 +117,24 @@ export default function TermsAndConditions() {
         customTerms: customTermsList, 
         customPolicies: customPoliciesList, 
         customPayments: customPaymentsList, 
-        customProtections: customProtectionsList
+        customProtections: customProtectionsList,
+        bankDetails: bankDetails // Added Bank Details to auto-save!
       });
     }
   }, [
     selectedTerms, selectedPolicies, selectedPayments, selectedProtections, 
     customTermsList, customPoliciesList, customPaymentsList, customProtectionsList, 
-    setTermsData
+    bankDetails, setTermsData
   ]);
 
   // ==========================================
   // 🛠️ UNIVERSAL HANDLERS
   // ==========================================
   
-  // Toggles a single checkbox
   const handleToggle = (item, selectedList, setSelectedList) => {
     setSelectedList(prev => prev.includes(item) ? prev.filter(t => t !== item) : [...prev, item]);
   };
 
-  // Handles "Select All"
   const handleSelectAll = (e, defaultList, customList, setSelectedList) => {
     if (e.target.checked) {
       setSelectedList([...defaultList, ...customList]);
@@ -106,22 +143,27 @@ export default function TermsAndConditions() {
     }
   };
 
-  // Handles adding a custom typed rule
   const handleAddCustom = (input, setInput, customList, setCustomList, selectedList, setSelectedList) => {
     if (input.trim()) {
       setCustomList([...customList, input.trim()]);
-      setSelectedList([...selectedList, input.trim()]); // Auto-check it
+      setSelectedList([...selectedList, input.trim()]); 
       setInput('');
     }
   };
 
-  // Clears the entire page
+  const handleBankDetailChange = (field, value) => {
+    setBankDetails(prev => ({ ...prev, [field]: value }));
+  };
+
   const handleClearAll = () => {
     setSelectedTerms([]); setSelectedPolicies([]); setSelectedPayments([]); setSelectedProtections([]);
     setCustomTermsList([]); setCustomPoliciesList([]); setCustomPaymentsList([]); setCustomProtectionsList([]);
     setCustomTermInput(''); setCustomPolicyInput(''); setCustomPaymentInput(''); setCustomProtectionInput('');
+    setBankDetails({
+      bankName: '', accountHolderName: '', accountNumber: '', 
+      ifscCode: '', branchName: '', accountType: '', additionalInstructions: ''
+    });
   };
-
 
   // ==========================================
   // 🧩 REUSABLE UI COMPONENTS
@@ -144,7 +186,6 @@ export default function TermsAndConditions() {
     </Box>
   );
 
-  // A reusable section block so we don't repeat the same layout 4 times
   const SectionBlock = ({ 
     title, defaultList, customList, selectedList, setSelectedList, 
     inputValue, setInputValue, setCustomList, buttonText 
@@ -197,22 +238,22 @@ export default function TermsAndConditions() {
     <Box sx={{ maxWidth: 1000, mx: 'auto', p: { xs: 2, md: 4 }, bgcolor: '#f8fafc', minHeight: '100vh', pb: 12 }}>
       
       {/* HEADER */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4 }}>
         <Box>
-          <Typography variant="h5" fontWeight="900" color="#0f172a" mb={0.5}>Terms & Conditions</Typography>
+          <Typography variant="h5" fontWeight="800" color="#0f172a" mb={0.5}>Terms & Conditions</Typography>
           <Typography variant="body2" color="#64748b">
             Define all legal, payment, and protection terms for your client's trip
           </Typography>
         </Box>
         <Button 
           variant="outlined" size="small" onClick={handleClearAll}
-          sx={{ borderColor: '#cbd5e1', color: '#475569', fontWeight: 700, textTransform: 'none', borderRadius: 2, px: 3, bgcolor: '#fff' }}
+          sx={{ borderColor: '#e2e8f0', color: '#334155', fontWeight: 600, textTransform: 'none', borderRadius: '8px', px: 3, bgcolor: '#fff' }}
         >
           Clear All
         </Button>
       </Box>
 
-      {/* RENDER SECTIONS USING THE REUSABLE BLOCK */}
+      {/* RENDER LEGAL SECTIONS */}
       <SectionBlock 
         title="Terms & Con" buttonText="Add Terms & Con"
         defaultList={DEFAULT_TERMS} customList={customTermsList} selectedList={selectedTerms}
@@ -240,6 +281,101 @@ export default function TermsAndConditions() {
         setSelectedList={setSelectedProtections} setCustomList={setCustomProtectionsList}
         inputValue={customProtectionInput} setInputValue={setCustomProtectionInput}
       />
+
+      {/* ==========================================
+          BANK ACCOUNT DETAILS 
+          ========================================== */}
+      <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: '12px', border: '1px solid #e2e8f0', bgcolor: '#fff' }}>
+        <Typography variant="h6" fontWeight="700" color="#0f172a" mb={3}>
+          Bank Account Details
+        </Typography>
+
+        <Grid container spacing={3} mb={3}>
+          <Grid item xs={12} md={4}>
+            <FieldLabel text="Bank Name" />
+            <StyledTextField 
+              fullWidth placeholder="Enter bank name" 
+              value={bankDetails.bankName} 
+              onChange={(e) => handleBankDetailChange('bankName', e.target.value)} 
+            />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <FieldLabel text="Account Holder Name" />
+            <StyledTextField 
+              fullWidth placeholder="Enter account holder name" 
+              value={bankDetails.accountHolderName} 
+              onChange={(e) => handleBankDetailChange('accountHolderName', e.target.value)} 
+            />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <FieldLabel text="Account Number" />
+            <StyledTextField 
+              fullWidth placeholder="Enter account number" 
+              value={bankDetails.accountNumber} 
+              onChange={(e) => handleBankDetailChange('accountNumber', e.target.value)} 
+            />
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <FieldLabel text="IFSC Code / Swift Code" />
+            <StyledTextField 
+              fullWidth placeholder="Enter IFSC/Swift code" 
+              value={bankDetails.ifscCode} 
+              onChange={(e) => handleBankDetailChange('ifscCode', e.target.value)} 
+            />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <FieldLabel text="Branch Name" />
+            <StyledTextField 
+              fullWidth placeholder="Enter branch name" 
+              value={bankDetails.branchName} 
+              onChange={(e) => handleBankDetailChange('branchName', e.target.value)} 
+            />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <FieldLabel text="Account Type" />
+            <StyledTextField 
+              fullWidth select SelectProps={{ displayEmpty: true }} 
+              value={bankDetails.accountType} 
+              onChange={(e) => handleBankDetailChange('accountType', e.target.value)} 
+            >
+              <MenuItem value="" disabled>Select account type</MenuItem>
+              <MenuItem value="Savings">Savings</MenuItem>
+              <MenuItem value="Current">Current</MenuItem>
+              <MenuItem value="Business">Business</MenuItem>
+            </StyledTextField>
+          </Grid>
+        </Grid>
+
+        <Box mb={3}>
+          <FieldLabel text="Additional Instructions" />
+          <StyledTextField 
+            fullWidth multiline rows={4} 
+            placeholder="Add any additional payment instructions..." 
+            value={bankDetails.additionalInstructions} 
+            onChange={(e) => handleBankDetailChange('additionalInstructions', e.target.value)} 
+          />
+        </Box>
+
+        <Button 
+          variant="contained" 
+          sx={{ 
+            bgcolor: '#0ea5e9', // Base color to match your button
+            background: 'linear-gradient(to right, #2563eb, #0ea5e9)', // Blue to teal gradient matching the screenshot
+            color: '#fff', 
+            fontWeight: 600, 
+            textTransform: 'none', 
+            borderRadius: '8px', 
+            px: 3, 
+            py: 1,
+            boxShadow: 'none',
+            '&:hover': { background: 'linear-gradient(to right, #1d4ed8, #0284c7)', boxShadow: 'none' } 
+          }}
+          onClick={() => alert("Bank Details Saved!")} // You can wire this up to your API if needed
+        >
+          Save Bank Details
+        </Button>
+      </Paper>
 
     </Box>
   );

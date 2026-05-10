@@ -4,7 +4,7 @@ import {
   MenuItem, Button, Box, Divider, List, ListItem, ListItemText, 
   IconButton, Card, CardMedia, ThemeProvider, createTheme, CssBaseline 
 } from '@mui/material';
-import { AddCircleOutline, DeleteOutline, PictureAsPdf, PhotoCamera } from '@mui/icons-material';
+import { AddCircleOutline,   PictureAsPdf, PhotoCamera } from '@mui/icons-material';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
