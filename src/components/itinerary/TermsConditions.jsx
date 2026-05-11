@@ -356,25 +356,6 @@ export default function TermsAndConditions() {
             onChange={(e) => handleBankDetailChange('additionalInstructions', e.target.value)} 
           />
         </Box>
-
-        <Button 
-          variant="contained" 
-          sx={{ 
-            bgcolor: '#0ea5e9', // Base color to match your button
-            background: 'linear-gradient(to right, #2563eb, #0ea5e9)', // Blue to teal gradient matching the screenshot
-            color: '#fff', 
-            fontWeight: 600, 
-            textTransform: 'none', 
-            borderRadius: '8px', 
-            px: 3, 
-            py: 1,
-            boxShadow: 'none',
-            '&:hover': { background: 'linear-gradient(to right, #1d4ed8, #0284c7)', boxShadow: 'none' } 
-          }}
-          onClick={() => alert("Bank Details Saved!")} // You can wire this up to your API if needed
-        >
-          Save Bank Details
-        </Button>
       </Paper>
 
     </Box>

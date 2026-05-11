@@ -234,7 +234,11 @@ export default function Theme3Coastal() {
 
           {days.map((day, i) => {
             const isEven = i % 2 === 0;
-            const safeImages = Array.isArray(day.images) ? day.images : [];
+            const safeImages = Array.isArray(day.images)
+              ? day.images
+                  .map((v) => (typeof v === "string" ? v : v?.url))
+                  .filter(Boolean)
+              : [];
             const img = safeImages.length > 0 ? safeImages[0] : (i === 0 ? DAY1_IMG : i === 1 ? DAY2_IMG : DAY3_IMG);
             const safeMeals = Array.isArray(day.meals) ? day.meals : [];
 

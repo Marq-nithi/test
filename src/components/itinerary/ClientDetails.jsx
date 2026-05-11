@@ -53,7 +53,7 @@ export default function ClientDetails() {
   };
 
   // 🚨 Load from clientData
-  const [formData, setFormData] = useState(clientData || emptyState);
+  const [formData, setFormData] = useState({ ...emptyState, ...(clientData || {}) });
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -65,37 +65,38 @@ export default function ClientDetails() {
   }, [formData, setClientData]);
 
   // AUTO-CALCULATION: Dates to Nights/Days
-  useEffect(() => {
-    if (formData.startDate && formData.endDate) {
-      const start = new Date(formData.startDate);
-      const end = new Date(formData.endDate);
-      if (end >= start) {
-        const diffTime = Math.abs(end - start);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        setFormData((prev) => ({
-          ...prev,
-          nights: diffDays.toString(),
-          days: (diffDays + 1).toString(),
-        }));
-      } else {
-        setFormData((prev) => ({ ...prev, nights: "", days: "" }));
-      }
-    } else {
-      setFormData((prev) => ({ ...prev, nights: "", days: "" }));
-    }
-  }, [formData.startDate, formData.endDate]);
+  // useEffect(() => {
+  //   if (formData.startDate && formData.endDate) {
+  //     const start = new Date(formData.startDate);
+  //     const end = new Date(formData.endDate);
+  //     if (end >= start) {
+  //       const diffTime = Math.abs(end - start);
+  //       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  //       setFormData((prev) => ({
+  //         ...prev,
+  //         nights: diffDays.toString(),
+  //         days: (diffDays + 1).toString(),
+  //       }));
+  //     } else {
+  //       setFormData((prev) => ({ ...prev, nights: "", days: "" }));
+  //     }
+  //   } else {
+  //     setFormData((prev) => ({ ...prev, nights: "", days: "" }));
+  //   }
+  // }, [formData.startDate, formData.endDate]);
 
   const handleContactChange = (e) => {
     const value = e.target.value;
     if (/^\d{0,10}$/.test(value)) handleChange("contact", value);
   };
 
+  const normalizedEmail = String(formData?.email ?? "");
   const isEmailValid =
-    formData.email === "" ||
-    formData.email.toLowerCase().endsWith("@gmail.com");
+    normalizedEmail === "" ||
+    normalizedEmail.toLowerCase().endsWith("@gmail.com");
 
   const handleChildAgeChange = (index, value) => {
-    const newAges = [...formData.childAges];
+    const newAges = [...(Array.isArray(formData.childAges) ? formData.childAges : [])];
     newAges[index] = value;
     handleChange("childAges", newAges);
   };
@@ -335,6 +336,7 @@ export default function ClientDetails() {
               <MenuItem value="Switzerland">Switzerland</MenuItem>
               <MenuItem value="Japan">Japan</MenuItem>
               <MenuItem value="Dubai">Dubai</MenuItem>
+              <MenuItem value="Goa">Dubai</MenuItem>
             </TextField>
           </Grid>
           <Grid item xs={12} md={4}>
@@ -427,6 +429,7 @@ export default function ClientDetails() {
               <MenuItem value="New">New</MenuItem>
               <MenuItem value="In Progress">In Progress</MenuItem>
               <MenuItem value="Closed">Closed</MenuItem>
+              <MenuItem value="Contacted">Closed</MenuItem>
             </TextField>
           </Grid>
           <Grid item xs={12} md={4}>

@@ -40,20 +40,20 @@ export default function ThemeSelection() {
   };
 
   const themes = [
-    {
-      id: 'midnight',
-      name: 'Midnight Slate',
-      description: 'Deep charcoal and champagne gold for ultimate luxury.',
-      image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=800&q=80',
-      bgColor: '#0f172a', textColor: '#ffffff', accentColor: '#fbbf24'
-    },
-    {
-      id: 'luxe',
-      name: 'Classic Luxe',
-      description: 'Timeless ivory and serif typography with goldenrod accents.',
-      image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=80',
-      bgColor: '#ffffff', textColor: '#1e293b', accentColor: '#d4af37'
-    },
+    // {
+    //   id: 'midnight',
+    //   name: 'Midnight Slate',
+    //   description: 'Deep charcoal and champagne gold for ultimate luxury.',
+    //   image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=800&q=80',
+    //   bgColor: '#0f172a', textColor: '#ffffff', accentColor: '#fbbf24'
+    // },
+    // {
+    //   id: 'luxe',
+    //   name: 'Classic Luxe',
+    //   description: 'Timeless ivory and serif typography with goldenrod accents.',
+    //   image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=80',
+    //   bgColor: '#ffffff', textColor: '#1e293b', accentColor: '#d4af37'
+    // },
     {
       id: 'coastal',
       name: 'Coastal Serenity',

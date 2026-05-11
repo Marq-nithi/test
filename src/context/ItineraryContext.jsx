@@ -11,6 +11,73 @@ const loadSavedData = () => {
   return saved ? JSON.parse(saved) : null;
 };
 
+const sanitizeImagesForStorage = (images = []) => {
+  if (!Array.isArray(images)) return [];
+  return images
+    .map((img) => {
+      if (typeof img === "string") {
+        if (img.startsWith("data:") || img.startsWith("blob:")) return null;
+        return img;
+      }
+      if (img && typeof img === "object") {
+        if (img.id) return { id: img.id };
+        if (img.url && typeof img.url === "string" && img.url.startsWith("http")) {
+          return { url: img.url };
+        }
+      }
+      return null;
+    })
+    .filter(Boolean);
+};
+
+const sanitizeDayPlannerForStorage = (days = []) => {
+  if (!Array.isArray(days)) return days;
+  return days.map((day) => ({
+    ...day,
+    images: sanitizeImagesForStorage(day?.images),
+  }));
+};
+
+const getDefaultStayData = () => ({ hotels: [] });
+const getDefaultTransportData = () => ({
+  trains: [],
+  buses: [],
+  grounds: [],
+  flights: [],
+});
+const getDefaultDayPlannerData = () => [{ day: 1, title: "", description: "" }];
+const getDefaultPriceData = () => ({
+  items: [
+    {
+      id: Date.now(),
+      category: "Accommodation",
+      description: "",
+      quantity: 1,
+      unitPrice: 0,
+    },
+  ],
+  taxes: { gst: 18, serviceTax: 5 },
+  discount: { type: "Percentage (%)", value: 0 },
+});
+const getDefaultInclExclData = () => ({
+  inclusions: {
+    accommodation: false,
+    guide: false,
+    meals: false,
+    optionalTours: false,
+    taxes: false,
+    travelInsurance: false,
+  },
+  exclusions: {
+    airfare: false,
+    personalExpenses: false,
+    tips: false,
+    optionalTours: false,
+    visaFees: false,
+    travelInsurance: false,
+  },
+});
+
 export const ItineraryProvider = ({ children, onLogin }) => {
   const { api, login, setUser } = useApi();
   const savedData = loadSavedData();
@@ -59,64 +126,36 @@ export const ItineraryProvider = ({ children, onLogin }) => {
 
   // 2. Stay Details
   const [stayData, setStayData] = useState(
-    savedData?.stayData || {
-      hotels: [],
-    },
+    savedData?.stayData || getDefaultStayData(),
   );
 
   // 3. Transport Details
-  const [transportData, setTransportData] = useState( savedData?.transportData);
+  const [transportData, setTransportData] = useState(
+    savedData?.transportData || getDefaultTransportData(),
+  );
 
   // 4. Day Planner
   const [dayPlannerData, setDayPlannerData] = useState(
-    savedData?.dayPlannerData || [{ day: 1, title: "", description: "" }],
+    savedData?.dayPlannerData || getDefaultDayPlannerData(),
   );
 
   // 5. Price Details
   const [priceData, setPriceData] = useState(
-    savedData?.priceData || {
-      items: [
-        {
-          id: Date.now(),
-          category: "Accommodation",
-          description: "",
-          quantity: 1,
-          unitPrice: 0,
-        },
-      ],
-      taxes: { gst: 18, serviceTax: 5 },
-      discount: { type: "Percentage (%)", value: 0 },
-    },
+    savedData?.priceData || getDefaultPriceData(),
   );
 
   // 6. Inclusions & Exclusions
   const [inclExclData, setInclExclData] = useState(
-    savedData?.inclExclData || {
-      inclusions: {
-        accommodation: false,
-        guide: false,
-        meals: false,
-        optionalTours: false,
-        taxes: false,
-        travelInsurance: false,
-      },
-      exclusions: {
-        airfare: false,
-        personalExpenses: false,
-        tips: false,
-        optionalTours: false,
-        visaFees: false,
-        travelInsurance: false,
-      },
-    },
+    savedData?.inclExclData || getDefaultInclExclData(),
   );
 
   // 7. Terms & Conditions
-  const [termsData, setTermsData] = useState(savedData?.termsData || "");
+  const [termsData, setTermsData] = useState(savedData?.termsData || {});
 
   // --- Auto-Save Mechanism ---
   // Saves all your builder data every time you change something
   useEffect(() => {
+    const safeDayPlannerData = sanitizeDayPlannerForStorage(dayPlannerData);
     const dataToSave = {
       step,
       selectedThemeId,
@@ -124,12 +163,30 @@ export const ItineraryProvider = ({ children, onLogin }) => {
       clientData,
       stayData,
       transportData,
-      dayPlannerData,
+      dayPlannerData: safeDayPlannerData,
       priceData,
       inclExclData,
       termsData,
     };
-    localStorage.setItem("atlas_itinerary_data", JSON.stringify(dataToSave));
+    try {
+      localStorage.setItem("atlas_itinerary_data", JSON.stringify(dataToSave));
+    } catch (error) {
+      if (error?.name === "QuotaExceededError") {
+        const compactDataToSave = {
+          ...dataToSave,
+          dayPlannerData: safeDayPlannerData.map((day) => ({
+            ...day,
+            images: [],
+          })),
+        };
+        localStorage.setItem(
+          "atlas_itinerary_data",
+          JSON.stringify(compactDataToSave),
+        );
+      } else {
+        throw error;
+      }
+    }
   }, [
     step,
     selectedThemeId,
@@ -165,6 +222,18 @@ export const ItineraryProvider = ({ children, onLogin }) => {
   // Step Handlers
   const handleNext = () => setStep((prev) => Math.min(prev + 1, 9));
   const handlePrev = () => setStep((prev) => Math.max(prev - 1, 1));
+  const resetItineraryState = () => {
+    setClientData({});
+    setStayData(getDefaultStayData());
+    setTransportData(getDefaultTransportData());
+    setDayPlannerData(getDefaultDayPlannerData());
+    setPriceData(getDefaultPriceData());
+    setInclExclData(getDefaultInclExclData());
+    setTermsData({});
+    setSelectedThemeId("Pearl");
+    setStep(1);
+    localStorage.removeItem("atlas_itinerary_data");
+  };
 
   return (
     <ItineraryContext.Provider
@@ -192,6 +261,7 @@ export const ItineraryProvider = ({ children, onLogin }) => {
         selectedThemeId,
         setSelectedThemeId,
         reviewData,
+        resetItineraryState,
       }}
     >
       {children}

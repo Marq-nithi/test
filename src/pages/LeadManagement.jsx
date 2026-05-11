@@ -12,7 +12,7 @@ import {
   DialogActions,
   IconButton,
   TextField,
-   Select,
+  Select,
   MenuItem,
   InputAdornment,
   Divider,
@@ -139,29 +139,26 @@ export default function LeadManagement() {
   };
 
   const handleCreateItinerary = (lead) => {
-    const cleanSlate = {
-      theme: "luxe",
-      title: "Mr",
-      clientName: "",
-      phone: "",
-      email: "",
-      adults: 0,
-      children: 0,
-      infants: 0,
-      childAge1: "",
-      childAge2: "",
-      destination: "",
-      startDate: "",
-      endDate: "",
-      nights: 4,
-      days: 5,
-      handledBy: "",
-      status: "In Progress",
-      source: "Website",
-      tripTitle: "",
-    };
-
-    setClientData(lead);
+    setClientData({
+      lead_id: lead.lead_id,
+      title: lead.title,
+      name: lead.name,
+      contact: lead.phone,
+      email: lead.email,
+      adults: lead.no_of_adults,
+      children: lead.no_of_children,
+      childAges: [],
+      infants: lead.no_of_infants,
+      destination: lead.dist_location,
+      startDate: lead.start_date,
+      endDate: lead.end_date,
+      nights: lead.nights,
+      days: lead.days,
+      handledBy: lead.handled_by,
+      status: lead.status,
+      source: lead.source,
+      tripTitle: lead.trip_title,
+    });
 
     setStep(1);
     navigate("/itinerary-builder");

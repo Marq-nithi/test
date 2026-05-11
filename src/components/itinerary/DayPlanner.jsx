@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Box, Typography, TextField, Button, Paper, 
   IconButton, Checkbox, FormControlLabel, Radio, RadioGroup, FormGroup,
@@ -11,6 +11,7 @@ import {
 } from '@mui/icons-material';
 
 import { useItinerary } from '../../context/ItineraryContext'; 
+import { useBlobUpload, useBlobDownload } from '../../services/backendApi';
 
 const dayTitleOptions = [
   "Arrival & Hotel Check-in",
@@ -22,11 +23,10 @@ const dayTitleOptions = [
 
 export default function DayPlanner() {
   const { clientData, setClientData, activeDays, setActiveDays, dayPlannerData, setDayPlannerData } = useItinerary();
+  const { uploadBlob } = useBlobUpload();
+  const { getBlob } = useBlobDownload();
   const [expandedDays, setExpandedDays] = useState({ 0: true });
-
-  // 🚨 REFERENCES FOR IMAGE UPLOAD
-  const fileInputRef = useRef(null);
-  const [activeUploadIndex, setActiveUploadIndex] = useState(null);
+  const [blobUrlMap, setBlobUrlMap] = useState({});
 
   const toggleDay = (index) => {
     setExpandedDays(prev => ({ ...prev, [index]: !prev[index] }));
@@ -34,6 +34,36 @@ export default function DayPlanner() {
 
   const daysArray = activeDays || dayPlannerData || [{ title: '', description: '', activities: '', meals: ['Breakfast', 'Dinner'], transport: 'Seat in Coach', images: [] }];
   const setDaysArray = setActiveDays || setDayPlannerData || (() => {});
+
+  useEffect(() => {
+    let isMounted = true;
+    const blobIds = (daysArray || [])
+      .flatMap((day) => (Array.isArray(day.images) ? day.images : []))
+      .map((value) => (typeof value === 'string' ? value : value?.id))
+      .filter((value) => typeof value === 'string' && !value.startsWith('http') && !value.startsWith('blob:') && !value.startsWith('data:'));
+    const uniqueBlobIds = [...new Set(blobIds)].filter((id) => !blobUrlMap[id]);
+    if (uniqueBlobIds.length === 0) return undefined;
+
+    Promise.all(
+      uniqueBlobIds.map(async (id) => {
+        const blobData = await getBlob(id);
+        return [id, blobData?.url || null];
+      }),
+    ).then((entries) => {
+      if (!isMounted) return;
+      setBlobUrlMap((prev) => {
+        const next = { ...prev };
+        entries.forEach(([id, url]) => {
+          if (url) next[id] = url;
+        });
+        return next;
+      });
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [daysArray, getBlob]);
 
   const handleTripTitleChange = (e) => {
     if (setClientData) setClientData(prev => ({ ...prev, trip_title: e.target.value }));
@@ -73,21 +103,23 @@ export default function DayPlanner() {
     handleUpdateDay(index, 'meals', newMeals);
   };
 
-  // 🚨 IMAGE UPLOAD HANDLERS
-  const handleImageClick = (index) => {
-    setActiveUploadIndex(index);
-    fileInputRef.current.click();
-  };
+  // Upload image and store returned blob id in state
+  const handleImageClick = async (index) => {
+    const uploadResponse = await uploadBlob('image/*');
+    const blobId =
+      typeof uploadResponse === 'string' ? uploadResponse : uploadResponse?.id;
+    if (!blobId) return;
 
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    if (file && activeUploadIndex !== null) {
-      const imageUrl = URL.createObjectURL(file); // Create local URL for preview
-      const day = daysArray[activeUploadIndex];
-      const currentImages = Array.isArray(day.images) ? day.images : [];
-      handleUpdateDay(activeUploadIndex, 'images', [...currentImages, imageUrl]);
+    const blobData = await getBlob(blobId);
+    const resolvedUrl = blobData?.url || '';
+
+    if (resolvedUrl) {
+      setBlobUrlMap((prev) => ({ ...prev, [blobId]: resolvedUrl }));
     }
-    event.target.value = ''; // Reset input so you can upload the same file again
+
+    const day = daysArray[index];
+    const currentImages = Array.isArray(day.images) ? day.images : [];
+    handleUpdateDay(index, 'images', [...currentImages, { id: blobId, url: resolvedUrl }]);
   };
 
   const handleRemoveImage = (dayIndex, imgIndex) => {
@@ -98,15 +130,6 @@ export default function DayPlanner() {
   return (
     <Box sx={{ maxWidth: 1100, mx: 'auto', pb: 10 }}>
       
-      {/* 🚨 HIDDEN FILE INPUT */}
-      <input 
-        type="file" 
-        accept="image/*" 
-        ref={fileInputRef} 
-        style={{ display: 'none' }} 
-        onChange={handleFileChange} 
-      />
-
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
         <Box>
           <Typography variant="h5" fontWeight="800" color="#0f172a" mb={0.5}>Day Planner</Typography>
@@ -243,7 +266,7 @@ export default function DayPlanner() {
                     ))}
                   </RadioGroup>
 
-                  {/* 🚨 IMAGE UPLOAD UI PREVIEWS */}
+                  {/* IMAGE UPLOAD UI PREVIEWS (resolved via useBlobDownload) */}
                   <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                     {safeImages.length === 0 && (
                       <Box sx={{ width: 64, height: 64, bgcolor: '#f8fafc', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0', color: '#475569' }}>
@@ -252,9 +275,33 @@ export default function DayPlanner() {
                     )}
                     
                     {/* Render uploaded image thumbnails */}
-                    {safeImages.map((imgUrl, imgIndex) => (
+                    {safeImages.map((imgUrl, imgIndex) => {
+                      const imageId = typeof imgUrl === 'string' ? imgUrl : imgUrl?.id;
+                      const isDirectUrl =
+                        typeof imgUrl === 'string' &&
+                        (imgUrl.startsWith('http') || imgUrl.startsWith('blob:') || imgUrl.startsWith('data:'));
+                      const resolvedUrl = (typeof imgUrl === 'object' && imgUrl?.url) || (isDirectUrl ? imgUrl : blobUrlMap[imageId]);
+                      return (
                       <Box key={imgIndex} sx={{ width: 64, height: 64, borderRadius: 2, overflow: 'hidden', position: 'relative', border: '1px solid #e2e8f0' }}>
-                        <img src={imgUrl} alt={`Day ${index + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        {resolvedUrl ? (
+                          <img
+                            src={resolvedUrl}
+                            alt={`Day ${index + 1}`}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'contain',
+                              objectPosition: 'center',
+                              background: '#f8fafc',
+                            }}
+                          />
+                        ) : (
+                          <Box sx={{ width: '100%', height: '100%', px: 0.5, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#f8fafc' }}>
+                            <Typography variant="caption" sx={{ fontSize: 9, color: '#475569', textAlign: 'center', lineHeight: 1.1 }}>
+                              Loading...
+                            </Typography>
+                          </Box>
+                        )}
                         <IconButton 
                           size="small" 
                           onClick={() => handleRemoveImage(index, imgIndex)} 
@@ -263,7 +310,7 @@ export default function DayPlanner() {
                           <Cancel sx={{ fontSize: 16 }} />
                         </IconButton>
                       </Box>
-                    ))}
+                    )})}
 
                     <Box 
                       onClick={() => handleImageClick(index)} 
