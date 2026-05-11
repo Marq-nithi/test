@@ -33,7 +33,11 @@ import {
   DeleteOutline,
 } from "@mui/icons-material";
 import { useItinerary } from "../context/ItineraryContext";
-import { useBlobDownload, useItineraryBuilderApi } from "../services/backendApi";
+import {
+  useBlobDownload,
+  useItineraryBuilderApi,
+  useMasterEntries,
+} from "../services/backendApi";
 
 import ClientDetails from "../components/itinerary/ClientDetails";
 import StayDetails from "../components/itinerary/StayDetails";
@@ -67,7 +71,9 @@ export default function ItineraryBuilder() {
 
   const { api } = useApi();
   const { getBlob } = useBlobDownload();
-  const { getAllItineraryDraft, getItineraryDataById } = useItineraryBuilderApi();
+  const { getAllItineraryDraft, getItineraryDataById } =
+    useItineraryBuilderApi();
+  const { getAllMasterEntries } = useMasterEntries();
 
   const [savedDrafts, setSavedDrafts] = useState([]);
   const [openDraftModal, setOpenDraftModal] = useState(false);
@@ -78,7 +84,9 @@ export default function ItineraryBuilder() {
     const payload = response?.data ?? response ?? [];
     const mappedDrafts = (Array.isArray(payload) ? payload : []).map(
       (draft) => ({
-        id: draft.itinerary_id || `DRF-${Math.floor(1000 + Math.random() * 9000)}`,
+        id:
+          draft.itinerary_id ||
+          `DRF-${Math.floor(1000 + Math.random() * 9000)}`,
         itinerary_id: draft.itinerary_id,
         dateSaved: "--",
         clientName: draft.clientName || "Unnamed Client",
@@ -93,6 +101,7 @@ export default function ItineraryBuilder() {
 
   useEffect(() => {
     loadDrafts();
+    getAllMasterEntries();
   }, []);
 
   const handleSaveDraft = async () => {
@@ -288,8 +297,10 @@ export default function ItineraryBuilder() {
       email: contact.email || "",
       budget: contact.budget ?? "",
       adults: contact.no_of_adults != null ? String(contact.no_of_adults) : "",
-      children: contact.no_of_children != null ? String(contact.no_of_children) : "0",
-      infants: contact.no_of_infants != null ? String(contact.no_of_infants) : "",
+      children:
+        contact.no_of_children != null ? String(contact.no_of_children) : "0",
+      infants:
+        contact.no_of_infants != null ? String(contact.no_of_infants) : "",
       destination: contact.dist_location || "",
       startDate: contact.start_date || "",
       endDate: contact.end_date || "",
@@ -362,18 +373,26 @@ export default function ItineraryBuilder() {
       discount: { type: "Percentage (%)", value: 0 },
     };
 
-    if (itineraryContext.setClientData) itineraryContext.setClientData(mappedClientData);
-    if (itineraryContext.setStayData) itineraryContext.setStayData(mappedStayData);
-    if (itineraryContext.setTransportData) itineraryContext.setTransportData(mappedTransportData);
-    if (itineraryContext.setDayPlannerData) itineraryContext.setDayPlannerData(mappedDayPlannerData);
-    if (itineraryContext.setPriceData) itineraryContext.setPriceData(mappedPriceData);
+    if (itineraryContext.setClientData)
+      itineraryContext.setClientData(mappedClientData);
+    if (itineraryContext.setStayData)
+      itineraryContext.setStayData(mappedStayData);
+    if (itineraryContext.setTransportData)
+      itineraryContext.setTransportData(mappedTransportData);
+    if (itineraryContext.setDayPlannerData)
+      itineraryContext.setDayPlannerData(mappedDayPlannerData);
+    if (itineraryContext.setPriceData)
+      itineraryContext.setPriceData(mappedPriceData);
     if (itineraryContext.setInclExclData)
-      itineraryContext.setInclExclData(fullData?.itinerary_inclexcl || { inclusions: {}, exclusions: {} });
+      itineraryContext.setInclExclData(
+        fullData?.itinerary_inclexcl || { inclusions: {}, exclusions: {} },
+      );
     if (itineraryContext.setTermsData)
       itineraryContext.setTermsData(fullData?.itinerary_terms || "");
     if (itineraryContext.setSelectedThemeId)
-      itineraryContext.setSelectedThemeId(fullData?.itinerary_themes?.[0]?.theme_id || "Pearl");
-
+      itineraryContext.setSelectedThemeId(
+        fullData?.itinerary_themes?.[0]?.theme_id || "Pearl",
+      );
     setCurrentDraftId(draft.id);
     setOpenDraftModal(false);
     if (itineraryContext.setStep) itineraryContext.setStep(1);

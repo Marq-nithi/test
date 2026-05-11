@@ -1,5 +1,29 @@
 import { useApi } from "@michaeldothedi-service/dta-crm-sl-sdk";
 
+export function useMasterEntries() {
+  const { api } = useApi();
+
+  const createMasterEntries = async (params) => {
+    const response = await api.client.post(
+      "/dta.master-entries/create-master-entries",
+      params,
+    );
+    return response.id;
+  };
+
+  const getAllMasterEntries = async (params) => {
+    const response = await api.client.get(
+      "/dta.master-entries/get-all-master-entries",
+    );
+    return response;
+  };
+
+  return {
+    createMasterEntries,
+    getAllMasterEntries,
+  };
+}
+
 export function useItineraryBuilderApi() {
   const { api } = useApi();
 
