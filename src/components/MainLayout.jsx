@@ -25,6 +25,7 @@ import {
   Search,
   Menu as MenuIcon,
   ChevronLeft,
+  Storage, // 🚨 Imported Storage icon for Master Entries
 } from "@mui/icons-material";
 import { useItinerary } from "../context/ItineraryContext";
 import { useApi } from "@michaeldothedi-service/dta-crm-sl-sdk";
@@ -35,17 +36,22 @@ export default function MainLayout({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { userDetails, logout, api } = useApi();
+  
   // PULLING THE REAL-TIME BUDGET FROM CONTEXT
   const { step, handleNext, handlePrev, reviewData, settings } = useItinerary();
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
 
+  // 🚨 NEW CHECK: Are we currently on the Itinerary Builder page?
+  const isItineraryBuilder = location.pathname === "/itinerary-builder";
+
+  // 🚨 ADDED MASTER ENTRIES HERE
   const menuItems = [
     { text: "Dashboard", path: "/dashboard", icon: <Dashboard /> },
     { text: "Itinerary Builder", path: "/itinerary-builder", icon: <Map /> },
-    { text: "LeadManagemen", path: "/lead-management", icon: <Settings /> },
-
+    { text: "Lead Management", path: "/lead-management", icon: <Settings /> },
+    { text: "Master Entries", path: "/masterentry", icon: <Storage /> },
     { text: "Settings", path: "/settings", icon: <Settings /> },
   ];
 
@@ -105,7 +111,7 @@ export default function MainLayout({ children }) {
       </Box>
       <List sx={{ px: 2, flexGrow: 1 }}>
         {menuItems.map((item) => {
-          const isActive = location.pathname === item.path;
+          const isActive = location.pathname.startsWith(item.path);
           return (
             <ListItem
               button
@@ -151,7 +157,7 @@ export default function MainLayout({ children }) {
         }}
       >
         <Avatar sx={{ bgcolor: settings.primaryColor }}>
-          {userDetails["custom:full_name"][0]}
+          {userDetails["custom:full_name"]?.[0] || "U"}
         </Avatar>
         <Box>
           <Typography variant="subtitle2" fontWeight="bold">
@@ -262,107 +268,101 @@ export default function MainLayout({ children }) {
           pt: { xs: 7, md: 0 },
         }}
       >
-        <Box sx={{ flexGrow: 1, overflowY: "auto", pb: 14 }}>{children}</Box>
+        {/* 🚨 Only apply heavy bottom padding if the footer is showing */}
+        <Box sx={{ flexGrow: 1, overflowY: "auto", pb: isItineraryBuilder ? 14 : 4 }}>
+          {children}
+        </Box>
 
-        {/* --- LIVE PRICING FOOTER --- */}
-        <Paper
-          elevation={16}
-          sx={{
-            position: "fixed",
-            bottom: 0,
-            right: 0,
-            width: { xs: "100%", md: `calc(100% - ${drawerWidth}px)` },
-            p: { xs: 2, md: 2 },
-            px: { xs: 2, md: 5 },
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            zIndex: 1000,
-            borderRadius: 0,
-            borderTop: "1px solid",
-            borderColor: "divider",
-          }}
-        >
-          <Box
+        {/* --- 🚨 LIVE PRICING FOOTER (ONLY SHOWS ON ITINERARY PAGE) --- */}
+        {isItineraryBuilder && (
+          <Paper
+            elevation={16}
             sx={{
+              position: "fixed",
+              bottom: 0,
+              right: 0,
+              width: { xs: "100%", md: `calc(100% - ${drawerWidth}px)` },
+              p: { xs: 2, md: 2 },
+              px: { xs: 2, md: 5 },
               display: "flex",
               alignItems: "center",
-              gap: { xs: 2, md: 4 },
+              justifyContent: "space-between",
+              zIndex: 1000,
+              borderRadius: 0,
+              borderTop: "1px solid",
+              borderColor: "divider",
             }}
           >
             <Box
               sx={{
-                bgcolor: "text.primary",
-                color: "background.paper",
-                py: 1,
-                px: 2,
-                borderRadius: 2,
+                display: "flex",
+                alignItems: "center",
+                gap: { xs: 2, md: 4 },
               }}
             >
-              <Typography
-                variant="caption"
-                sx={{ display: { xs: "none", sm: "block" }, opacity: 0.7 }}
+              <Box
+                sx={{
+                  py: 1,
+                  px: 2,
+                  borderRadius: 2,
+                }}
               >
-                PROFIT / COST
-              </Typography>
-              <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                ---
-              </Typography>
-            </Box>
-            <Box
-              sx={{
-                borderLeft: "2px solid",
-                borderColor: "divider",
-                pl: { xs: 2, md: 4 },
-              }}
-            >
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ display: { xs: "none", sm: "block" }, fontWeight: 700 }}
-              >
-                CLIENT BUDGET / TOTAL
-              </Typography>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <Typography
-                  variant="h6"
-                  fontWeight="bold"
-                  color={settings.primaryColor}
-                >
-                  {reviewData.budget}
-                </Typography>
+                  variant="caption"
+                  sx={{ display: { xs: "none", sm: "block" }, opacity: 0.7 }}
+                ></Typography>
+                <Typography variant="h6" sx={{ fontWeight: "bold" }}></Typography>
+              </Box>
+              <Box
+                sx={{
+                  borderLeft: "2px solid",
+                  borderColor: "divider",
+                  pl: { xs: 2, md: 4 },
+                }}
+              >
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: { xs: "none", sm: "block" }, fontWeight: 700 }}
+                ></Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Typography
+                    variant="h6"
+                    fontWeight="bold"
+                    color={settings.primaryColor}
+                  ></Typography>
+                </Box>
               </Box>
             </Box>
-          </Box>
 
-          <Box sx={{ display: "flex", gap: { xs: 1, md: 2 } }}>
-            <Button
-              variant="text"
-              onClick={handlePrev}
-              disabled={step === 1}
-              sx={{
-                minWidth: { xs: 0, md: 64 },
-                px: { xs: 1, md: 2 },
-                fontWeight: 700,
-              }}
-            >
-              Prev
-            </Button>
-            {/* DISABLED NOW PROPERLY SET TO 9 */}
-            <Button
-              variant="contained"
-              onClick={handleNext}
-              disabled={step === 9}
-              sx={{
-                px: { xs: 2, md: 5 },
-                bgcolor: settings.primaryColor,
-                color: "#fff",
-              }}
-            >
-              Next Step
-            </Button>
-          </Box>
-        </Paper>
+            <Box sx={{ display: "flex", gap: { xs: 1, md: 2 } }}>
+              <Button
+                variant="text"
+                onClick={handlePrev}
+                disabled={step === 1}
+                sx={{
+                  minWidth: { xs: 0, md: 64 },
+                  px: { xs: 1, md: 2 },
+                  fontWeight: 700,
+                }}
+              >
+                Prev
+              </Button>
+              <Button
+                variant="contained"
+                onClick={handleNext}
+                disabled={step === 9}
+                sx={{
+                  px: { xs: 2, md: 5 },
+                  bgcolor: settings.primaryColor,
+                  color: "#fff",
+                }}
+              >
+                Next Step
+              </Button>
+            </Box>
+          </Paper>
+        )}
       </Box>
     </Box>
   );

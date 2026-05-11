@@ -18,23 +18,22 @@ import {
   Settings,
   Search,
   TravelExplore,
+  Storage, // 🚨 Imported new icon for Master Entries
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useApi } from "@michaeldothedi-service/dta-crm-sl-sdk";
+
 export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { userDetails } = useApi();
 
-  // 🚨 Your Menu Items mapped to the actual routes
+  // 🚨 Updated Menu Items mapped to the actual routes
   const menuItems = [
     { title: "Dashboard", icon: <GridView />, path: "/dashboard" },
-    {
-      title: "Lead Management",
-      icon: <SupportAgent />,
-      path: "/lead-",
-    }, // <-- NEW SECTION
+    { title: "Lead Management", icon: <SupportAgent />, path: "/lead-management" }, // Fixed path
     { title: "Itinerary Builder", icon: <Map />, path: "/itinerary-builder" },
+    { title: "Master Entries", icon: <Storage />, path: "/masterentry" }, // 🚨 NEW SECTION ADDED
     { title: "Settings", icon: <Settings />, path: "/settings" },
   ];
 
@@ -76,7 +75,7 @@ export default function Sidebar() {
           ATLAS
         </Typography>
       </Box>
-management
+      
       {/* 2. SEARCH BAR */}
       <Box sx={{ px: 3, mb: 3 }}>
         <Box
@@ -148,20 +147,20 @@ management
               fontWeight: 800,
             }}
           >
-            J
+            {userDetails?.["custom:full_name"]?.[0] || "U"}
           </Avatar>
           <Box>
             <Typography
               variant="subtitle2"
               sx={{ fontWeight: 800, color: "#0f172a" }}
             >
-              John Doe
+              {userDetails?.["custom:full_name"] || "User"}
             </Typography>
             <Typography
               variant="caption"
               sx={{ color: "#64748b", fontWeight: 500 }}
             >
-              {userDetails["custom:agency_name"]}
+              {userDetails?.["custom:agency_name"] || "Agency"}
             </Typography>
           </Box>
         </Box>

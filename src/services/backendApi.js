@@ -18,9 +18,17 @@ export function useMasterEntries() {
     return response;
   };
 
+  const deleteMasterEntrie = async (id) => {
+    const response = await api.client.delete(
+      `/dta.master-entries/delete-master-entry/${id}`,
+    );
+    return response;
+  };
+
   return {
     createMasterEntries,
     getAllMasterEntries,
+    deleteMasterEntrie,
   };
 }
 

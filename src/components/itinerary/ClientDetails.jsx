@@ -336,7 +336,7 @@ export default function ClientDetails() {
               <MenuItem value="Switzerland">Switzerland</MenuItem>
               <MenuItem value="Japan">Japan</MenuItem>
               <MenuItem value="Dubai">Dubai</MenuItem>
-              <MenuItem value="Goa">Dubai</MenuItem>
+              <MenuItem value="Goa">Goa</MenuItem>
             </TextField>
           </Grid>
           <Grid item xs={12} md={4}>
