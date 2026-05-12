@@ -21,7 +21,11 @@ const sanitizeImagesForStorage = (images = []) => {
       }
       if (img && typeof img === "object") {
         if (img.id) return { id: img.id };
-        if (img.url && typeof img.url === "string" && img.url.startsWith("http")) {
+        if (
+          img.url &&
+          typeof img.url === "string" &&
+          img.url.startsWith("http")
+        ) {
           return { url: img.url };
         }
       }

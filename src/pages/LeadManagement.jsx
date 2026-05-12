@@ -155,7 +155,8 @@ export default function LeadManagement() {
         status: selectedLead.status || "New",
         source: selectedLead.source || "Website",
         trip_title:
-          selectedLead.trip_title || `Trip to ${selectedLead.dist_location || "Destination"}`,
+          selectedLead.trip_title ||
+          `Trip to ${selectedLead.dist_location || "Destination"}`,
         lead_id: selectedLead.lead_id,
         dist_location: selectedLead.dist_location || "",
         no_of_adults: selectedLead.no_of_adults || 0,
@@ -236,7 +237,8 @@ export default function LeadManagement() {
     return (
       (lead.name && lead.name.toLowerCase().includes(searchLower)) ||
       (lead.email && lead.email.toLowerCase().includes(searchLower)) ||
-      (lead.dist_location && lead.dist_location.toLowerCase().includes(searchLower)) ||
+      (lead.dist_location &&
+        lead.dist_location.toLowerCase().includes(searchLower)) ||
       refStr.includes(searchLower)
     );
   });
@@ -332,8 +334,22 @@ export default function LeadManagement() {
         overflow: "hidden",
       }}
     >
-      <Box sx={{ flexShrink: 0, bgcolor: "#ffffff", px: { xs: 2, md: 4 }, py: 3, zIndex: 10 }}>
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <Box
+        sx={{
+          flexShrink: 0,
+          bgcolor: "#ffffff",
+          px: { xs: 2, md: 4 },
+          py: 3,
+          zIndex: 10,
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
           <Box>
             <Typography variant="h4" sx={{ fontWeight: 900, color: "#0f172a" }}>
               Lead Management
@@ -393,11 +409,20 @@ export default function LeadManagement() {
                     >
                       {stat.icon}
                     </Box>
-                    <Typography variant="subtitle2" fontWeight="700" color="text.secondary">
+                    <Typography
+                      variant="subtitle2"
+                      fontWeight="700"
+                      color="text.secondary"
+                    >
                       {stat.title}
                     </Typography>
                   </Box>
-                  <Typography variant="h4" fontWeight="900" color="#0f172a" sx={{ ml: 4 }}>
+                  <Typography
+                    variant="h4"
+                    fontWeight="900"
+                    color="#0f172a"
+                    sx={{ ml: 4 }}
+                  >
                     {stat.value}
                   </Typography>
                 </Paper>
@@ -444,7 +469,15 @@ export default function LeadManagement() {
             </Button>
           </Box>
 
-          <Paper elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: 3, overflow: "hidden", bgcolor: "#fff" }}>
+          <Paper
+            elevation={0}
+            sx={{
+              border: "1px solid #e2e8f0",
+              borderRadius: 3,
+              overflow: "hidden",
+              bgcolor: "#fff",
+            }}
+          >
             <TableContainer sx={{ overflowX: "auto" }}>
               <Table sx={{ minWidth: 1200 }}>
                 <TableHead>
@@ -463,7 +496,11 @@ export default function LeadManagement() {
                 <TableBody>
                   {filteredLeads.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={9} align="center" sx={{ py: 6, color: "#64748b" }}>
+                      <TableCell
+                        colSpan={9}
+                        align="center"
+                        sx={{ py: 6, color: "#64748b" }}
+                      >
                         No leads found matching "{searchQuery}"
                       </TableCell>
                     </TableRow>
@@ -473,12 +510,26 @@ export default function LeadManagement() {
                       const style = getStatusStyle(lead.status);
 
                       return (
-                        <TableRow key={lead.lead_id} hover sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
+                        <TableRow
+                          key={lead.lead_id}
+                          hover
+                          sx={{
+                            "&:last-child td, &:last-child th": { border: 0 },
+                          }}
+                        >
                           <TableCell sx={bodyCellSx}>{queryRef}</TableCell>
-                          <TableCell sx={{ ...bodyCellSx, color: "#0f172a", fontWeight: 600 }}>
+                          <TableCell
+                            sx={{
+                              ...bodyCellSx,
+                              color: "#0f172a",
+                              fontWeight: 600,
+                            }}
+                          >
                             {lead.title}. {lead.name}
                           </TableCell>
-                          <TableCell sx={bodyCellSx}>{lead.dist_location}</TableCell>
+                          <TableCell sx={bodyCellSx}>
+                            {lead.dist_location}
+                          </TableCell>
                           <TableCell sx={bodyCellSx}>
                             {lead.start_date && lead.end_date
                               ? `${formatDate(lead.start_date)} - ${formatDate(lead.end_date)}`
@@ -493,7 +544,9 @@ export default function LeadManagement() {
                             <Select
                               value={lead.status || "New"}
                               size="small"
-                              onChange={(e) => handleStatusChange(lead.lead_id, e.target.value)}
+                              onChange={(e) =>
+                                handleStatusChange(lead.lead_id, e.target.value)
+                              }
                               sx={{
                                 bgcolor: style.bg,
                                 color: style.text,
@@ -501,19 +554,50 @@ export default function LeadManagement() {
                                 borderRadius: 1.5,
                                 height: 30,
                                 fontSize: "0.75rem",
-                                "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+                                "& .MuiOutlinedInput-notchedOutline": {
+                                  border: "none",
+                                },
                                 "& .MuiSelect-icon": { color: style.text },
                               }}
                             >
-                              <MenuItem value="New" sx={{ fontWeight: 600, color: "#00c6ff" }}>New</MenuItem>
-                              <MenuItem value="Contacted" sx={{ fontWeight: 600, color: "#f97316" }}>Contacted</MenuItem>
-                              <MenuItem value="Qualified" sx={{ fontWeight: 600, color: "#a855f7" }}>Qualified</MenuItem>
-                              <MenuItem value="Confirmed" sx={{ fontWeight: 600, color: "#10b981" }}>Confirmed</MenuItem>
+                              <MenuItem
+                                value="New"
+                                sx={{ fontWeight: 600, color: "#00c6ff" }}
+                              >
+                                New
+                              </MenuItem>
+                              <MenuItem
+                                value="Contacted"
+                                sx={{ fontWeight: 600, color: "#f97316" }}
+                              >
+                                Contacted
+                              </MenuItem>
+                              <MenuItem
+                                value="Qualified"
+                                sx={{ fontWeight: 600, color: "#a855f7" }}
+                              >
+                                Qualified
+                              </MenuItem>
+                              <MenuItem
+                                value="Confirmed"
+                                sx={{ fontWeight: 600, color: "#10b981" }}
+                              >
+                                Confirmed
+                              </MenuItem>
                             </Select>
                           </TableCell>
-                          <TableCell align="right" sx={{ py: 2, whiteSpace: "nowrap" }}>
-                            <IconButton size="small" onClick={(e) => handleMenuClick(e, lead)}>
-                              <MoreVert fontSize="small" sx={{ color: "#64748b" }} />
+                          <TableCell
+                            align="right"
+                            sx={{ py: 2, whiteSpace: "nowrap" }}
+                          >
+                            <IconButton
+                              size="small"
+                              onClick={(e) => handleMenuClick(e, lead)}
+                            >
+                              <MoreVert
+                                fontSize="small"
+                                sx={{ color: "#64748b" }}
+                              />
                             </IconButton>
                           </TableCell>
                         </TableRow>
@@ -539,14 +623,38 @@ export default function LeadManagement() {
                 },
               }}
             >
-              <MenuItem onClick={handleEditClick} sx={{ fontSize: "0.875rem", fontWeight: 500, color: "#334155", py: 1 }}>
+              <MenuItem
+                onClick={handleEditClick}
+                sx={{
+                  fontSize: "0.875rem",
+                  fontWeight: 500,
+                  color: "#334155",
+                  py: 1,
+                }}
+              >
                 Edit
               </MenuItem>
-              <MenuItem onClick={handleDeleteClick} sx={{ fontSize: "0.875rem", fontWeight: 500, color: "#ef4444", py: 1 }}>
+              <MenuItem
+                onClick={handleDeleteClick}
+                sx={{
+                  fontSize: "0.875rem",
+                  fontWeight: 500,
+                  color: "#ef4444",
+                  py: 1,
+                }}
+              >
                 Delete
               </MenuItem>
               <Divider sx={{ my: 0.5 }} />
-              <MenuItem onClick={handleMenuCreateItinerary} sx={{ fontSize: "0.875rem", fontWeight: 600, color: "#0f172a", py: 1 }}>
+              <MenuItem
+                onClick={handleMenuCreateItinerary}
+                sx={{
+                  fontSize: "0.875rem",
+                  fontWeight: 600,
+                  color: "#0f172a",
+                  py: 1,
+                }}
+              >
                 Create Itinerary
               </MenuItem>
             </Menu>
@@ -554,22 +662,46 @@ export default function LeadManagement() {
         </Box>
       </Box>
 
-      <Dialog open={openModal} onClose={handleCloseModal} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: 3, p: 1 } }}>
-        <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", pb: 1 }}>
+      <Dialog
+        open={openModal}
+        onClose={handleCloseModal}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
+      >
+        <DialogTitle
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            pb: 1,
+          }}
+        >
           <Box>
             <Typography variant="h6" fontWeight="900" color="#0f172a">
               {editingLeadId ? "Edit Lead" : "Add New Lead"}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              {editingLeadId ? `Updating Query Ref: BK-2026-${editingLeadId}` : "Create a new travel inquiry"}
+              {editingLeadId
+                ? `Updating Query Ref: BK-2026-${editingLeadId}`
+                : "Create a new travel inquiry"}
             </Typography>
           </Box>
-          <IconButton onClick={handleCloseModal} size="small" sx={{ color: "#94a3b8" }}>
+          <IconButton
+            onClick={handleCloseModal}
+            size="small"
+            sx={{ color: "#94a3b8" }}
+          >
             <Close />
           </IconButton>
         </DialogTitle>
         <DialogContent dividers sx={{ borderColor: "#f1f5f9", py: 3 }}>
-          <Typography variant="subtitle1" fontWeight="800" color="#1e293b" mb={2}>
+          <Typography
+            variant="subtitle1"
+            fontWeight="800"
+            color="#1e293b"
+            mb={2}
+          >
             Personal Information
           </Typography>
           <Grid container spacing={2} mb={4}>
@@ -586,16 +718,28 @@ export default function LeadManagement() {
                     <InputAdornment position="start">
                       <Select
                         value={formData.title}
-                        onChange={(e) => handleFormChange("title", e.target.value)}
+                        onChange={(e) =>
+                          handleFormChange("title", e.target.value)
+                        }
                         variant="standard"
                         disableUnderline
-                        sx={{ mr: 1, "& .MuiSelect-select": { py: 0, fontSize: "0.875rem" } }}
+                        sx={{
+                          mr: 1,
+                          "& .MuiSelect-select": {
+                            py: 0,
+                            fontSize: "0.875rem",
+                          },
+                        }}
                       >
                         <MenuItem value="Mr">Mr</MenuItem>
                         <MenuItem value="Mrs">Mrs</MenuItem>
                         <MenuItem value="Ms">Ms</MenuItem>
                       </Select>
-                      <Divider orientation="vertical" flexItem sx={{ mr: 1, my: 0.5 }} />
+                      <Divider
+                        orientation="vertical"
+                        flexItem
+                        sx={{ mr: 1, my: 0.5 }}
+                      />
                     </InputAdornment>
                   ),
                 }}
@@ -623,55 +767,113 @@ export default function LeadManagement() {
             </Grid>
             <Grid item xs={12} md={4}>
               <FieldLabel text="Number of Adults" required />
-              <Select fullWidth size="small" value={formData.adults} onChange={(e) => handleFormChange("adults", e.target.value)}>
+              <Select
+                fullWidth
+                size="small"
+                value={formData.adults}
+                onChange={(e) => handleFormChange("adults", e.target.value)}
+              >
                 {[0, 1, 2, 3, 4, 5, 6].map((n) => (
-                  <MenuItem key={`a${n}`} value={n}>{n}</MenuItem>
+                  <MenuItem key={`a${n}`} value={n}>
+                    {n}
+                  </MenuItem>
                 ))}
               </Select>
             </Grid>
             <Grid item xs={12} md={4}>
               <FieldLabel text="Number of Children" />
-              <Select fullWidth size="small" value={formData.children} onChange={(e) => handleFormChange("children", e.target.value)}>
+              <Select
+                fullWidth
+                size="small"
+                value={formData.children}
+                onChange={(e) => handleFormChange("children", e.target.value)}
+              >
                 {[0, 1, 2, 3, 4].map((n) => (
-                  <MenuItem key={`c${n}`} value={n}>{n}</MenuItem>
+                  <MenuItem key={`c${n}`} value={n}>
+                    {n}
+                  </MenuItem>
                 ))}
               </Select>
             </Grid>
             <Grid item xs={12} md={4}>
               <FieldLabel text="Number of Infant (0-2 Years)" />
-              <Select fullWidth size="small" value={formData.infants} onChange={(e) => handleFormChange("infants", e.target.value)}>
+              <Select
+                fullWidth
+                size="small"
+                value={formData.infants}
+                onChange={(e) => handleFormChange("infants", e.target.value)}
+              >
                 {[0, 1, 2, 3].map((n) => (
-                  <MenuItem key={`i${n}`} value={n}>{n}</MenuItem>
+                  <MenuItem key={`i${n}`} value={n}>
+                    {n}
+                  </MenuItem>
                 ))}
               </Select>
             </Grid>
           </Grid>
 
-          <Typography variant="subtitle1" fontWeight="800" color="#1e293b" mb={2}>
+          <Typography
+            variant="subtitle1"
+            fontWeight="800"
+            color="#1e293b"
+            mb={2}
+          >
             Travel Details
           </Typography>
           <Grid container spacing={2} mb={4}>
             <Grid item xs={12} md={4}>
               <FieldLabel text="Destination" required />
-              <TextField fullWidth size="small" placeholder="Enter destination" value={formData.destination} onChange={(e) => handleFormChange("destination", e.target.value)} />
+              <TextField
+                fullWidth
+                size="small"
+                placeholder="Enter destination"
+                value={formData.destination}
+                onChange={(e) =>
+                  handleFormChange("destination", e.target.value)
+                }
+              />
             </Grid>
             <Grid item xs={12} md={4}>
               <FieldLabel text="Start Date" required />
-              <TextField fullWidth size="small" type="date" InputLabelProps={{ shrink: true }} value={formData.startDate} onChange={(e) => handleFormChange("startDate", e.target.value)} />
+              <TextField
+                fullWidth
+                size="small"
+                type="date"
+                InputLabelProps={{ shrink: true }}
+                value={formData.startDate}
+                onChange={(e) => handleFormChange("startDate", e.target.value)}
+              />
             </Grid>
             <Grid item xs={12} md={4}>
               <FieldLabel text="End Date" required />
-              <TextField fullWidth size="small" type="date" InputLabelProps={{ shrink: true }} value={formData.endDate} onChange={(e) => handleFormChange("endDate", e.target.value)} />
+              <TextField
+                fullWidth
+                size="small"
+                type="date"
+                InputLabelProps={{ shrink: true }}
+                value={formData.endDate}
+                onChange={(e) => handleFormChange("endDate", e.target.value)}
+              />
             </Grid>
           </Grid>
 
-          <Typography variant="subtitle1" fontWeight="800" color="#1e293b" mb={2}>
+          <Typography
+            variant="subtitle1"
+            fontWeight="800"
+            color="#1e293b"
+            mb={2}
+          >
             Lead Management
           </Typography>
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}>
               <FieldLabel text="Status" required />
-              <Select fullWidth size="small" value={formData.status} onChange={(e) => handleFormChange("status", e.target.value)}>
+              <Select
+                fullWidth
+                size="small"
+                value={formData.status}
+                onChange={(e) => handleFormChange("status", e.target.value)}
+              >
                 <MenuItem value="New">New</MenuItem>
                 <MenuItem value="Contacted">Contacted</MenuItem>
                 <MenuItem value="Qualified">Qualified</MenuItem>
@@ -680,19 +882,33 @@ export default function LeadManagement() {
             </Grid>
             <Grid item xs={12} md={4}>
               <FieldLabel text="Source" required />
-              <Select fullWidth size="small" value={formData.source} onChange={(e) => handleFormChange("source", e.target.value)}>
+              <Select
+                fullWidth
+                size="small"
+                value={formData.source}
+                onChange={(e) => handleFormChange("source", e.target.value)}
+              >
                 <MenuItem value="Website">Website</MenuItem>
                 <MenuItem value="Referral">Referral</MenuItem>
               </Select>
             </Grid>
             <Grid item xs={12} md={4}>
               <FieldLabel text="Trip Title" />
-              <TextField fullWidth size="small" placeholder="Dive into Maldives" value={formData.tripTitle} onChange={(e) => handleFormChange("tripTitle", e.target.value)} />
+              <TextField
+                fullWidth
+                size="small"
+                placeholder="Dive into Maldives"
+                value={formData.tripTitle}
+                onChange={(e) => handleFormChange("tripTitle", e.target.value)}
+              />
             </Grid>
           </Grid>
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 2, borderTop: "1px solid #f1f5f9" }}>
-          <Button onClick={handleCloseModal} sx={{ color: "#64748b", fontWeight: 600, textTransform: "none" }}>
+          <Button
+            onClick={handleCloseModal}
+            sx={{ color: "#64748b", fontWeight: 600, textTransform: "none" }}
+          >
             Cancel
           </Button>
           <Button

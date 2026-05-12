@@ -1,4 +1,5 @@
 import { useApi } from "@michaeldothedi-service/dta-crm-sl-sdk";
+import { useEffect, useState } from "react";
 
 export function useMasterEntries() {
   const { api } = useApi();
@@ -138,4 +139,28 @@ const convertFileToBase64 = (file) => {
 
     reader.onerror = reject;
   });
+};
+
+export const useDashboardMetrics = () => {
+  const { api } = useApi();
+  const [kpiMetrics, setKipMetrics] = useState([]);
+  const [popularDist, setPopularDist] = useState([]);
+
+  useEffect(() => {
+    api.client.get(`/dta.common/dashboard-metrics-value`).then((res) => {
+      const payload = res?.data ?? res ?? {};
+      const kpi = Array.isArray(payload?.kpi)
+        ? payload.kpi
+        : Array.isArray(payload)
+          ? payload
+          : [];
+      setKipMetrics(kpi);
+      setPopularDist(payload.popular_dist);
+    });
+  }, []);
+
+  return {
+    kpiMetrics,
+    popularDist,
+  };
 };
