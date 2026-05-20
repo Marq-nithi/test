@@ -16,13 +16,11 @@ import PreviewItinerary from "./pages/PreviewItinerary";
 import Settings from "./pages/Settings";
 import LeadManagement from "./pages/LeadManagement";
 import { ExtAuth } from "./pages/ExtAuth";
-import MasterEntries from "./pages/MasterEntries";
-
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   return (
-    <ApiProvider config={{ baseURL: "http://localhost:8000" }}>
+    <ApiProvider config={{ baseURL: "http://15.207.113.217:8000" }}>
       <ItineraryProvider
         onLogin={() => {
           setIsAuthenticated(true);
@@ -66,7 +64,6 @@ export default function App() {
                           element={<ItineraryBuilder />}
                         />
                         <Route path="/settings" element={<Settings />} />
-                           <Route path="/masterentry" element={<MasterEntries />} />
                       </Routes>
                     </MainLayout>
                   ) : (

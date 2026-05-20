@@ -7,8 +7,10 @@ import {
   CheckCircle, DirectionsCar, Star, Phone, Email,
   ShieldOutlined, AssignmentOutlined, Flight,
   AccessTime, Public, Group, Explore, Cancel,
-  Restaurant, AccountBalance, Description
+  Restaurant, AccountBalance, Description,
+  Check, Close 
 } from '@mui/icons-material';
+import { WhatsApp } from '@mui/icons-material';
 
 import { useItinerary } from '../../../context/ItineraryContext'; 
 
@@ -46,8 +48,9 @@ export default function Theme3Coastal() {
   const shortDestination = rawDestination.split(',')[0];
   const title = (clientData.trip_title && clientData.trip_title.trim() !== "") ? clientData.trip_title : `Best of ${shortDestination}`;
   const clientName = `${clientData.title || ''} ${clientData.name || 'Valued Guest'}`.trim();
-  const phone = `${clientData.contactCode || ''} ${clientData.contact || ''}`.trim() || 'N/A';
-  const email = clientData.email || 'N/A';
+  const phone = `${clientData.contactCode || ''} ${clientData.contact || ''}`.trim() || '+1 (234) 567-890';
+  const email = clientData.email || 'sarah@paradise.com';
+  const agentName = clientData.queryHandledBy && clientData.queryHandledBy !== '0' ? clientData.queryHandledBy : 'Sarah Martinez';
   
   const formatDate = (dateString) => dateString ? new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : null;
   const dates = (clientData.startDate && clientData.endDate) ? `${formatDate(clientData.startDate)} - ${formatDate(clientData.endDate)}` : "Dates TBD";
@@ -85,31 +88,62 @@ export default function Theme3Coastal() {
 
   // --- 6. SMART TERMS & CONDITIONS ---
   const renderTerms = () => {
-    if (!termsData) return <Typography variant="body2" color={TEXT_MUTED}>Standard travel terms and conditions apply.</Typography>;
-    if (typeof termsData === 'string') return <Typography variant="body2" color={TEXT_MUTED} sx={{ whiteSpace: 'pre-line' }}>{termsData}</Typography>;
+    let sections = [];
+    
+    if (typeof termsData === 'string' && termsData.trim().length > 0) {
+      sections = [{ title: "General Information", text: termsData, icon: <AssignmentOutlined fontSize="small" /> }];
+    } 
+    else if (termsData && typeof termsData === 'object') {
+      if (termsData.policies?.length > 0) {
+        sections.push({ title: "Cancellation Policy", text: termsData.policies.join(' '), icon: <ShieldOutlined fontSize="small" /> });
+      }
+      if (termsData.protections?.length > 0) {
+        sections.push({ title: "Travel Insurance", text: termsData.protections.join(' '), icon: <ShieldOutlined fontSize="small" /> });
+      }
+      if (termsData.terms?.length > 0) {
+        sections.push({ title: "General Terms", text: termsData.terms.join(' '), icon: <AssignmentOutlined fontSize="small" /> });
+      }
+      if (termsData.payments?.length > 0) {
+        sections.push({ title: "Payment Details", text: termsData.payments.join(' '), icon: <AccountBalance fontSize="small" /> });
+      }
+    }
 
-    const allSections = [];
-    if (termsData.terms?.length > 0) allSections.push({ title: "General Terms", items: termsData.terms, icon: <AssignmentOutlined /> });
-    if (termsData.policies?.length > 0) allSections.push({ title: "Cancellation Policy", items: termsData.policies, icon: <Cancel /> });
-    if (termsData.payments?.length > 0) allSections.push({ title: "Payment Schedule", items: termsData.payments, icon: <AccountBalance /> });
-    if (termsData.protections?.length > 0) allSections.push({ title: "Travel Protection", items: termsData.protections, icon: <ShieldOutlined /> });
-
-    if (allSections.length === 0) return <Typography variant="body2" color={TEXT_MUTED}>Standard travel terms apply.</Typography>;
+    if (sections.length === 0) {
+      sections = [
+        { 
+          title: "Cancellation Policy", 
+          text: "Free cancellation up to 30 days before departure. 50% refund up to 14 days. Full payment non-refundable within 14 days of travel.", 
+          icon: <ShieldOutlined fontSize="small" /> 
+        },
+        { 
+          title: "Travel Insurance", 
+          text: "Comprehensive travel insurance included covering medical emergencies, trip cancellation, delays, and lost baggage.", 
+          icon: <ShieldOutlined fontSize="small" /> 
+        },
+        { 
+          title: "Flexible Rebooking", 
+          text: "Change your travel dates up to 45 days before departure with no fees. Subject to availability and rate differences.", 
+          icon: <ShieldOutlined fontSize="small" /> 
+        }
+      ];
+    }
 
     return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        {allSections.map((section, idx) => (
-          <Box key={idx} sx={{ display: 'flex', gap: 2 }}>
-            <Box sx={{ width: 40, height: 40, borderRadius: 1.5, bgcolor: '#f0fdfa', color: TEAL_MAIN, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {sections.map((section, idx) => (
+          <Paper key={idx} elevation={0} sx={{ display: 'flex', gap: 2.5, p: 3, borderRadius: 3, border: '1px solid #e2e8f0', bgcolor: '#fff' }}>
+            <Box sx={{ width: 44, height: 44, borderRadius: 2, bgcolor: '#f0f9ff', color: '#0ea5e9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               {section.icon}
             </Box>
-            <Box>
-              <Typography variant="subtitle2" fontWeight="800" color={NAVY_DARK} mb={0.5}>{section.title}</Typography>
-              <Box component="ul" sx={{ m: 0, pl: 2, color: TEXT_MUTED, fontSize: '0.875rem' }}>
-                {section.items.map((item, i) => <li key={i} style={{ marginBottom: '4px' }}>{item}</li>)}
-              </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <Typography variant="subtitle1" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, color: '#334155', mb: 0.5 }}>
+                {section.title}
+              </Typography>
+              <Typography variant="body2" color="#64748b" sx={{ lineHeight: 1.6 }}>
+                {section.text}
+              </Typography>
             </Box>
-          </Box>
+          </Paper>
         ))}
       </Box>
     );
@@ -117,7 +151,6 @@ export default function Theme3Coastal() {
 
   return (
     <Box sx={{ bgcolor: BG_LIGHT, minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
-      
       {/* 1. HERO SECTION */}
       <Box sx={{ 
         position: 'relative', height: 600, 
@@ -224,7 +257,7 @@ export default function Theme3Coastal() {
           </>
         )}
 
-        {/* 4. DAY BY DAY TIMELINE (With Uploaded Images) */}
+        {/* 4. DAY BY DAY TIMELINE */}
         <Box sx={{ textAlign: 'center', mb: 6 }}>
           <Typography variant="h5" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, color: NAVY_DARK, mb: 1 }}>Your Journey, Day by Day</Typography>
         </Box>
@@ -287,75 +320,116 @@ export default function Theme3Coastal() {
 
         {/* 5. LUXURY ACCOMMODATIONS */}
         {hotels.length > 0 && (
-          <>
-            <Box sx={{ textAlign: 'center', mb: 6 }}>
-              <Typography variant="h5" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, color: NAVY_DARK, mb: 1 }}>Luxury Accommodations</Typography>
+          <Box sx={{ mb: 10 }}>
+            <Box sx={{ mb: 4, textAlign: 'center' }}>
+              <Typography variant="h4" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 600, color: '#3f3f3f', mb: 1 }}>
+                Luxury Accommodations
+              </Typography>
             </Box>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, mb: 10 }}>
-              {hotels.map((hotel, i) => {
-                const mealsList = Object.keys(hotel.meals || {}).filter(k => hotel.meals[k]).map(formatCamelCase);
-                return (
-                  <Paper key={i} elevation={0} sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, borderRadius: 3, border: '1px solid #e2e8f0', bgcolor: '#fff', overflow: 'hidden' }}>
-                    <Box sx={{ width: { xs: '100%', md: '35%' }, height: { xs: 200, md: 'auto' }, position: 'relative' }}>
-                      <img src={i % 2 === 0 ? HOTEL1_IMG : HOTEL2_IMG} alt={hotel.hotelName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {hotels.map((hotel, i) => (
+                <Paper key={i} elevation={0} sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, borderRadius: 1, border: '1px solid #e2e8f0', bgcolor: '#fff', overflow: 'hidden' }}>
+                  
+                  <Box sx={{ width: { xs: '100%', sm: '35%' }, minHeight: { xs: 200, sm: 260 }, position: 'relative' }}>
+                    <img src={hotel.image || (i % 2 === 0 ? HOTEL1_IMG : HOTEL2_IMG)} alt={hotel.hotelName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </Box>
+                  
+                  <Box sx={{ p: 4, width: { xs: '100%', sm: '65%' }, display: 'flex', flexDirection: 'column' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4 }}>
+                      <Box>
+                        <Typography variant="h6" fontWeight="700" color="#1e293b" mb={0.5}>
+                          {hotel.hotelName || 'Unnamed Resort'}
+                        </Typography>
+                        <Typography variant="caption" color="#64748b" display="block">
+                          {hotel.location || rawDestination}
+                        </Typography>
+                      </Box>
+                      <Chip 
+                        icon={<Star sx={{ color: '#d97706 !important', fontSize: '14px !important' }}/>} 
+                        label={`${hotel.rating || '4.7'}`} 
+                        size="small" 
+                        sx={{ bgcolor: '#fef3c7', color: '#b45309', borderRadius: 1, fontWeight: 700, px: 0.5 }} 
+                      />
                     </Box>
-                    <Box sx={{ p: 4, width: { xs: '100%', md: '65%' }, position: 'relative' }}>
-                      <Chip icon={<Star sx={{ color: '#fbbf24 !important' }}/>} label={hotel.hotelPref || '5 Star'} size="small" sx={{ position: 'absolute', top: 24, right: 24, bgcolor: '#fef3c7', color: '#b45309', fontWeight: 700 }} />
-                      
-                      <Typography variant="h6" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, color: NAVY_DARK, mb: 0.5 }}>{hotel.hotelName || 'Unnamed Resort'}</Typography>
-                      <Typography variant="body2" color={TEXT_MUTED} mb={3} display="flex" alignItems="center" gap={0.5}>
-                        <LocationOn fontSize="small" /> {hotel.location || rawDestination}
-                      </Typography>
-                      
-                      <Grid container spacing={3}>
-                        <Grid item xs={6} sm={3}>
-                          <Typography variant="caption" color={TEXT_MUTED} display="block">Check-in</Typography>
-                          <Typography variant="body2" fontWeight="600" color={NAVY_DARK}>{hotel.checkInDate ? formatDate(hotel.checkInDate) : 'TBD'}</Typography>
-                        </Grid>
-                        <Grid item xs={6} sm={3}>
-                          <Typography variant="caption" color={TEXT_MUTED} display="block">Check-out</Typography>
-                          <Typography variant="body2" fontWeight="600" color={NAVY_DARK}>{hotel.checkOutDate ? formatDate(hotel.checkOutDate) : 'TBD'}</Typography>
-                        </Grid>
-                        <Grid item xs={6} sm={3}>
-                          <Typography variant="caption" color={TEXT_MUTED} display="block">Room</Typography>
-                          <Typography variant="body2" fontWeight="600" color={NAVY_DARK}>{hotel.roomCat || 'Standard'}</Typography>
-                        </Grid>
-                        <Grid item xs={6} sm={3}>
-                          <Typography variant="caption" color={TEXT_MUTED} display="block">Board</Typography>
-                          <Typography variant="body2" fontWeight="600" color={NAVY_DARK}>{mealsList.join(', ') || 'Room Only'}</Typography>
-                        </Grid>
+
+                    <Grid container spacing={3} sx={{ mb: 3 }}>
+                      <Grid item xs={6} sm={3}>
+                        <Typography variant="caption" color="#94a3b8" display="block" mb={0.5}>Check-in</Typography>
+                        <Typography variant="body2" fontWeight="600" color="#334155">{hotel.checkInDate ? formatDate(hotel.checkInDate) : 'Apr 21, 2026'}</Typography>
                       </Grid>
+                      <Grid item xs={6} sm={3}>
+                        <Typography variant="caption" color="#94a3b8" display="block" mb={0.5}>Check-out</Typography>
+                        <Typography variant="body2" fontWeight="600" color="#334155">{hotel.checkOutDate ? formatDate(hotel.checkOutDate) : 'Apr 24, 2026'}</Typography>
+                      </Grid>
+                      <Grid item xs={6} sm={3}>
+                        <Typography variant="caption" color="#94a3b8" display="block" mb={0.5}>Guests</Typography>
+                        <Typography variant="body2" fontWeight="600" color="#334155">{pax}</Typography>
+                      </Grid>
+                      <Grid item xs={6} sm={3}>
+                        <Typography variant="caption" color="#94a3b8" display="block" mb={0.5}>Duration</Typography>
+                        <Typography variant="body2" fontWeight="600" color="#334155">{hotel.nights || '3'} nights</Typography>
+                      </Grid>
+                    </Grid>
+
+                    <Divider sx={{ mb: 3, borderColor: '#f1f5f9' }} />
+
+                    <Box>
+                      <Typography variant="caption" color="#94a3b8" display="block" mb={0.5}>Room Type</Typography>
+                      <Typography variant="body2" fontWeight="600" color="#334155">{hotel.roomCat || 'Panoramic Double Room'}</Typography>
                     </Box>
-                  </Paper>
-                );
-              })}
+
+                  </Box>
+                </Paper>
+              ))}
             </Box>
-          </>
+          </Box>
         )}
 
         {/* 6. INCLUSIONS & EXCLUSIONS */}
         <Box sx={{ mb: 10 }}>
-          <Grid container spacing={4}>
+          <Grid container spacing={3} alignItems="stretch">
             <Grid item xs={12} md={6}>
-              <Paper elevation={0} sx={{ p: 4, borderRadius: 3, borderTop: `4px solid ${TEAL_MAIN}`, bgcolor: '#fff', borderLeft: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0', height: '100%' }}>
-                <Typography variant="h6" fontWeight="800" color={NAVY_DARK} mb={3} display="flex" alignItems="center" gap={1}><CheckCircle sx={{ color: TEAL_MAIN }}/> Inclusions</Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+              <Paper elevation={0} sx={{ p: 4, borderRadius: 2, bgcolor: '#f0fdf4', height: '100%', border: '1px solid #dcfce7', display: 'flex', flexDirection: 'column' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                  <Box sx={{ width: 40, height: 40, borderRadius: 1.5, bgcolor: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Check sx={{ color: '#fff' }} />
+                  </Box>
+                  <Typography variant="h5" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, color: NAVY_DARK }}>
+                    What's Included
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, flexGrow: 1 }}>
                   {displayInclusions.map((item, i) => (
-                    <Typography key={i} variant="body2" color={TEXT_MUTED} display="flex" alignItems="flex-start" gap={1}>
-                      <CheckCircle sx={{ fontSize: 16, color: TEAL_MAIN, mt: 0.3 }} /> {item}
-                    </Typography>
+                    <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                      <Check sx={{ fontSize: 18, color: '#22c55e', mt: 0.2, flexShrink: 0 }} />
+                      <Typography variant="body2" color={TEXT_MUTED} sx={{ wordBreak: 'break-word' }}>
+                        {item}
+                      </Typography>
+                    </Box>
                   ))}
                 </Box>
               </Paper>
             </Grid>
+
             <Grid item xs={12} md={6}>
-              <Paper elevation={0} sx={{ p: 4, borderRadius: 3, borderTop: `4px solid #ef4444`, bgcolor: '#fff', borderLeft: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0', height: '100%' }}>
-                <Typography variant="h6" fontWeight="800" color={NAVY_DARK} mb={3} display="flex" alignItems="center" gap={1}><Cancel sx={{ color: '#ef4444' }}/> Exclusions</Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+              <Paper elevation={0} sx={{ p: 4, borderRadius: 2, bgcolor: '#fff1f2', height: '100%', border: '1px solid #ffe4e6', display: 'flex', flexDirection: 'column' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                  <Box sx={{ width: 40, height: 40, borderRadius: 1.5, bgcolor: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Close sx={{ color: '#fff' }} />
+                  </Box>
+                  <Typography variant="h5" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, color: NAVY_DARK }}>
+                    Not Included
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, flexGrow: 1 }}>
                   {displayExclusions.map((item, i) => (
-                    <Typography key={i} variant="body2" color={TEXT_MUTED} display="flex" alignItems="flex-start" gap={1}>
-                      <Cancel sx={{ fontSize: 16, color: '#ef4444', mt: 0.3 }} /> {item}
-                    </Typography>
+                    <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                      <Close sx={{ fontSize: 18, color: '#ef4444', mt: 0.2, flexShrink: 0 }} />
+                      <Typography variant="body2" color={TEXT_MUTED} sx={{ wordBreak: 'break-word' }}>
+                        {item}
+                      </Typography>
+                    </Box>
                   ))}
                 </Box>
               </Paper>
@@ -364,15 +438,16 @@ export default function Theme3Coastal() {
         </Box>
 
         {/* 7. TERMS, CONDITIONS & BANK DETAILS */}
-        <Box sx={{ textAlign: 'center', mb: 4 }}>
-          <Typography variant="h5" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, color: NAVY_DARK, mb: 1 }}>Policies & Details</Typography>
+        <Box sx={{ mb: 10 }}>
+          <Box sx={{ mb: 4, textAlign: 'center' }}>
+            <Typography variant="h4" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 600, color: '#3f3f3f' }}>
+              Terms & Conditions
+            </Typography>
+          </Box>
+          {renderTerms()}
         </Box>
 
-        <Paper elevation={0} sx={{ p: 4, borderRadius: 3, border: '1px solid #e2e8f0', bgcolor: '#fff', mb: 4 }}>
-          {renderTerms()}
-        </Paper>
-
-        <Paper elevation={0} sx={{ p: 4, borderRadius: 3, border: `2px dashed ${TEAL_MAIN}`, bgcolor: '#f0fdfa' }}>
+        <Paper elevation={0} sx={{ p: 4, borderRadius: 3, border: `2px dashed ${TEAL_MAIN}`, bgcolor: '#f0fdfa', mb: 8 }}>
           <Typography variant="h6" fontWeight="800" color={NAVY_DARK} mb={2} display="flex" alignItems="center" gap={1}><AccountBalance sx={{ color: TEAL_MAIN }}/> Bank Details for Payment</Typography>
           <Grid container spacing={2}>
             <Grid item xs={6}><Typography variant="caption" color={TEAL_MAIN}>Bank Name</Typography><Typography variant="body2" fontWeight="700" color={NAVY_DARK}>{termsData?.bankDetails?.bankName || "Global Bank Inc."}</Typography></Grid>
@@ -384,32 +459,47 @@ export default function Theme3Coastal() {
 
       </Container>
 
-      {/* 8. FOOTER */}
-      <Box sx={{ bgcolor: NAVY_DARK, py: 8 }}>
+      {/* 🚨 8. EXACT FOOTER UPDATE (Dark Blue Card with Disclaimer) */}
+      <Box sx={{ bgcolor: NAVY_DARK, pt: 8 }}>
         <Container maxWidth="md">
-          <Paper elevation={0} sx={{ p: 4, borderRadius: 3, bgcolor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', color: '#fff' }}>
-            <Typography variant="h6" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, mb: 1 }}>Your Luxury Consultant</Typography>
-            <Typography variant="body2" sx={{ color: '#94a3b8', mb: 4 }}>Available 24/7 for any questions</Typography>
+          <Paper elevation={0} sx={{ p: { xs: 4, md: 6 }, borderRadius: 4, bgcolor: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', color: '#fff', mb: 6 }}>
+            
+            <Typography variant="h4" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, mb: 1 }}>Your Travel Consultant</Typography>
+            <Typography variant="body2" sx={{ color: '#cbd5e1', mb: 5 }}>Dedicated to making your journey extraordinary</Typography>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
-              <Avatar sx={{ width: 64, height: 64, bgcolor: '#fff', border: '2px solid #e2e8f0' }} src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200" />
-              <Box sx={{ textAlign: 'left' }}>
-                <Typography variant="subtitle1" fontWeight="700">Sarah Mitchell</Typography>
-                <Typography variant="caption" sx={{ color: '#94a3b8' }}>Senior Travel Designer</Typography>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: 'center', gap: { xs: 3, md: 5 } }}>
+              
+              <Box sx={{ position: 'relative', display: 'inline-flex', mb: { xs: 2, md: 0 } }}>
+                <Avatar sx={{ width: 100, height: 100, border: '4px solid #f59e0b', bgcolor: '#fff', color: '#cbd5e1' }} src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200" />
+                <Chip label="Available 24/7" size="small" sx={{ position: 'absolute', bottom: -10, left: '50%', transform: 'translateX(-50%)', bgcolor: '#f59e0b', color: '#fff', fontWeight: 700, fontSize: '0.65rem', height: 22 }} />
               </Box>
-            </Box>
 
-            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
-              <Button variant="outlined" startIcon={<Phone />} sx={{ color: '#fff', borderColor: 'rgba(255,255,255,0.3)', textTransform: 'none', px: 3 }}>Call Advisor</Button>
-              <Button variant="outlined" startIcon={<Email />} sx={{ color: '#fff', borderColor: 'rgba(255,255,255,0.3)', textTransform: 'none', px: 3 }}>Send Message</Button>
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: { xs: 'center', md: 'flex-start' } }}>
+                <Typography variant="h5" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, mb: 0.5 }}>{agentName}</Typography>
+                <Typography variant="body2" sx={{ color: '#cbd5e1', mb: 3 }}>Senior Luxury Travel Specialist</Typography>
+                
+                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: { xs: 'center', md: 'flex-start' } }}>
+                  <Button variant="outlined" startIcon={<Phone fontSize="small"/>} sx={{ color: '#fff', borderColor: 'rgba(255,255,255,0.3)', bgcolor: 'rgba(255,255,255,0.05)', textTransform: 'none', borderRadius: 2, px: 2 }}>{phone}</Button>
+                  <Button variant="outlined" startIcon={<Email fontSize="small"/>} sx={{ color: '#fff', borderColor: 'rgba(255,255,255,0.3)', bgcolor: 'rgba(255,255,255,0.05)', textTransform: 'none', borderRadius: 2, px: 2 }}>{email}</Button>
+                  <Button variant="outlined" startIcon={<WhatsApp fontSize="small"/>} sx={{ color: '#fff', borderColor: 'rgba(255,255,255,0.3)', bgcolor: 'rgba(255,255,255,0.05)', textTransform: 'none', borderRadius: 2, px: 2 }}>WhatsApp</Button>
+                </Box>
+              </Box>
+
             </Box>
           </Paper>
-
-          <Typography variant="caption" display="block" textAlign="center" sx={{ color: '#64748b', mt: 4 }}>
-            © 2026 Coastal Luxury Travel. All rights reserved.<br/>
-            Pricing and availability are subject to change until final confirmation.
-          </Typography>
         </Container>
+
+        {/* White Disclaimer Section */}
+        <Box sx={{ bgcolor: '#fff', py: 4, px: 2, textAlign: 'center', borderTop: '1px solid #e2e8f0' }}>
+          <Typography variant="body2" color="#64748b" mb={2}>
+            This itinerary is subject to availability and confirmation.<br/>
+            All times are local. Please arrive at airports 3 hours prior to international flights.
+          </Typography>
+          <Divider sx={{ maxWidth: 200, mx: 'auto', mb: 2, borderColor: '#e2e8f0' }} />
+          <Typography variant="caption" color="#475569" fontWeight="600">
+            Triumph Holidays - Creating Unforgettable Memories Since 2005
+          </Typography>
+        </Box>
       </Box>
 
     </Box>

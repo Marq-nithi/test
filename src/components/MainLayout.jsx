@@ -25,7 +25,7 @@ import {
   Search,
   Menu as MenuIcon,
   ChevronLeft,
-  Storage, // 🚨 Imported Storage icon for Master Entries
+  Storage,
 } from "@mui/icons-material";
 import { useItinerary } from "../context/ItineraryContext";
 import { useApi } from "@michaeldothedi-service/dta-crm-sl-sdk";
@@ -35,18 +35,16 @@ const drawerWidth = 260;
 export default function MainLayout({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { userDetails, logout, api } = useApi();
+  const { userDetails, api } = useApi();
   
-  // PULLING THE REAL-TIME BUDGET FROM CONTEXT
-  const { step, handleNext, handlePrev, reviewData, settings } = useItinerary();
+  // 🚨 PULLED IN setStep to bypass the old context limits
+  const { step, setStep, reviewData, settings } = useItinerary();
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
 
-  // 🚨 NEW CHECK: Are we currently on the Itinerary Builder page?
   const isItineraryBuilder = location.pathname === "/itinerary-builder";
 
-  // 🚨 ADDED MASTER ENTRIES HERE
   const menuItems = [
     { text: "Dashboard", path: "/dashboard", icon: <Dashboard /> },
     { text: "Itinerary Builder", path: "/itinerary-builder", icon: <Map /> },
@@ -268,12 +266,10 @@ export default function MainLayout({ children }) {
           pt: { xs: 7, md: 0 },
         }}
       >
-        {/* 🚨 Only apply heavy bottom padding if the footer is showing */}
         <Box sx={{ flexGrow: 1, overflowY: "auto", pb: isItineraryBuilder ? 14 : 4 }}>
           {children}
         </Box>
 
-        {/* --- 🚨 LIVE PRICING FOOTER (ONLY SHOWS ON ITINERARY PAGE) --- */}
         {isItineraryBuilder && (
           <Paper
             elevation={16}
@@ -336,9 +332,10 @@ export default function MainLayout({ children }) {
             </Box>
 
             <Box sx={{ display: "flex", gap: { xs: 1, md: 2 } }}>
+              {/* 🚨 CHANGED: Using setStep(step - 1) directly */}
               <Button
                 variant="text"
-                onClick={handlePrev}
+                onClick={() => setStep(step - 1)}
                 disabled={step === 1}
                 sx={{
                   minWidth: { xs: 0, md: 64 },
@@ -348,10 +345,11 @@ export default function MainLayout({ children }) {
               >
                 Prev
               </Button>
+              {/* 🚨 CHANGED: Using setStep(step + 1) directly and checking for step === 10 */}
               <Button
                 variant="contained"
-                onClick={handleNext}
-                disabled={step === 9}
+                onClick={() => setStep(step + 1)}
+                disabled={step === 10}
                 sx={{
                   px: { xs: 2, md: 5 },
                   bgcolor: settings.primaryColor,

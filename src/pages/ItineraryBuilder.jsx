@@ -31,6 +31,7 @@ import {
   FolderOpen,
   CheckCircleOutline,
   DeleteOutline,
+  CardTravel, // <-- ADDED ICON FOR VISA
 } from "@mui/icons-material";
 import { useItinerary } from "../context/ItineraryContext";
 import {
@@ -46,6 +47,7 @@ import DayPlanner from "../components/itinerary/DayPlanner";
 import PriceDetails from "../components/itinerary/PriceDetails";
 import InclExcl from "../components/itinerary/InclExcl";
 import TermsConditions from "../components/itinerary/TermsConditions";
+import VisaDetails from "../components/VisaDetails"
 import ThemeSelection from "../components/itinerary/ThemeSelection";
 import FinalItinerary from "../components/itinerary/FinalItinerary";
 import { useApi } from "@michaeldothedi-service/dta-crm-sl-sdk";
@@ -403,6 +405,7 @@ export default function ItineraryBuilder() {
     if (currentDraftId === id) setCurrentDraftId(null);
   };
 
+  // 🚨 ADDED VISA DETAILS STEP 
   const steps = [
     { label: "Client Details", id: 1, icon: <Person fontSize="small" /> },
     { label: "Hotels", id: 2, icon: <Hotel fontSize="small" /> },
@@ -411,8 +414,9 @@ export default function ItineraryBuilder() {
     { label: "Price Details", id: 5, icon: <AttachMoney fontSize="small" /> },
     { label: "Incl & Excl", id: 6, icon: <ListAlt fontSize="small" /> },
     { label: "Terms & Con", id: 7, icon: <Gavel fontSize="small" /> },
-    { label: "Template", id: 8, icon: <Style fontSize="small" /> },
-    { label: "Review", id: 9, icon: <Visibility fontSize="small" /> },
+    { label: "Visa Details", id: 8, icon: <CardTravel fontSize="small" /> }, // New Step
+    { label: "Template", id: 9, icon: <Style fontSize="small" /> }, // Shifted ID
+    { label: "Review", id: 10, icon: <Visibility fontSize="small" /> }, // Shifted ID
   ];
 
   const componentRef = useRef(null);
@@ -432,9 +436,11 @@ export default function ItineraryBuilder() {
         return <InclExcl />;
       case 7:
         return <TermsConditions />;
-      case 8:
-        return <ThemeSelection />;
+      case 8: // 🚨 RENDER VISA DETAILS HERE
+        return <VisaDetails />;
       case 9:
+        return <ThemeSelection />;
+      case 10:
         return (
           <div ref={componentRef}>
             <FinalItinerary />
@@ -551,7 +557,8 @@ export default function ItineraryBuilder() {
               </Button>
             </Badge>
 
-            {step < 8 && (
+            {/* 🚨 Adjusted step logic for Save Draft */}
+            {step < 9 && (
               <Button
                 variant="contained"
                 onClick={handleSaveDraft}
@@ -566,7 +573,8 @@ export default function ItineraryBuilder() {
               </Button>
             )}
 
-            {step === 9 && (
+            {/* 🚨 Adjusted step logic for Share PDF */}
+            {step === 10 && (
               <Button
                 variant="contained"
                 onClick={() => handleSharePdf()}
@@ -618,7 +626,7 @@ export default function ItineraryBuilder() {
         sx={{
           flexGrow: 1,
           overflowY: "auto",
-          p: step === 9 ? 0 : 5,
+          p: step === 10 ? 0 : 5, // 🚨 Adjusted step for padding
           pb: "160px",
         }}
       >
