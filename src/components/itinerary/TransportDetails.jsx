@@ -189,7 +189,7 @@ export default function TransportDetails() {
 
                 {/* Row 5: Price breakdown mapping exact screenshot */}
                 <Grid container spacing={3} mb={3}>
-                  <Grid item xs={12} md={3}><FieldLabel text="Duration (Auto-calculated)" /><StyledTextField fullWidth disabled value={flight.duration} /></Grid>
+                  <Grid item xs={12} md={3}><FieldLabel text="Duration" /><StyledTextField fullWidth disabled  type="text"value={flight.duration} /></Grid>
                   <Grid item xs={12} md={3}><FieldLabel text="Ticket Price per Adult" /><StyledTextField fullWidth type="number" InputProps={{ startAdornment: <InputAdornment position="start" sx={{ color: '#64748b' }}>₹</InputAdornment> }} value={flight.priceAdult} onChange={(e) => handleFlightChange(flight.id, 'priceAdult', e.target.value)} /></Grid>
                   <Grid item xs={12} md={3}><FieldLabel text="Ticket Price per Child" /><StyledTextField fullWidth type="number" InputProps={{ startAdornment: <InputAdornment position="start" sx={{ color: '#64748b' }}>₹</InputAdornment> }} value={flight.priceChild} onChange={(e) => handleFlightChange(flight.id, 'priceChild', e.target.value)} /></Grid>
                   <Grid item xs={12} md={3}><FieldLabel text="Ticket Price per Infant" /><StyledTextField fullWidth type="number" InputProps={{ startAdornment: <InputAdornment position="start" sx={{ color: '#64748b' }}>₹</InputAdornment> }} value={flight.priceInfant} onChange={(e) => handleFlightChange(flight.id, 'priceInfant', e.target.value)} /></Grid>
@@ -206,39 +206,9 @@ export default function TransportDetails() {
                 <Divider sx={{ my: 4 }} />
 
                 {/* VISA DETAILS BOX */}
-                <Typography variant="subtitle1" fontWeight="800" color="#0f172a" mb={3}>Visa Details</Typography>
+                 
                 
-                <Grid container spacing={3} mb={3}>
-                  <Grid item xs={12} md={3}>
-                    <FieldLabel text="Visa Country" required />
-                    <StyledTextField fullWidth select SelectProps={{ native: true }} value={flight.visaCountry} onChange={(e) => handleFlightChange(flight.id, 'visaCountry', e.target.value)}>
-                      <option value="Mumbai">Mumbai</option><option value="UAE">UAE</option>
-                    </StyledTextField>
-                  </Grid>
-                  <Grid item xs={12} md={3}>
-                    <FieldLabel text="Visa Type" required />
-                    <StyledTextField fullWidth select SelectProps={{ native: true }} value={flight.visaType} onChange={(e) => handleFlightChange(flight.id, 'visaType', e.target.value)}>
-                      <option value="Goa">Goa</option><option value="Tourist">Tourist</option>
-                    </StyledTextField>
-                  </Grid>
-                  <Grid item xs={12} md={3}>
-                    <FieldLabel text="Entry Type" required />
-                    <StyledTextField fullWidth select SelectProps={{ native: true }} value={flight.entryType} onChange={(e) => handleFlightChange(flight.id, 'entryType', e.target.value)}>
-                      <option value="Air India">Air India</option><option value="Single">Single</option>
-                    </StyledTextField>
-                  </Grid>
-                  <Grid item xs={12} md={3}>
-                    <FieldLabel text="Validity" required />
-                    <StyledTextField fullWidth select SelectProps={{ native: true }} value={flight.validity} onChange={(e) => handleFlightChange(flight.id, 'validity', e.target.value)}>
-                      <option value="Connecting Flight">Connecting Flight</option><option value="30 Days">30 Days</option>
-                    </StyledTextField>
-                  </Grid>
-                </Grid>
-
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={3}><FieldLabel text="Duration" required /><StyledTextField fullWidth value={flight.visaDuration} onChange={(e) => handleFlightChange(flight.id, 'visaDuration', e.target.value)} /></Grid>
-                  <Grid item xs={12} md={9}><FieldLabel text="Add Notes" /><StyledTextField fullWidth placeholder="Type here..." value={flight.notes} onChange={(e) => handleFlightChange(flight.id, 'notes', e.target.value)} /></Grid>
-                </Grid>
+               
 
               </Box>
             </Collapse>

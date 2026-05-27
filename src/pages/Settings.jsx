@@ -107,7 +107,6 @@ export default function Settings() {
     };
     api.auth.updateProfileAttribute(newPayaLoad).then(() => {
       api.auth.loadUserDetails().then((data) => {
-        console.log(data);
         setUserD(data);
       });
     });

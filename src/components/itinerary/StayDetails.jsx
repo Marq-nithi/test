@@ -18,6 +18,7 @@ import {
 import { Add, Remove, DeleteOutline } from "@mui/icons-material";
 import { useItinerary } from "../../context/ItineraryContext";
 import { useMasterEntries } from "../../services/backendApi";
+
 // Exact Figma Field Label
 const FieldLabel = ({ text, required }) => (
   <Typography
@@ -91,6 +92,7 @@ export default function StayDetails() {
   const [sugg, setSugg] = useState([]);
 
   const { getAllMasterEntries } = useMasterEntries();
+  
   useEffect(() => {
     getAllMasterEntries().then((data) => {
       const entries = Array.isArray(data?.data)
@@ -122,26 +124,26 @@ export default function StayDetails() {
 
   // Handlers
   const handleAddHotel = () => {
-    setHotels([
-      ...hotels,
+    setHotels((prevHotels) => [
+      ...prevHotels,
       {
         ...defaultHotel,
         id: Date.now(),
         type: "hotel",
-        location: hotels[0]?.location || "",
+        location: prevHotels[0]?.location || "",
       },
     ]);
   };
 
   const handleAddSplitStay = () => {
-    setHotels([
-      ...hotels,
+    setHotels((prevHotels) => [
+      ...prevHotels,
       { ...defaultHotel, id: Date.now(), type: "split", location: "" },
     ]);
   };
 
   const handleRemoveHotel = (id) => {
-    setHotels(hotels.filter((hotel) => hotel.id !== id));
+    setHotels((prevHotels) => prevHotels.filter((hotel) => hotel.id !== id));
   };
 
   const handleClearAll = () => {
@@ -149,8 +151,8 @@ export default function StayDetails() {
   };
 
   const handleUpdate = (id, field, value) => {
-    setHotels(
-      hotels.map((hotel) =>
+    setHotels((prevHotels) =>
+      prevHotels.map((hotel) =>
         hotel.id === id ? { ...hotel, [field]: value } : hotel,
       ),
     );
@@ -184,8 +186,8 @@ export default function StayDetails() {
   };
 
   const handleCountUpdate = (id, field, increment) => {
-    setHotels(
-      hotels.map((hotel) => {
+    setHotels((prevHotels) =>
+      prevHotels.map((hotel) => {
         if (hotel.id === id) {
           return { ...hotel, [field]: Math.max(1, hotel[field] + increment) };
         }
@@ -195,8 +197,8 @@ export default function StayDetails() {
   };
 
   const handleMealUpdate = (id, mealType, checked) => {
-    setHotels(
-      hotels.map((hotel) => {
+    setHotels((prevHotels) =>
+      prevHotels.map((hotel) => {
         if (hotel.id === id) {
           return { ...hotel, meals: { ...hotel.meals, [mealType]: checked } };
         }
@@ -205,7 +207,7 @@ export default function StayDetails() {
     );
   };
 
-  // 🚨 SAFE Amenities Handlers
+  // SAFE Amenities Handlers
   const handleAddAmenity = (hotelId, event) => {
     if (event.key === "Enter" && event.target.value.trim() !== "") {
       event.preventDefault();
@@ -279,7 +281,6 @@ export default function StayDetails() {
 
       {/* HOTEL CARDS */}
       {(hotels || []).map((hotel, index) => {
-        // 🚨 SAFE AMENITIES ARRAY FOR RENDERING
         const safeAmenities = hotel.amenities || [];
 
         return (
@@ -330,8 +331,7 @@ export default function StayDetails() {
             </Box>
 
             <Grid container spacing={3}>
-              {/* Row 1: Location, Hotel Name, Preference, Room Category */}
-              <Grid item xs={12} md={12}>
+              <Grid item xs={12} md={3}>
                 <FieldLabel text="Location" />
                 <StyledTextField
                   fullWidth
@@ -342,13 +342,11 @@ export default function StayDetails() {
                   }
                 />
               </Grid>
-              <Grid item >
+              <Grid item xs={12} md={3}>
                 <FieldLabel text="Hotel Name" required />
                 <Autocomplete
                   freeSolo
-                  sx={{
-                    width : '300px'
-                  }}
+                  fullWidth
                   options={sugg}
                   value={
                     sugg.find(
@@ -372,10 +370,11 @@ export default function StayDetails() {
                   getOptionLabel={(option) =>
                     typeof option === "string" ? option : option?.label || ""
                   }
-                  isOptionEqualToValue={(option, value) =>
-                    option.value === value.value ||
-                    option.label === value.label
-                  }
+                  // 🚨 BUG FIX: Safe comparison logic so it never crashes!
+                  isOptionEqualToValue={(option, val) => {
+                    if (!option || !val) return false;
+                    return option?.value === val?.value || option?.label === val?.label || option?.label === val;
+                  }}
                   renderInput={(params) => (
                     <StyledTextField
                       {...params}

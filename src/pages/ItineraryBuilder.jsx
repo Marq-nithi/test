@@ -31,6 +31,7 @@ import {
   FolderOpen,
   CheckCircleOutline,
   DeleteOutline,
+  CardTravel, 
 } from "@mui/icons-material";
 import { useItinerary } from "../context/ItineraryContext";
 import {
@@ -46,6 +47,7 @@ import DayPlanner from "../components/itinerary/DayPlanner";
 import PriceDetails from "../components/itinerary/PriceDetails";
 import InclExcl from "../components/itinerary/InclExcl";
 import TermsConditions from "../components/itinerary/TermsConditions";
+import VisaDetails from "../components/itinerary/VisaDetails"; 
 import ThemeSelection from "../components/itinerary/ThemeSelection";
 import FinalItinerary from "../components/itinerary/FinalItinerary";
 import { useApi } from "@michaeldothedi-service/dta-crm-sl-sdk";
@@ -71,8 +73,7 @@ export default function ItineraryBuilder() {
 
   const { api } = useApi();
   const { getBlob } = useBlobDownload();
-  const { getAllItineraryDraft, getItineraryDataById } =
-    useItineraryBuilderApi();
+  const { getAllItineraryDraft, getItineraryDataById } = useItineraryBuilderApi();
   const { getAllMasterEntries } = useMasterEntries();
 
   const [savedDrafts, setSavedDrafts] = useState([]);
@@ -203,7 +204,7 @@ export default function ItineraryBuilder() {
       };
     };
 
-    const iternerary_dayplanner = dayPlannerData.map((v) => ({
+  const iternerary_dayplanner = dayPlannerData.map((v) => ({
       day: v.day,
       title: v.title,
       description: v.description,
@@ -411,8 +412,9 @@ export default function ItineraryBuilder() {
     { label: "Price Details", id: 5, icon: <AttachMoney fontSize="small" /> },
     { label: "Incl & Excl", id: 6, icon: <ListAlt fontSize="small" /> },
     { label: "Terms & Con", id: 7, icon: <Gavel fontSize="small" /> },
-    { label: "Template", id: 8, icon: <Style fontSize="small" /> },
-    { label: "Review", id: 9, icon: <Visibility fontSize="small" /> },
+    { label: "Visa Details", id: 8, icon: <CardTravel fontSize="small" /> }, 
+    { label: "Template", id: 9, icon: <Style fontSize="small" /> }, 
+    { label: "Review", id: 10, icon: <Visibility fontSize="small" /> }, 
   ];
 
   const componentRef = useRef(null);
@@ -432,9 +434,11 @@ export default function ItineraryBuilder() {
         return <InclExcl />;
       case 7:
         return <TermsConditions />;
-      case 8:
-        return <ThemeSelection />;
+      case 8: 
+        return <VisaDetails />;
       case 9:
+        return <ThemeSelection />;
+      case 10:
         return (
           <div ref={componentRef}>
             <FinalItinerary />
@@ -445,60 +449,45 @@ export default function ItineraryBuilder() {
     }
   };
 
+  // 🚨 FIXED: STABLE REAL-TIME CURRENT INPUT SINGLE-PAGE PDF DOWNLOADER
   const handleSharePdf = async () => {
     if (!componentRef.current) return;
 
-    const canvas = await html2canvas(componentRef.current, {
-      scale: 2,
-      useCORS: true,
-    });
+    try {
+      // 1. Force a minor delay to ensure React commits context inputs to text nodes completely
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
-    const imgData = canvas.toDataURL("image/png");
+      // 2. Capture clean screen metrics configurations
+      const canvas = await html2canvas(componentRef.current, {
+        scale: 2, // High resolution rendering for sharp typography fonts
+        useCORS: true, // Seamless external assets / Unsplash images fetching
+        logging: false,
+        backgroundColor: "#fafaf9", // Synchronized clean theme light fallback bg color
+        windowWidth: 1200, // Enforce responsive design constraints to desktop widths
+      });
 
-    const pdf = new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: "a4",
-    });
+      const imgData = canvas.toDataURL("image/jpeg", 0.98);
+      const pdfWidth = 210; // Standard layout scale horizontal footprint metric boundary
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
+      // 3. Mount document container frame instance
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: [pdfWidth, pdfHeight], // Continuous infinite page dimension wrapper rule mapping
+      });
 
-    const imgWidth = canvas.width;
-    const imgHeight = canvas.height;
-
-    const pdfHeight = (imgHeight * pageWidth) / imgWidth;
-    const pageHeightPx = (pageHeight * imgWidth) / pageWidth;
-
-    if (pdfHeight <= pageHeight) {
-      pdf.addImage(imgData, "PNG", 0, 0, pageWidth, pdfHeight);
-    } else {
-      let position = 0;
-      let remainingHeight = imgHeight;
-
-      while (remainingHeight > 0) {
-        const canvasPage = document.createElement("canvas");
-        canvasPage.width = imgWidth;
-        canvasPage.height = Math.min(pageHeightPx, remainingHeight);
-
-        const context = canvasPage.getContext("2d");
-        context.drawImage(canvas, 0, -position);
-
-        const pageData = canvasPage.toDataURL("image/png");
-        const pageDataHeight = (canvasPage.height * pageWidth) / imgWidth;
-
-        pdf.addImage(pageData, "PNG", 0, 0, pageWidth, pageDataHeight);
-
-        remainingHeight -= canvasPage.height;
-        position += canvasPage.height;
-
-        if (remainingHeight > 0) {
-          pdf.addPage();
-        }
-      }
+      // 4. Attach layout texture layer block and execute download
+      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight, undefined, "FAST");
+      
+      const fileName = clientData?.name 
+        ? `Itinerary_${clientData.name.trim().replace(/\s+/g, '_')}.pdf` 
+        : "Itinerary.pdf";
+        
+      pdf.save(fileName);
+    } catch (error) {
+      console.error("Single page execution thread faulted capturing current input state context:", error);
     }
-
-    pdf.save("component.pdf");
   };
 
   return (
@@ -551,7 +540,7 @@ export default function ItineraryBuilder() {
               </Button>
             </Badge>
 
-            {step < 8 && (
+            {step < 9 && (
               <Button
                 variant="contained"
                 onClick={handleSaveDraft}
@@ -566,7 +555,7 @@ export default function ItineraryBuilder() {
               </Button>
             )}
 
-            {step === 9 && (
+            {step === 10 && (
               <Button
                 variant="contained"
                 onClick={() => handleSharePdf()}
@@ -618,7 +607,7 @@ export default function ItineraryBuilder() {
         sx={{
           flexGrow: 1,
           overflowY: "auto",
-          p: step === 9 ? 0 : 5,
+          p: step === 10 ? 0 : 5, 
           pb: "160px",
         }}
       >
@@ -674,6 +663,7 @@ export default function ItineraryBuilder() {
                       sx={{
                         display: "flex",
                         justifyContent: "space-between",
+                        alignItems: "center",
                         mb: 2,
                       }}
                     >

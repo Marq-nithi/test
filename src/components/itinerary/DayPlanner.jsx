@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { 
   Box, Typography, TextField, Button, Paper, 
   IconButton, Checkbox, FormControlLabel, Radio, RadioGroup, FormGroup,
-  Divider, Autocomplete, Collapse
+  Divider, Autocomplete, Collapse, Chip
 } from '@mui/material';
 import { 
   DeleteOutline, Search, KeyboardArrowUp, KeyboardArrowDown,
@@ -103,6 +103,40 @@ export default function DayPlanner() {
     handleUpdateDay(index, 'meals', newMeals);
   };
 
+  // --- NEW ACTIVITY CHIP LOGIC ---
+  const getActivitiesArray = (activitiesStr) => {
+    if (!activitiesStr) return [];
+    if (Array.isArray(activitiesStr)) return activitiesStr;
+    return activitiesStr.split('\n').map(a => a.replace(/^•\s*/, '').trim()).filter(a => a !== '');
+  };
+
+  const handleAddActivity = (index, event) => {
+    if (event.key === 'Enter' && event.target.value.trim() !== '') {
+      event.preventDefault();
+      const newActivity = event.target.value.trim();
+      const currentActivities = getActivitiesArray(daysArray[index].activities);
+
+      if (!currentActivities.includes(newActivity)) {
+        const updatedArray = [...currentActivities, newActivity];
+        // Saves as formatted bullet points so Theme3Coastal prints it perfectly!
+        handleUpdateDay(index, 'activities', '• ' + updatedArray.join('\n• '));
+      }
+      event.target.value = ''; // clear input after pressing Enter
+    }
+  };
+
+  const handleRemoveActivity = (index, activityToRemove) => {
+    const currentActivities = getActivitiesArray(daysArray[index].activities);
+    const updatedArray = currentActivities.filter(a => a !== activityToRemove);
+    
+    if (updatedArray.length === 0) {
+      handleUpdateDay(index, 'activities', '');
+    } else {
+      handleUpdateDay(index, 'activities', '• ' + updatedArray.join('\n• '));
+    }
+  };
+  // -------------------------------
+
   // Upload image and store returned blob id in state
   const handleImageClick = async (index) => {
     const uploadResponse = await uploadBlob('image/*');
@@ -163,6 +197,7 @@ export default function DayPlanner() {
           // SAFE ARRAYS FOR RENDERING
           const safeMeals = Array.isArray(day.meals) ? day.meals : [];
           const safeImages = Array.isArray(day.images) ? day.images : [];
+          const safeActivities = getActivitiesArray(day.activities);
 
           return (
             <Paper key={index} elevation={0} sx={{ border: '1px solid #e2e8f0', borderRadius: 3, overflow: 'hidden', bgcolor: '#fff' }}>
@@ -222,14 +257,32 @@ export default function DayPlanner() {
                     />
                   </Box>
 
+                  {/* 🚨 UPDATED ACTIVITIES CHIP UI */}
                   <Typography variant="caption" fontWeight="700" color="#334155" mb={1} display="block">Activities & Experiences</Typography>
                   <TextField 
                     fullWidth size="small" 
-                    placeholder="• List out the day's activities" 
-                    value={day.activities || ''}
-                    onChange={(e) => handleUpdateDay(index, 'activities', e.target.value)}
-                    sx={{ mb: 3, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                    placeholder="Type an activity and press Enter..." 
+                    onKeyDown={(e) => handleAddActivity(index, e)}
+                    sx={{ mb: 1, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                   />
+                  <Box sx={{ minHeight: '40px', border: '1px solid #e2e8f0', borderRadius: 2, bgcolor: '#f8fafc', p: 1, mb: 3, display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+                    {safeActivities.map((activity, actIndex) => (
+                      <Chip 
+                        key={actIndex} 
+                        label={activity} 
+                        onDelete={() => handleRemoveActivity(index, activity)} 
+                        size="small" 
+                        sx={{ 
+                          bgcolor: '#f0f9ff', color: '#0ea5e9', border: '1px solid #bae6fd', 
+                          '& .MuiChip-deleteIcon': { color: '#0ea5e9', '&:hover': { color: '#0284c7' } } 
+                        }} 
+                      />
+                    ))}
+                    {safeActivities.length === 0 && (
+                      <Typography variant="body2" sx={{ color: '#94a3b8', ml: 1 }}>No activities added</Typography>
+                    )}
+                  </Box>
+                  {/* -------------------------------- */}
 
                   <Typography variant="caption" fontWeight="700" color="#334155" mb={1} display="block">Meal Plan</Typography>
                   <FormGroup row sx={{ mb: 3, gap: 2 }}>
@@ -266,7 +319,7 @@ export default function DayPlanner() {
                     ))}
                   </RadioGroup>
 
-                  {/* IMAGE UPLOAD UI PREVIEWS (resolved via useBlobDownload) */}
+                  {/* IMAGE UPLOAD UI PREVIEWS */}
                   <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                     {safeImages.length === 0 && (
                       <Box sx={{ width: 64, height: 64, bgcolor: '#f8fafc', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0', color: '#475569' }}>

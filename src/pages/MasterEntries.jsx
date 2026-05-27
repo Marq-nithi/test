@@ -83,6 +83,7 @@ export default function MasterEntries() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { getAllMasterEntries, createMasterEntries, deleteMasterEntrie } =
     useMasterEntries();
+
   // DYNAMIC INITIAL DATA
   const [entries, setEntries] = useState([]);
 
@@ -97,10 +98,12 @@ export default function MasterEntries() {
       );
     });
   };
+
   const handleDelete = async (id) => {
-    await deleteMasterEntrie(id)();
+    await deleteMasterEntrie(id);
     handleAllMasters();
   };
+
   useEffect(() => {
     handleAllMasters();
   }, []);
@@ -114,11 +117,10 @@ export default function MasterEntries() {
       setFormData({
         name: "",
         country: "",
-        region: "",
-        description: "",
-        season: "",
         budget: "",
         popular: false,
+        // Default array for the day-wise activities
+        days: [{ title: "", description: "", activities: "" }],
       });
     if (activeTab === "Hotels")
       setFormData({
@@ -142,6 +144,7 @@ export default function MasterEntries() {
       });
     if (activeTab === "Transport")
       setFormData({ name: "", type: "Car", capacity: "", price: "" });
+
     setIsModalOpen(true);
   };
 
@@ -153,6 +156,28 @@ export default function MasterEntries() {
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({ ...formData, [name]: type === "checkbox" ? checked : value });
+  };
+
+  // --- DAY-WISE ACTIVITIES HANDLERS ---
+  const handleDayChange = (index, field, value) => {
+    const newDays = [...(formData.days || [])];
+    newDays[index][field] = value;
+    setFormData({ ...formData, days: newDays });
+  };
+
+  const handleAddDay = () => {
+    setFormData({
+      ...formData,
+      days: [
+        ...(formData.days || []),
+        { title: "", description: "", activities: "" },
+      ],
+    });
+  };
+
+  const handleRemoveDay = (index) => {
+    const newDays = formData.days.filter((_, i) => i !== index);
+    setFormData({ ...formData, days: newDays });
   };
 
   const handleAddEntry = () => {
@@ -201,87 +226,183 @@ export default function MasterEntries() {
   const renderModalContent = () => {
     if (activeTab === "Destinations")
       return (
-        <Grid container spacing={2.5} sx={{ mt: 0.5 }}>
-          <Grid item xs={12}>
-            <FieldLabel text="Destination Name" />
-            <StyledTextField
+        <Box sx={{ mt: 0.5 }}>
+          {/* Top Section */}
+          <Grid container spacing={2.5}>
+            <Grid item xs={12}>
+              <FieldLabel text="Destination Name" />
+              <StyledTextField
+                fullWidth
+                name="name"
+                placeholder="e.g., Paris, France"
+                value={formData.name || ""}
+                onChange={handleInputChange}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FieldLabel text="Country" />
+              <StyledTextField
+                fullWidth
+                name="country"
+                placeholder="e.g., France"
+                value={formData.country || ""}
+                onChange={handleInputChange}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FieldLabel text="Average Budget" />
+              <StyledTextField
+                fullWidth
+                name="budget"
+                placeholder="e.g., ₹2000-3000"
+                value={formData.budget || ""}
+                onChange={handleInputChange}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={formData.popular || false}
+                    onChange={handleInputChange}
+                    name="popular"
+                    sx={{ "&.Mui-checked": { color: "#0ea5e9" } }}
+                  />
+                }
+                label={
+                  <Typography variant="body2" fontWeight="600" color="#475569">
+                    Mark as popular destination
+                  </Typography>
+                }
+              />
+            </Grid>
+          </Grid>
+
+          {/* Day-wise Activities Section */}
+          <Box sx={{ mt: 3, mb: 1 }}>
+            <Typography
+              variant="body2"
+              fontWeight="700"
+              color="#0f172a"
+              mb={1.5}
+            >
+              Day-wise Activities (Optional)
+            </Typography>
+
+            {(formData.days || []).map((day, index) => (
+              <Box
+                key={index}
+                sx={{
+                  bgcolor: "#f8fafc",
+                  border: "1px solid #f1f5f9",
+                  borderRadius: "12px",
+                  p: 2,
+                  mb: 2,
+                }}
+              >
+                {/* Day Header & Delete Icon */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    mb: 2,
+                  }}
+                >
+                  <Typography variant="body2" fontWeight="700" color="#475569">
+                    Day {index + 1}
+                  </Typography>
+                  <IconButton
+                    size="small"
+                    onClick={() => handleRemoveDay(index)}
+                    sx={{ color: "#ef4444", p: 0.5 }}
+                  >
+                    <DeleteOutline fontSize="small" />
+                  </IconButton>
+                </Box>
+
+                {/* Day Fields */}
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                  <Box>
+                    <FieldLabel text="Day Title *" />
+                    <StyledTextField
+                      fullWidth
+                      placeholder="e.g., Arrival in Rome & Colosseum Visit"
+                      value={day.title}
+                      onChange={(e) =>
+                        handleDayChange(index, "title", e.target.value)
+                      }
+                    />
+                  </Box>
+                  <Box>
+                    <FieldLabel text="Description" />
+                    <StyledTextField
+                      fullWidth
+                      multiline
+                      rows={2}
+                      placeholder="Describe the day's activities - Sights, meals, transfers, special experiences..."
+                      value={day.description}
+                      onChange={(e) =>
+                        handleDayChange(index, "description", e.target.value)
+                      }
+                    />
+                  </Box>
+                  <Box>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <FieldLabel text="Activities & Experiences" />
+                      <Button
+                        size="small"
+                        startIcon={<Add fontSize="small" />}
+                        sx={{
+                          textTransform: "none",
+                          color: "#64748b",
+                          fontWeight: 700,
+                          py: 0,
+                        }}
+                      >
+                        Add
+                      </Button>
+                    </Box>
+                    <StyledTextField
+                      fullWidth
+                      placeholder="List out the day's activities"
+                      value={day.activities}
+                      onChange={(e) =>
+                        handleDayChange(index, "activities", e.target.value)
+                      }
+                    />
+                  </Box>
+                </Box>
+              </Box>
+            ))}
+
+            {/* Add Another Day Button */}
+            <Button
               fullWidth
-              name="name"
-              placeholder="e.g., Paris, France"
-              value={formData.name || ""}
-              onChange={handleInputChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FieldLabel text="Country" />
-            <StyledTextField
-              fullWidth
-              name="country"
-              placeholder="e.g., France"
-              value={formData.country || ""}
-              onChange={handleInputChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FieldLabel text="Region" />
-            <StyledTextField
-              fullWidth
-              name="region"
-              placeholder="e.g., Western Europe"
-              value={formData.region || ""}
-              onChange={handleInputChange}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <FieldLabel text="Description" />
-            <StyledTextField
-              fullWidth
-              multiline
-              rows={3}
-              name="description"
-              placeholder="Brief description of the destination..."
-              value={formData.description || ""}
-              onChange={handleInputChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FieldLabel text="Best Season" />
-            <StyledTextField
-              fullWidth
-              name="season"
-              placeholder="e.g., Spring, Summer"
-              value={formData.season || ""}
-              onChange={handleInputChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FieldLabel text="Average Budget" />
-            <StyledTextField
-              fullWidth
-              name="budget"
-              placeholder="e.g., ₹2000-3000"
-              value={formData.budget || ""}
-              onChange={handleInputChange}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={formData.popular || false}
-                  onChange={handleInputChange}
-                  name="popular"
-                  sx={{ "&.Mui-checked": { color: "#0ea5e9" } }}
-                />
-              }
-              label={
-                <Typography variant="body2" fontWeight="600" color="#475569">
-                  Mark as popular destination
-                </Typography>
-              }
-            />
-          </Grid>
-        </Grid>
+              variant="outlined"
+              startIcon={<Add />}
+              onClick={handleAddDay}
+              sx={{
+                mt: 1,
+                borderRadius: "8px",
+                borderColor: "#e2e8f0",
+                color: "#0f172a",
+                fontWeight: 600,
+                textTransform: "none",
+                py: 1,
+                "&:hover": { borderColor: "#cbd5e1", bgcolor: "#f8fafc" },
+              }}
+            >
+              Add Another Day
+            </Button>
+          </Box>
+        </Box>
       );
 
     if (activeTab === "Hotels")

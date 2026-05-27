@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Box, Fab, Tooltip } from '@mui/material';
-import { ArrowBack, Print } from '@mui/icons-material';
+import { ArrowBack, Download } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useItinerary } from '../context/ItineraryContext';
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
-// Import Themes
 import Theme1Classic from '../components/itinerary/themes/Theme1Classic';
 import Theme2Midnight from '../components/itinerary/themes/Theme2Midnight';
 import Theme3Coastal from '../components/itinerary/themes/Theme3Coastal';
@@ -12,107 +13,77 @@ import Theme3Coastal from '../components/itinerary/themes/Theme3Coastal';
 export default function PreviewItinerary() {
   const navigate = useNavigate();
   const context = useItinerary();
+  const liveScreenRef = useRef(null);
 
-  // 1. SAFELY GRAB ALL DATA FROM CONTEXT
-  const safeData = {
-    client: context?.clientData || {},
-    themeConfig: context?.themeConfig || {}, // Custom colors/images
-    stay: { hotels: Array.isArray(context?.stayData?.hotels) ? context.stayData.hotels : [] },
-    transport: {
-      types: context?.transportData?.types || {},
-      flights: Array.isArray(context?.transportData?.flights) ? context.transportData.flights : [],
-      trains: Array.isArray(context?.transportData?.trains) ? context.transportData.trains : [],
-      grounds: Array.isArray(context?.transportData?.grounds) ? context.transportData.grounds : []
-    },
-    days: Array.isArray(context?.dayPlannerData) ? context.dayPlannerData : [],
-    price: context?.priceData || { items: [], taxes: {}, discount: {} },
-    inclExcl: { 
-      inclusions: Array.isArray(context?.inclExclData?.inclusions) ? context.inclExclData.inclusions : [], 
-      exclusions: Array.isArray(context?.inclExclData?.exclusions) ? context.inclExclData.exclusions : [] 
-    },
-    terms: Array.isArray(context?.termsData) ? context.termsData : []
+  const handlePrint = async () => {
+    if (!liveScreenRef.current) return;
+
+    try {
+      // 1. Force wait for all images inside the ref to load
+      const images = liveScreenRef.current.querySelectorAll("img");
+      await Promise.all(
+        Array.from(images).map((img) => {
+          if (img.complete) return Promise.resolve();
+          return new Promise((resolve) => { img.onload = resolve; img.onerror = resolve; });
+        })
+      );
+
+      // 2. Small delay to ensure React state has finished painting inputs
+      await new Promise(resolve => setTimeout(resolve, 400));
+
+      // 3. Take snapshot of the LIVE ref (not searching the whole document)
+      const canvas = await html2canvas(liveScreenRef.current, {
+        scale: 2, 
+        useCORS: true, 
+        allowTaint: false,
+        backgroundColor: "#ffffff", 
+        windowWidth: 1200, 
+      });
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.98);
+      const pdfWidth = 210; 
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width; 
+
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: [pdfWidth, pdfHeight], 
+      });
+
+      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight, undefined, "FAST");
+      
+      const clientName = context?.clientData?.name ? context.clientData.name.trim().replace(/\s+/g, '_') : "Itinerary";
+      pdf.save(`Itinerary_${clientName}.pdf`);
+    } catch (error) {
+      console.error("PDF Capture Error:", error);
+    }
   };
 
-  // 2. CALCULATE PRICING MATH
-  const safeItems = Array.isArray(safeData.price?.items) ? safeData.price.items : [];
-  const subtotal = safeItems.reduce((sum, item) => sum + ((Number(item?.quantity) || 0) * (Number(item?.unitPrice) || 0)), 0);
-  const gst = subtotal * ((Number(safeData.price?.taxes?.gst) || 0) / 100);
-  const discount = safeData.price?.discount?.type === 'Percentage (%)' 
-    ? subtotal * ((Number(safeData.price?.discount?.value) || 0) / 100) 
-    : (Number(safeData.price?.discount?.value) || 0);
+  const theme = context?.clientData?.theme || 'coastal';
   
-  const math = { 
-    subtotal, 
-    gst, 
-    discount, 
-    grandTotal: subtotal + gst - discount 
-  };
-
-  // 🚨 3. THE BULLETPROOF PRINT FUNCTION
-  const handlePrint = () => {
-    // This triggers the native browser print/save-to-pdf dialog instantly
-    window.print();
-  };
-
-  // 4. DETERMINE WHICH THEME TO SHOW
-  const theme = safeData.client?.theme || 'coastal'; // Defaulting to Coastal
-  
+  // Directly use the context values so it always reads the "live" state
   const renderTheme = () => {
-    if (theme === 'midnight') return <Theme2Midnight data={safeData} math={math} />;
-    if (theme === 'coastal') return <Theme3Coastal data={safeData} math={math} />;
-    return <Theme1Classic data={safeData} math={math} />;
+    if (theme === 'midnight') return <Theme2Midnight />;
+    if (theme === 'coastal') return <Theme3Coastal />;
+    return <Theme1Classic />;
   };
 
   return (
     <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh', position: 'relative' }}>
       
-      {/* 🚨 FLOATING ACTION BUTTONS */}
-      {/* We add the class "hide-on-print" so these disappear when the PDF is generating */}
-      <Box 
-        className="hide-on-print"
-        sx={{ position: 'fixed', bottom: 32, right: 32, display: 'flex', gap: 2, zIndex: 1000 }}
-      >
-        <Tooltip title="Back to Builder" placement="top">
-          <Fab color="default" onClick={() => navigate(-1)} sx={{ bgcolor: '#fff' }}>
-            <ArrowBack />
-          </Fab>
-        </Tooltip>
-        <Tooltip title="Download PDF" placement="top">
-          <Fab color="primary" onClick={handlePrint} sx={{ bgcolor: '#00c6ff', '&:hover': { bgcolor: '#00b4e6' } }}>
-            <Print />
-          </Fab>
-        </Tooltip>
+      <Box className="hide-on-print" sx={{ position: 'fixed', bottom: 32, right: 32, display: 'flex', gap: 2, zIndex: 1000 }}>
+        <Tooltip title="Back to Builder"><Fab color="default" onClick={() => navigate(-1)}><ArrowBack /></Fab></Tooltip>
+        <Tooltip title="Download PDF"><Fab color="primary" onClick={handlePrint}><Download /></Fab></Tooltip>
       </Box>
 
-      {/* THEME RENDERER */}
-      <Box sx={{ bgcolor: '#fff' }}>
+      {/* 🚨 THE REF ATTACHMENT HERE IS WHY IT NOW SHOWS CURRENT DATA */}
+      <Box ref={liveScreenRef} sx={{ bgcolor: '#fff' }}>
         {renderTheme()}
       </Box>
 
-      {/* 🚨 CSS MAGIC FOR PERFECT PDF EXPORT */}
-      <style>
-        {`
-          @media print {
-            /* 1. Hide the floating buttons completely */
-            .hide-on-print { 
-              display: none !important; 
-            }
-            
-            /* 2. Force the browser to print background colors and images */
-            body { 
-              -webkit-print-color-adjust: exact !important; 
-              print-color-adjust: exact !important; 
-              background-color: white !important;
-            }
-
-            /* 3. Remove default browser margins, dates, and URLs from the PDF edges */
-            @page { 
-              size: auto;
-              margin: 0mm; 
-            }
-          }
-        `}
-      </style>
+      <style>{`
+        @media print { .hide-on-print { display: none !important; } }
+      `}</style>
     </Box>
   );
 }

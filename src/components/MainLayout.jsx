@@ -351,7 +351,7 @@ export default function MainLayout({ children }) {
               <Button
                 variant="contained"
                 onClick={handleNext}
-                disabled={step === 9}
+                disabled={step ===10}
                 sx={{
                   px: { xs: 2, md: 5 },
                   bgcolor: settings.primaryColor,

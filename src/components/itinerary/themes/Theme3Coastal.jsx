@@ -6,14 +6,18 @@ import {
   FlightTakeoff, Hotel, LocationOn, CalendarMonth, 
   CheckCircle, DirectionsCar, Star, Phone, Email,
   ShieldOutlined, AssignmentOutlined, Flight,
-  AccessTime, Public, Group, Explore, Cancel,
-  Restaurant, AccountBalance, Description
+  AccessTime, Public, Group, Cancel,
+  Restaurant, AccountBalance, Description,
+  Check, Close, Train, DirectionsBus, 
+  Badge, PinDrop, Work, AccountBalanceWallet, Explore,HomeWork,Pin
 } from '@mui/icons-material';
+import { WhatsApp } from '@mui/icons-material';
 
 import { useItinerary } from '../../../context/ItineraryContext'; 
 
 // --- Placeholder Images for Coastal Theme ---
-const HERO_BG = "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?auto=format&fit=crop&q=80&w=2000"; 
+// Updated to a dark, moody night background to match your design
+const HERO_BG = "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&q=80&w=2000"; 
 const DAY1_IMG = "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?auto=format&fit=crop&q=80&w=800"; 
 const DAY2_IMG = "https://images.unsplash.com/photo-1544550581-5f7ceaf7f992?auto=format&fit=crop&q=80&w=800"; 
 const DAY3_IMG = "https://images.unsplash.com/photo-1506929562872-bb421503ef21?auto=format&fit=crop&q=80&w=800"; 
@@ -38,7 +42,8 @@ export default function Theme3Coastal() {
     stayData,
     inclExclData,
     termsData,
-    reviewData 
+    reviewData,
+    visaData,
   } = useItinerary();
 
   // --- 1. CLIENT & TRIP DATA ---
@@ -46,114 +51,185 @@ export default function Theme3Coastal() {
   const shortDestination = rawDestination.split(',')[0];
   const title = (clientData.trip_title && clientData.trip_title.trim() !== "") ? clientData.trip_title : `Best of ${shortDestination}`;
   const clientName = `${clientData.title || ''} ${clientData.name || 'Valued Guest'}`.trim();
-  const phone = `${clientData.contactCode || ''} ${clientData.contact || ''}`.trim() || 'N/A';
-  const email = clientData.email || 'N/A';
+  const phone = `${clientData.contactCode || ''} ${clientData.contact || ''}`.trim() || '+1 (234) 567-890';
+  const email = clientData.email || 'guest@example.com';
+  const agentName = clientData.queryHandledBy && clientData.queryHandledBy !== '0' ? clientData.queryHandledBy : 'Your Travel Expert';
   
-  const formatDate = (dateString) => dateString ? new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : null;
+  const formatDate = (dateString) => dateString ? new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Dates TBD';
   const dates = (clientData.startDate && clientData.endDate) ? `${formatDate(clientData.startDate)} - ${formatDate(clientData.endDate)}` : "Dates TBD";
   
   const adults = parseInt(clientData.adults) || 2;
   const childrenCount = parseInt(clientData.children) || 0;
-  const pax = `${adults} Adults${childrenCount > 0 ? `, ${childrenCount} Children` : ''}`;
+  const pax = `${adults} Adults${childrenCount > 0 ? `, ${childrenCount} Child${childrenCount > 1 ? 'ren' : ''}` : ''}`;
   
   const totalDays = clientData.days || 7;
   const budget = reviewData?.budget !== '$0.00' ? reviewData?.budget : (clientData.budget ? `$${clientData.budget}` : 'TBD');
 
   // --- 2. TRANSPORT DATA ---
-  let flights = [];
-  if (transportData?.flights?.length > 0) flights = transportData.flights;
-  else if (transportData?.airline || transportData?.depFrom) flights = [transportData];
+  let allTransports = [];
+  if (transportData) {
+    if (Array.isArray(transportData.flights)) allTransports.push(...transportData.flights.map(t => ({...t, _type: 'Flight'})));
+    if (Array.isArray(transportData.trains)) allTransports.push(...transportData.trains.map(t => ({...t, _type: 'Train'})));
+    if (Array.isArray(transportData.buses)) allTransports.push(...transportData.buses.map(t => ({...t, _type: 'Bus'})));
+    if (Array.isArray(transportData.grounds)) allTransports.push(...transportData.grounds.map(t => ({...t, _type: 'Ground'})));
+    
+    if (allTransports.length === 0) {
+      if (Array.isArray(transportData)) allTransports = transportData;
+      else if (transportData?.airline || transportData?.depFrom || transportData?.trainName) allTransports = [transportData];
+    }
+  }
 
   // --- 3. DAY PLANNER DATA ---
   const rawDaysArray = activeDays || dayPlannerData || [];
-  const isFormEmpty = rawDaysArray.length === 0 || (rawDaysArray.length === 1 && !rawDaysArray[0].title);
-  const days = !isFormEmpty ? rawDaysArray : [{ title: `Arrival in ${shortDestination}`, description: "Welcome to your dream vacation!", meals: ["Breakfast"], transport: "Private Transfer" }];
+  const safeDays = rawDaysArray.length > 0 ? rawDaysArray : [{ title: `Arrival in ${shortDestination}`, description: "Welcome to your destination!", meals: ["Breakfast"], transport: "Private Transfer" }];
 
   // --- 4. STAY DATA ---
-  const hotels = stayData?.hotels?.length > 0 ? stayData.hotels : [];
+  let safeHotels = [];
+  if (Array.isArray(stayData?.hotels)) safeHotels = stayData.hotels;
+  else if (Array.isArray(stayData)) safeHotels = stayData;
+  else if (stayData && typeof stayData === 'object' && Object.keys(stayData).length > 0) safeHotels = [stayData];
 
   // --- 5. INCLUSIONS & EXCLUSIONS ---
   let displayInclusions = [];
   let displayExclusions = [];
   if (Array.isArray(inclExclData?.inclusions)) displayInclusions = inclExclData.inclusions;
   else displayInclusions = Object.keys(inclExclData?.inclusions || {}).filter(k => inclExclData.inclusions[k]).map(formatCamelCase);
+  
   if (Array.isArray(inclExclData?.exclusions)) displayExclusions = inclExclData.exclusions;
   else displayExclusions = Object.keys(inclExclData?.exclusions || {}).filter(k => inclExclData.exclusions[k]).map(formatCamelCase);
 
   if (displayInclusions.length === 0) displayInclusions = ["Accommodation as per itinerary", "Daily Breakfast", "Airport Transfers"];
   if (displayExclusions.length === 0) displayExclusions = ["International Flights", "Visa Fees", "Personal Expenses"];
 
-  // --- 6. SMART TERMS & CONDITIONS ---
+  const safeVisas = Array.isArray(visaData) ? visaData : [];
+
   const renderTerms = () => {
-    if (!termsData) return <Typography variant="body2" color={TEXT_MUTED}>Standard travel terms and conditions apply.</Typography>;
-    if (typeof termsData === 'string') return <Typography variant="body2" color={TEXT_MUTED} sx={{ whiteSpace: 'pre-line' }}>{termsData}</Typography>;
+    let sections = [];
+    if (typeof termsData === 'string' && termsData.trim().length > 0) {
+      sections = [{ title: "General Information", text: termsData, icon: <AssignmentOutlined fontSize="small" /> }];
+    } else if (termsData && typeof termsData === 'object') {
+      if (termsData.policies?.length > 0) sections.push({ title: "Cancellation Policy", text: termsData.policies.join(' '), icon: <ShieldOutlined fontSize="small" /> });
+      if (termsData.protections?.length > 0) sections.push({ title: "Travel Insurance", text: termsData.protections.join(' '), icon: <ShieldOutlined fontSize="small" /> });
+      if (termsData.terms?.length > 0) sections.push({ title: "General Terms", text: termsData.terms.join(' '), icon: <AssignmentOutlined fontSize="small" /> });
+    }
 
-    const allSections = [];
-    if (termsData.terms?.length > 0) allSections.push({ title: "General Terms", items: termsData.terms, icon: <AssignmentOutlined /> });
-    if (termsData.policies?.length > 0) allSections.push({ title: "Cancellation Policy", items: termsData.policies, icon: <Cancel /> });
-    if (termsData.payments?.length > 0) allSections.push({ title: "Payment Schedule", items: termsData.payments, icon: <AccountBalance /> });
-    if (termsData.protections?.length > 0) allSections.push({ title: "Travel Protection", items: termsData.protections, icon: <ShieldOutlined /> });
-
-    if (allSections.length === 0) return <Typography variant="body2" color={TEXT_MUTED}>Standard travel terms apply.</Typography>;
+    if (sections.length === 0) {
+      sections = [
+        { title: "Cancellation Policy", text: "Standard cancellation policies apply. Please review before booking.", icon: <ShieldOutlined fontSize="small" /> },
+        { title: "General Terms", text: "All prices are subject to change until confirmed.", icon: <AssignmentOutlined fontSize="small" /> }
+      ];
+    }
 
     return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        {allSections.map((section, idx) => (
-          <Box key={idx} sx={{ display: 'flex', gap: 2 }}>
-            <Box sx={{ width: 40, height: 40, borderRadius: 1.5, bgcolor: '#f0fdfa', color: TEAL_MAIN, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              {section.icon}
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {sections.map((section, idx) => (
+          <Paper key={idx} elevation={0} sx={{ display: 'flex', gap: 2.5, p: 3, borderRadius: 3, border: '1px solid #e2e8f0', bgcolor: '#fff', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+            <Box sx={{ width: 44, height: 44, borderRadius: 2, bgcolor: '#f0f9ff', color: '#0ea5e9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{section.icon}</Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <Typography variant="subtitle1" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, color: '#334155', mb: 0.5 }}>{section.title}</Typography>
+              <Typography variant="body2" color="#64748b" sx={{ lineHeight: 1.6 }}>{section.text}</Typography>
             </Box>
-            <Box>
-              <Typography variant="subtitle2" fontWeight="800" color={NAVY_DARK} mb={0.5}>{section.title}</Typography>
-              <Box component="ul" sx={{ m: 0, pl: 2, color: TEXT_MUTED, fontSize: '0.875rem' }}>
-                {section.items.map((item, i) => <li key={i} style={{ marginBottom: '4px' }}>{item}</li>)}
-              </Box>
-            </Box>
-          </Box>
+          </Paper>
         ))}
       </Box>
     );
   };
 
   return (
-    <Box sx={{ bgcolor: BG_LIGHT, minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
+    <Box id="itinerary-pdf-content" sx={{ bgcolor: BG_LIGHT, minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
       
-      {/* 1. HERO SECTION */}
+      {/* 🚨 1. HERO SECTION (UPDATED TO EXACT DESIGN) 🚨 */}
       <Box sx={{ 
-        position: 'relative', height: 600, 
+        position: 'relative', height: { xs: 500, md: 700 }, 
         backgroundImage: `url(${HERO_BG})`, backgroundSize: 'cover', backgroundPosition: 'center',
         display: 'flex', flexDirection: 'column', justifyContent: 'center',
-        '&::before': { content: '""', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(15,23,42,0.9) 100%)' }
+        pageBreakInside: 'avoid', breakInside: 'avoid',
+        '&::before': { 
+          content: '""', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, 
+          // Left-to-right gradient so the text pops, but the right side shows the beautiful image
+          background: 'linear-gradient(to right, rgba(2, 6, 23, 0.95) 0%, rgba(2, 6, 23, 0.5) 60%, rgba(2, 6, 23, 0.1) 100%)' 
+        }
       }}>
-        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1, color: '#fff', pt: 10 }}>
-          <Chip label="LUXURY ESCAPE" sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: '#fff', mb: 3, letterSpacing: 2, fontWeight: 600, backdropFilter: 'blur(4px)' }} size="small" />
+        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1, color: '#fff', pt: 6 }}>
           
-          <Typography variant="h2" mb={1} sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, maxWidth: 600 }}>{title}</Typography>
-          <Typography variant="subtitle1" sx={{ color: '#cbd5e1', mb: 4, fontStyle: 'italic', maxWidth: 600 }}>
-            Curated exclusively for {clientName}
+          {/* Logo Button */}
+          <Chip 
+            icon={<Explore sx={{ color: '#cbd5e1 !important', fontSize: '18px !important' }} />} 
+            label="LOGO" 
+            sx={{ 
+              bgcolor: 'rgba(255,255,255,0.15)', color: '#fff', mb: 5, 
+              backdropFilter: 'blur(8px)', fontWeight: 700, letterSpacing: 1,
+              border: '1px solid rgba(255,255,255,0.1)'
+            }} 
+          />
+
+          {/* Main Title */}
+          <Typography variant="h1" mb={3} sx={{ 
+            fontFamily: "'Playfair Display', serif", fontWeight: 700, 
+            maxWidth: 800, fontSize: { xs: '3.5rem', md: '5.5rem' }, lineHeight: 1.1 
+          }}>
+            {title}
           </Typography>
 
-          <Typography variant="h1" sx={{ position: 'absolute', bottom: -40, right: 20, fontWeight: 900, color: 'rgba(255,255,255,0.05)', fontSize: { xs: '4rem', md: '8rem' }, letterSpacing: 10, textTransform: 'uppercase' }}>
+          {/* Metadata Row */}
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: { xs: 3, md: 5 }, mb: 4, alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <CalendarMonth fontSize="small" sx={{ color: '#d1d5db' }} />
+              <Typography variant="body1" sx={{ color: '#f8fafc', fontWeight: 500 }}>{dates}</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <AccessTime fontSize="small" sx={{ color: '#d1d5db' }} />
+              <Typography variant="body1" sx={{ color: '#f8fafc', fontWeight: 500 }}>
+                {totalDays} Days / {totalDays > 1 ? totalDays - 1 : 0} Nights
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Group fontSize="small" sx={{ color: '#d1d5db' }} />
+              <Typography variant="body1" sx={{ color: '#f8fafc', fontWeight: 500 }}>{pax}</Typography>
+            </Box>
+          </Box>
+
+          {/* Prepared For (Gold) */}
+          <Typography variant="subtitle2" sx={{ 
+            color: '#d97706', fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase' 
+          }}>
+            PREPARED FOR {clientName}
+          </Typography>
+
+        </Container>
+
+        {/* Watermark Logo Bottom Right */}
+        <Box sx={{ 
+          position: 'absolute', bottom: 40, right: 60, textAlign: 'right', zIndex: 1, 
+          display: { xs: 'none', md: 'block' } 
+        }}>
+          <Typography variant="h2" sx={{ fontWeight: 800, color: '#f8fafc', letterSpacing: 2, lineHeight: 1, textTransform: 'uppercase' }}>
             {shortDestination}
           </Typography>
-        </Container>
+          <Typography variant="h4" sx={{ fontFamily: "'Playfair Display', serif", fontStyle: 'italic', color: '#e2e8f0', mt: 0.5 }}>
+            NIGHTS
+          </Typography>
+          {/* Decorative wave below the watermark */}
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+            <Typography sx={{ color: '#fff', fontSize: '2rem', lineHeight: 0.5 }}>≈</Typography>
+          </Box>
+        </Box>
       </Box>
+
+      {/* -------------------- REST OF THE THEME IS UNCHANGED -------------------- */}
 
       <Container maxWidth="md" sx={{ mt: 6, mb: 10 }}>
         
         {/* 2. INVESTMENT OVERVIEW */}
-        <Box sx={{ textAlign: 'center', mb: 6 }}>
+        <Box sx={{ textAlign: 'center', mb: 6, pageBreakInside: 'avoid', breakInside: 'avoid' }}>
           <Typography variant="h5" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, color: NAVY_DARK, mb: 1 }}>Investment Overview</Typography>
-          <Typography variant="body2" color={TEXT_MUTED}>Pricing and trip details at a glance</Typography>
         </Box>
 
-        <Paper elevation={0} sx={{ borderRadius: 4, overflow: 'hidden', border: '1px solid #e2e8f0', bgcolor: '#fff', mb: 8, boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
+        <Paper elevation={0} sx={{ borderRadius: 4, overflow: 'hidden', border: '1px solid #e2e8f0', bgcolor: '#fff', mb: 8, pageBreakInside: 'avoid', breakInside: 'avoid' }}>
           <Box sx={{ bgcolor: TEAL_MAIN, color: '#fff', textAlign: 'center', py: 4, px: 2 }}>
             <Typography variant="caption" sx={{ opacity: 0.8, letterSpacing: 1, fontWeight: 600 }}>TOTAL INVESTMENT</Typography>
             <Typography variant="h3" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, mt: 1 }}>{budget}</Typography>
-            <Typography variant="caption" sx={{ opacity: 0.8 }}>Pricing is guaranteed until booking.</Typography>
           </Box>
-
           <Box sx={{ p: 4 }}>
             <Grid container spacing={4}>
               <Grid item xs={6} md={4}>
@@ -165,12 +241,12 @@ export default function Theme3Coastal() {
                 <Typography variant="subtitle1" fontWeight="700" color={NAVY_DARK} sx={{ fontSize: '0.85rem' }}>{dates}</Typography>
               </Grid>
               <Grid item xs={6} md={4}>
-                <Typography variant="caption" color={TEXT_MUTED} display="flex" alignItems="center" gap={1} mb={0.5}><Flight fontSize="small"/> Flights</Typography>
-                <Typography variant="subtitle1" fontWeight="700" color={NAVY_DARK}>{flights.length > 0 ? `${flights.length} Included` : 'Not Included'}</Typography>
-              </Grid>
-              <Grid item xs={6} md={4}>
                 <Typography variant="caption" color={TEXT_MUTED} display="flex" alignItems="center" gap={1} mb={0.5}><Group fontSize="small"/> Guests</Typography>
                 <Typography variant="subtitle1" fontWeight="700" color={NAVY_DARK}>{pax}</Typography>
+              </Grid>
+              <Grid item xs={6} md={4}>
+                <Typography variant="caption" color={TEXT_MUTED} display="flex" alignItems="center" gap={1} mb={0.5}><DirectionsCar fontSize="small"/> Transport</Typography>
+                <Typography variant="subtitle1" fontWeight="700" color={NAVY_DARK}>{allTransports.length > 0 ? `${allTransports.length} Included` : 'Not Included'}</Typography>
               </Grid>
               <Grid item xs={6} md={4}>
                 <Typography variant="caption" color={TEXT_MUTED} display="flex" alignItems="center" gap={1} mb={0.5}><Phone fontSize="small"/> Contact</Typography>
@@ -184,84 +260,83 @@ export default function Theme3Coastal() {
           </Box>
         </Paper>
 
-        {/* 3. FLIGHT JOURNEY */}
-        {flights.length > 0 && (
-          <>
-            <Box sx={{ textAlign: 'center', mb: 6 }}>
-              <Typography variant="h5" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, color: NAVY_DARK, mb: 1 }}>Your Flight Journey</Typography>
+        {/* 3. TRANSPORT JOURNEY */}
+        {allTransports.length > 0 && (
+          <Box sx={{ mb: 10 }}>
+            <Box sx={{ textAlign: 'center', mb: 6, pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+              <Typography variant="h5" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, color: NAVY_DARK, mb: 1 }}>Your Transport</Typography>
             </Box>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mb: 10 }}>
-              {flights.map((flight, i) => (
-                <Paper key={i} elevation={0} sx={{ p: 3, borderRadius: 3, border: '1px solid #e2e8f0', bgcolor: '#fff' }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <Avatar sx={{ bgcolor: '#f1f5f9', color: TEAL_MAIN, width: 36, height: 36 }}><FlightTakeoff fontSize="small" /></Avatar>
-                      <Typography variant="subtitle2" fontWeight="700" color={NAVY_DARK}>{flight.airline || 'Flight'}</Typography>
-                    </Box>
-                    <Chip label={`Flight ${flight.flightNo || 'TBD'}`} size="small" variant="outlined" sx={{ color: TEAL_MAIN, borderColor: TEAL_MAIN, fontWeight: 600 }} />
-                  </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {allTransports.map((transport, i) => {
+                let TransportIcon = FlightTakeoff;
+                if (transport._type === 'Train' || transport.trainName) TransportIcon = Train;
+                else if (transport._type === 'Bus' || transport.busName) TransportIcon = DirectionsBus;
+                else if (transport._type === 'Ground' || transport.provider) TransportIcon = DirectionsCar;
 
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Box sx={{ width: '30%', textAlign: 'left' }}>
-                      <Typography variant="h6" fontWeight="800" color={NAVY_DARK}>{flight.depFrom || 'Origin'}</Typography>
-                      <Typography variant="body2" color={TEXT_MUTED}>{flight.depTime || 'TBD'}</Typography>
-                    </Box>
+                const tName = transport.airline || transport.trainName || transport.busName || transport.provider || transport.transportType || 'Transport';
+                const tNo = transport.flightNo || transport.trainNo || transport.busNo || transport.transportNo || 'TBD';
 
-                    <Box sx={{ flexGrow: 1, mx: 3, position: 'relative', textAlign: 'center' }}>
-                      <Typography variant="caption" sx={{ color: TEAL_MAIN, fontWeight: 600, bgcolor: '#fff', px: 1, position: 'relative', zIndex: 2 }}>{flight.duration || 'Direct'}</Typography>
-                      <Box sx={{ position: 'absolute', top: '50%', left: 0, right: 0, height: 1, borderTop: '2px dashed #cbd5e1', zIndex: 1 }} />
-                      <FlightTakeoff sx={{ color: '#cbd5e1', position: 'absolute', top: '50%', right: -10, transform: 'translateY(-50%)', zIndex: 2, bgcolor: '#fff' }} />
+                return (
+                  <Paper key={i} elevation={0} sx={{ p: 3, borderRadius: 3, border: '1px solid #e2e8f0', bgcolor: '#fff', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Avatar sx={{ bgcolor: '#f1f5f9', color: TEAL_MAIN, width: 36, height: 36 }}><TransportIcon fontSize="small" /></Avatar>
+                        <Typography variant="subtitle2" fontWeight="700" color={NAVY_DARK}>{tName}</Typography>
+                      </Box>
+                      <Chip label={`Details: ${tNo}`} size="small" variant="outlined" sx={{ color: TEAL_MAIN, borderColor: TEAL_MAIN, fontWeight: 600 }} />
                     </Box>
-
-                    <Box sx={{ width: '30%', textAlign: 'right' }}>
-                      <Typography variant="h6" fontWeight="800" color={NAVY_DARK}>{flight.arrTo || flight.arrAt || 'Destination'}</Typography>
-                      <Typography variant="body2" color={TEXT_MUTED}>{flight.arrTime || 'TBD'}</Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Box sx={{ width: '30%', textAlign: 'left' }}>
+                        <Typography variant="h6" fontWeight="800" color={NAVY_DARK}>{transport.depFrom || transport.departure || transport.from || 'Origin'}</Typography>
+                        <Typography variant="body2" color={TEXT_MUTED}>{transport.depTime || transport.departureTime || 'TBD'}</Typography>
+                      </Box>
+                      <Box sx={{ flexGrow: 1, mx: 3, position: 'relative', textAlign: 'center' }}>
+                        <Typography variant="caption" sx={{ color: TEAL_MAIN, fontWeight: 600, bgcolor: '#fff', px: 1, position: 'relative', zIndex: 2 }}>{transport.duration || 'Direct'}</Typography>
+                        <Box sx={{ position: 'absolute', top: '50%', left: 0, right: 0, height: 1, borderTop: '2px dashed #cbd5e1', zIndex: 1 }} />
+                      </Box>
+                      <Box sx={{ width: '30%', textAlign: 'right' }}>
+                        <Typography variant="h6" fontWeight="800" color={NAVY_DARK}>{transport.arrTo || transport.arrAt || transport.arrival || transport.to || 'Destination'}</Typography>
+                        <Typography variant="body2" color={TEXT_MUTED}>{transport.arrTime || transport.arrivalTime || 'TBD'}</Typography>
+                      </Box>
                     </Box>
-                  </Box>
-                </Paper>
-              ))}
+                  </Paper>
+                );
+              })}
             </Box>
-          </>
+          </Box>
         )}
 
-        {/* 4. DAY BY DAY TIMELINE (With Uploaded Images) */}
-        <Box sx={{ textAlign: 'center', mb: 6 }}>
+        {/* 4. DAY BY DAY TIMELINE */}
+        <Box sx={{ textAlign: 'center', mb: 6, pageBreakInside: 'avoid', breakInside: 'avoid' }}>
           <Typography variant="h5" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, color: NAVY_DARK, mb: 1 }}>Your Journey, Day by Day</Typography>
         </Box>
 
         <Box sx={{ position: 'relative', mb: 10, py: 4 }}>
           <Box sx={{ display: { xs: 'none', md: 'block' }, position: 'absolute', left: '50%', top: 0, bottom: 0, width: 2, bgcolor: '#e2e8f0', transform: 'translateX(-50%)' }} />
 
-          {days.map((day, i) => {
+          {safeDays.map((day, i) => {
             const isEven = i % 2 === 0;
-            const safeImages = Array.isArray(day.images)
-              ? day.images
-                  .map((v) => (typeof v === "string" ? v : v?.url))
-                  .filter(Boolean)
-              : [];
+            const safeImages = Array.isArray(day.images) ? day.images.map(v => typeof v === "string" ? v : v?.url).filter(Boolean) : [];
             const img = safeImages.length > 0 ? safeImages[0] : (i === 0 ? DAY1_IMG : i === 1 ? DAY2_IMG : DAY3_IMG);
             const safeMeals = Array.isArray(day.meals) ? day.meals : [];
 
             return (
-              <Box key={i} sx={{ display: 'flex', flexDirection: { xs: 'column', md: isEven ? 'row' : 'row-reverse' }, alignItems: 'center', position: 'relative', mb: { xs: 4, md: 6 } }}>
-                
+              <Box key={i} sx={{ display: 'flex', flexDirection: { xs: 'column', md: isEven ? 'row' : 'row-reverse' }, alignItems: 'center', position: 'relative', mb: { xs: 4, md: 6 }, pageBreakInside: 'avoid', breakInside: 'avoid' }}>
                 <Box sx={{ display: { xs: 'none', md: 'flex' }, position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: 24, height: 24, bgcolor: TIMELINE_BLUE, borderRadius: '50%', border: '4px solid #fff', zIndex: 2, boxShadow: '0 0 0 1px #e2e8f0' }} />
-
+                
                 <Box sx={{ width: { xs: '100%', md: '45%' }, mb: { xs: 2, md: 0 } }}>
                   <Box sx={{ width: '100%', height: 260, borderRadius: 3, overflow: 'hidden', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}>
-                    <img src={img} alt={day.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={img} alt={day.title || `Day ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </Box>
                 </Box>
-
+                
                 <Box sx={{ display: { xs: 'none', md: 'block' }, width: '10%' }} />
-
+                
                 <Box sx={{ width: { xs: '100%', md: '45%' } }}>
                   <Paper elevation={0} sx={{ p: 4, borderRadius: 3, border: '1px solid #e2e8f0', bgcolor: '#fff', textAlign: 'left', position: 'relative' }}>
-                    <Box sx={{ display: { xs: 'none', md: 'block' }, position: 'absolute', top: '50%', [isEven ? 'left' : 'right']: -30, width: 30, height: 1, bgcolor: '#e2e8f0' }} />
-
                     <Typography variant="caption" sx={{ color: TIMELINE_BLUE, fontWeight: 800, letterSpacing: 1, display: 'block', mb: 1 }}>DAY {i + 1}</Typography>
                     <Typography variant="h6" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, color: NAVY_DARK, mb: 1 }}>{day.title || `Day ${i + 1}`}</Typography>
-                    <Typography variant="body2" color={TEXT_MUTED} mb={3} sx={{ lineHeight: 1.6 }}>{day.description}</Typography>
+                    <Typography variant="body2" color={TEXT_MUTED} mb={3} sx={{ lineHeight: 1.6 }}>{day.description || 'No description provided.'}</Typography>
                     
                     {day.activities && (
                       <Box sx={{ bgcolor: '#f8fafc', p: 1.5, borderRadius: 2, mb: 2 }}>
@@ -285,77 +360,129 @@ export default function Theme3Coastal() {
           })}
         </Box>
 
-        {/* 5. LUXURY ACCOMMODATIONS */}
-        {hotels.length > 0 && (
-          <>
-            <Box sx={{ textAlign: 'center', mb: 6 }}>
-              <Typography variant="h5" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, color: NAVY_DARK, mb: 1 }}>Luxury Accommodations</Typography>
+        {/* 5. ACCOMMODATIONS */}
+        {safeHotels.length > 0 && (
+          <Box sx={{ mb: 10 }}>
+            <Box sx={{ mb: 4, textAlign: 'center', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+              <Typography variant="h4" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 600, color: '#3f3f3f', mb: 1 }}>Luxury Accommodations</Typography>
             </Box>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, mb: 10 }}>
-              {hotels.map((hotel, i) => {
-                const mealsList = Object.keys(hotel.meals || {}).filter(k => hotel.meals[k]).map(formatCamelCase);
+            
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {safeHotels.map((hotel, i) => {
+                
+                const finalHotelName = (hotel?.hotelName && hotel.hotelName.trim() !== '') 
+                  ? hotel.hotelName 
+                  : (hotel?.name || 'Selected Hotel');
+
                 return (
-                  <Paper key={i} elevation={0} sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, borderRadius: 3, border: '1px solid #e2e8f0', bgcolor: '#fff', overflow: 'hidden' }}>
-                    <Box sx={{ width: { xs: '100%', md: '35%' }, height: { xs: 200, md: 'auto' }, position: 'relative' }}>
-                      <img src={i % 2 === 0 ? HOTEL1_IMG : HOTEL2_IMG} alt={hotel.hotelName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <Paper key={i} elevation={0} sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, borderRadius: 1, border: '1px solid #e2e8f0', bgcolor: '#fff', overflow: 'hidden', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+                    <Box sx={{ width: { xs: '100%', sm: '35%' }, minHeight: { xs: 200, sm: 260 }, position: 'relative' }}>
+                      <img src={hotel.image || (i % 2 === 0 ? HOTEL1_IMG : HOTEL2_IMG)} alt="Hotel" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </Box>
-                    <Box sx={{ p: 4, width: { xs: '100%', md: '65%' }, position: 'relative' }}>
-                      <Chip icon={<Star sx={{ color: '#fbbf24 !important' }}/>} label={hotel.hotelPref || '5 Star'} size="small" sx={{ position: 'absolute', top: 24, right: 24, bgcolor: '#fef3c7', color: '#b45309', fontWeight: 700 }} />
-                      
-                      <Typography variant="h6" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, color: NAVY_DARK, mb: 0.5 }}>{hotel.hotelName || 'Unnamed Resort'}</Typography>
-                      <Typography variant="body2" color={TEXT_MUTED} mb={3} display="flex" alignItems="center" gap={0.5}>
-                        <LocationOn fontSize="small" /> {hotel.location || rawDestination}
-                      </Typography>
-                      
-                      <Grid container spacing={3}>
+                    
+                    <Box sx={{ p: 4, width: { xs: '100%', sm: '65%' }, display: 'flex', flexDirection: 'column' }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4 }}>
+                        <Box>
+                          <Typography variant="h6" fontWeight="700" color="#1e293b" mb={0.5} sx={{ fontFamily: "'Playfair Display', serif" }}>
+                            {finalHotelName}
+                          </Typography>
+                          <Typography variant="caption" color="#64748b" display="block">
+                            {hotel.location || hotel.address || rawDestination}
+                          </Typography>
+                        </Box>
+                        <Chip icon={<Star sx={{ color: '#d97706 !important', fontSize: '14px !important' }}/>} label={`${hotel.rating || '4.0'}`} size="small" sx={{ bgcolor: '#fef3c7', color: '#b45309', borderRadius: 1, fontWeight: 700, px: 0.5 }} />
+                      </Box>
+
+                      <Grid container spacing={3} sx={{ mb: 3 }}>
                         <Grid item xs={6} sm={3}>
-                          <Typography variant="caption" color={TEXT_MUTED} display="block">Check-in</Typography>
-                          <Typography variant="body2" fontWeight="600" color={NAVY_DARK}>{hotel.checkInDate ? formatDate(hotel.checkInDate) : 'TBD'}</Typography>
+                          <Typography variant="caption" color="#94a3b8" display="block" mb={0.5}>Check-in</Typography>
+                          <Typography variant="body2" fontWeight="600" color="#334155">{hotel.checkInDate || hotel.checkIn || 'TBD'}</Typography>
                         </Grid>
                         <Grid item xs={6} sm={3}>
-                          <Typography variant="caption" color={TEXT_MUTED} display="block">Check-out</Typography>
-                          <Typography variant="body2" fontWeight="600" color={NAVY_DARK}>{hotel.checkOutDate ? formatDate(hotel.checkOutDate) : 'TBD'}</Typography>
+                          <Typography variant="caption" color="#94a3b8" display="block" mb={0.5}>Check-out</Typography>
+                          <Typography variant="body2" fontWeight="600" color="#334155">{hotel.checkOutDate || hotel.checkOut || 'TBD'}</Typography>
                         </Grid>
                         <Grid item xs={6} sm={3}>
-                          <Typography variant="caption" color={TEXT_MUTED} display="block">Room</Typography>
-                          <Typography variant="body2" fontWeight="600" color={NAVY_DARK}>{hotel.roomCat || 'Standard'}</Typography>
+                          <Typography variant="caption" color="#94a3b8" display="block" mb={0.5}>Guests</Typography>
+                          <Typography variant="body2" fontWeight="600" color="#334155">{pax}</Typography>
                         </Grid>
                         <Grid item xs={6} sm={3}>
-                          <Typography variant="caption" color={TEXT_MUTED} display="block">Board</Typography>
-                          <Typography variant="body2" fontWeight="600" color={NAVY_DARK}>{mealsList.join(', ') || 'Room Only'}</Typography>
+                          <Typography variant="caption" color="#94a3b8" display="block" mb={0.5}>Nights</Typography>
+                          <Typography variant="body2" fontWeight="600" color="#334155">{hotel.nights || hotel.duration || 'TBD'}</Typography>
                         </Grid>
                       </Grid>
+                      
+                      <Divider sx={{ mb: 3, borderColor: '#f1f5f9' }} />
+                      
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} sm={4}>
+                          <Typography variant="caption" color="#94a3b8" display="block" mb={0.5}>Room</Typography>
+                          <Typography variant="body2" fontWeight="600" color="#334155">{hotel.roomCat || hotel.roomType || hotel.room || 'Standard Room'}</Typography>
+                        </Grid>
+                        
+                        {hotel.amenities && hotel.amenities.length > 0 && (
+                          <Grid item xs={12} sm={8}>
+                            <Typography variant="caption" color="#94a3b8" display="block" mb={1}>Amenities</Typography>
+                            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                              {hotel.amenities.map((amenity, idx) => (
+                                <Chip 
+                                  key={idx} 
+                                  label={amenity} 
+                                  size="small" 
+                                  sx={{ 
+                                    bgcolor: '#f0fdfa', 
+                                    color: TEAL_MAIN, 
+                                    border: '1px solid #ccfbf1', 
+                                    fontWeight: 600, 
+                                    fontSize: '0.7rem' 
+                                  }} 
+                                />
+                              ))}
+                            </Box>
+                          </Grid>
+                        )}
+                      </Grid>
+
                     </Box>
                   </Paper>
                 );
               })}
             </Box>
-          </>
+          </Box>
         )}
 
         {/* 6. INCLUSIONS & EXCLUSIONS */}
-        <Box sx={{ mb: 10 }}>
-          <Grid container spacing={4}>
+        <Box sx={{ mb: 10, pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+          <Grid container spacing={3} alignItems="stretch">
             <Grid item xs={12} md={6}>
-              <Paper elevation={0} sx={{ p: 4, borderRadius: 3, borderTop: `4px solid ${TEAL_MAIN}`, bgcolor: '#fff', borderLeft: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0', height: '100%' }}>
-                <Typography variant="h6" fontWeight="800" color={NAVY_DARK} mb={3} display="flex" alignItems="center" gap={1}><CheckCircle sx={{ color: TEAL_MAIN }}/> Inclusions</Typography>
+              <Paper elevation={0} sx={{ p: 4, borderRadius: 2, bgcolor: '#f0fdf4', height: '100%', border: '1px solid #dcfce7', display: 'flex', flexDirection: 'column' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                  <Box sx={{ width: 40, height: 40, borderRadius: 1.5, bgcolor: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Check sx={{ color: '#fff' }} /></Box>
+                  <Typography variant="h5" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, color: NAVY_DARK }}>What's Included</Typography>
+                </Box>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                   {displayInclusions.map((item, i) => (
-                    <Typography key={i} variant="body2" color={TEXT_MUTED} display="flex" alignItems="flex-start" gap={1}>
-                      <CheckCircle sx={{ fontSize: 16, color: TEAL_MAIN, mt: 0.3 }} /> {item}
-                    </Typography>
+                    <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                      <Check sx={{ fontSize: 18, color: '#22c55e', mt: 0.2 }} />
+                      <Typography variant="body2" color={TEXT_MUTED} sx={{ wordBreak: 'break-word' }}>{item}</Typography>
+                    </Box>
                   ))}
                 </Box>
               </Paper>
             </Grid>
+
             <Grid item xs={12} md={6}>
-              <Paper elevation={0} sx={{ p: 4, borderRadius: 3, borderTop: `4px solid #ef4444`, bgcolor: '#fff', borderLeft: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0', height: '100%' }}>
-                <Typography variant="h6" fontWeight="800" color={NAVY_DARK} mb={3} display="flex" alignItems="center" gap={1}><Cancel sx={{ color: '#ef4444' }}/> Exclusions</Typography>
+              <Paper elevation={0} sx={{ p: 4, borderRadius: 2, bgcolor: '#fff1f2', height: '100%', border: '1px solid #ffe4e6', display: 'flex', flexDirection: 'column' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                  <Box sx={{ width: 40, height: 40, borderRadius: 1.5, bgcolor: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Close sx={{ color: '#fff' }} /></Box>
+                  <Typography variant="h5" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, color: NAVY_DARK }}>Not Included</Typography>
+                </Box>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                   {displayExclusions.map((item, i) => (
-                    <Typography key={i} variant="body2" color={TEXT_MUTED} display="flex" alignItems="flex-start" gap={1}>
-                      <Cancel sx={{ fontSize: 16, color: '#ef4444', mt: 0.3 }} /> {item}
-                    </Typography>
+                    <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                      <Close sx={{ fontSize: 18, color: '#ef4444', mt: 0.2 }} />
+                      <Typography variant="body2" color={TEXT_MUTED} sx={{ wordBreak: 'break-word' }}>{item}</Typography>
+                    </Box>
                   ))}
                 </Box>
               </Paper>
@@ -363,52 +490,208 @@ export default function Theme3Coastal() {
           </Grid>
         </Box>
 
-        {/* 7. TERMS, CONDITIONS & BANK DETAILS */}
-        <Box sx={{ textAlign: 'center', mb: 4 }}>
-          <Typography variant="h5" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, color: NAVY_DARK, mb: 1 }}>Policies & Details</Typography>
+        {/* 7. VISA DETAILS */}
+        {safeVisas.length > 0 && (
+          <Box sx={{ mb: 10 }}>
+            <Box sx={{ mb: 4, textAlign: 'center', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+              <Typography variant="h4" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 600, color: '#3f3f3f', mb: 1 }}>Visa Requirements</Typography>
+            </Box>
+            
+            <Paper elevation={0} sx={{ p: 4, borderRadius: 3, bgcolor: NAVY_DARK, color: '#fff', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+              {safeVisas.map((visa, i) => (
+                <Box key={i} sx={{ mb: 3, p: 3, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                      <Public sx={{ color: '#e2e8f0', mt: 0.5 }} />
+                      <Box>
+                        <Typography variant="h6" fontWeight="700" sx={{ fontFamily: "'Playfair Display', serif", mb: 0.5 }}>
+                          {visa.visaCountry || visa.country || 'Visa Country Details'}
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: '#cbd5e1', mb: 1 }}>
+                          {visa.visaType || 'Type TBD'} • {visa.entryType || 'Entry TBD'}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#94a3b8' }}>Duration: {visa.duration || visa.visaDuration || 'TBD'}</Typography>
+                      </Box>
+                    </Box>
+                    <Chip label="Information" size="small" sx={{ bgcolor: TEAL_MAIN, color: '#fff', fontWeight: 600 }} />
+                  </Box>
+                  {(visa.notes || visa.documents) && (
+                    <Box sx={{ mt: 2, p: 2, bgcolor: 'rgba(0,0,0,0.2)', borderRadius: 2 }}>
+                      <Typography variant="caption" color="#cbd5e1" display="block" mb={0.5}>Notes / Documents:</Typography>
+                      <Typography variant="body2" color="#e2e8f0">{visa.notes || visa.documents}</Typography>
+                    </Box>
+                  )}
+                </Box>
+              ))}
+            </Paper>
+          </Box>
+        )}
+
+        {/* 8. TERMS & CONDITIONS */}
+        <Box sx={{ mb: 10 }}>
+          <Box sx={{ mb: 4, textAlign: 'center', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+            <Typography variant="h4" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 600, color: '#3f3f3f' }}>Terms & Conditions</Typography>
+          </Box>
+          {renderTerms()}
         </Box>
 
-        <Paper elevation={0} sx={{ p: 4, borderRadius: 3, border: '1px solid #e2e8f0', bgcolor: '#fff', mb: 4 }}>
-          {renderTerms()}
-        </Paper>
+        {/* 🚨 PREMIUM BEAUTIFIED BANK DETAILS PANEL */}
+        <Paper 
+          elevation={0} 
+          sx={{ 
+            borderRadius: 4, 
+            overflow: 'hidden', 
+            border: `1px solid #ccfbf1`, 
+            bgcolor: '#ffffff', 
+            mb: 8, 
+            boxShadow: '0 4px 20px -2px rgba(15, 118, 110, 0.06)',
+            pageBreakInside: 'avoid', 
+            breakInside: 'avoid' 
+          }}
+        >
+          {/* Header Bar */}
+          <Box sx={{ bgcolor: TEAL_MAIN, color: '#fff', py: 2.5, px: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
+            <AccountBalance sx={{ fontSize: '1.6rem', opacity: 0.9 }} />
+            <Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 800, letterSpacing: 0.5, lineHeight: 1.2 }}>Bank Details for Payment</Typography>
+              <Typography variant="caption" sx={{ opacity: 0.75, fontSize: '0.75rem' }}>Secure direct wire transfer details</Typography>
+            </Box>
+          </Box>
 
-        <Paper elevation={0} sx={{ p: 4, borderRadius: 3, border: `2px dashed ${TEAL_MAIN}`, bgcolor: '#f0fdfa' }}>
-          <Typography variant="h6" fontWeight="800" color={NAVY_DARK} mb={2} display="flex" alignItems="center" gap={1}><AccountBalance sx={{ color: TEAL_MAIN }}/> Bank Details for Payment</Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={6}><Typography variant="caption" color={TEAL_MAIN}>Bank Name</Typography><Typography variant="body2" fontWeight="700" color={NAVY_DARK}>{termsData?.bankDetails?.bankName || "Global Bank Inc."}</Typography></Grid>
-            <Grid item xs={6}><Typography variant="caption" color={TEAL_MAIN}>Account Name</Typography><Typography variant="body2" fontWeight="700" color={NAVY_DARK}>{termsData?.bankDetails?.accountName || "Coastal Luxury Travel"}</Typography></Grid>
-            <Grid item xs={6}><Typography variant="caption" color={TEAL_MAIN}>Account Number</Typography><Typography variant="body2" fontWeight="700" color={NAVY_DARK}>{termsData?.bankDetails?.accountNumber || "1234 5678 9012"}</Typography></Grid>
-            <Grid item xs={6}><Typography variant="caption" color={TEAL_MAIN}>Routing / SWIFT</Typography><Typography variant="body2" fontWeight="700" color={NAVY_DARK}>{termsData?.bankDetails?.routing || "GBXX1234"}</Typography></Grid>
-          </Grid>
+          {/* Main Grid Content */}
+          <Box sx={{ p: 4, bgcolor: '#fbfdfd' }}>
+            <Grid container spacing={3.5}>
+              
+              {/* Account Name */}
+              <Grid item xs={12} sm={6}>
+                <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                  <Avatar sx={{ bgcolor: '#f0fdfa', color: TEAL_MAIN, width: 38, height: 38, border: '1px solid #b2f5ea' }}>
+                    <Badge sx={{ fontSize: '1.1rem' }} />
+                  </Avatar>
+                  <Box>
+                    <Typography variant="caption" color={TEXT_MUTED} fontWeight="600" display="block" sx={{ mb: 0.2, textTransform: 'uppercase', fontSize: '0.68rem', letterSpacing: 0.5 }}>Beneficiary Name</Typography>
+                    <Typography variant="body2" fontWeight="700" color="#0f172a" sx={{ fontSize: '0.95rem' }}>{termsData?.bankDetails?.accountName || "N/A"}</Typography>
+                  </Box>
+                </Box>
+              </Grid>
+
+              {/* Account Number */}
+              <Grid item xs={12} sm={6}>
+                <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                  <Avatar sx={{ bgcolor: '#f0fdfa', color: TEAL_MAIN, width: 38, height: 38, border: '1px solid #b2f5ea' }}>
+                    <AccountBalanceWallet sx={{ fontSize: '1.1rem' }} />
+                  </Avatar>
+                  <Box>
+                    <Typography variant="caption" color={TEXT_MUTED} fontWeight="600" display="block" sx={{ mb: 0.2, textTransform: 'uppercase', fontSize: '0.68rem', letterSpacing: 0.5 }}>Account Number</Typography>
+                    <Typography variant="body2" fontWeight="700" color="#0f172a" sx={{ fontSize: '0.95rem', letterSpacing: 0.5 }}>{termsData?.bankDetails?.accountNumber || "N/A"}</Typography>
+                  </Box>
+                </Box>
+              </Grid>
+
+              {/* Bank Name */}
+              <Grid item xs={12} sm={6} md={4}>
+                <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
+                  <Box sx={{ color: TEAL_MAIN, mt: 0.3 }}><HomeWork sx={{ fontSize: '1.2rem' }} /></Box>
+                  <Box>
+                    <Typography variant="caption" color={TEXT_MUTED} fontWeight="600" display="block" sx={{ mb: 0.1, fontSize: '0.7rem' }}>Bank Name</Typography>
+                    <Typography variant="body2" fontWeight="700" color="#334155">{termsData?.bankDetails?.bankName || "N/A"}</Typography>
+                  </Box>
+                </Box>
+              </Grid>
+
+              {/* IFSC Code */}
+              <Grid item xs={12} sm={6} md={4}>
+                <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
+                  <Box sx={{ color: TEAL_MAIN, mt: 0.3 }}><Pin sx={{ fontSize: '1.2rem' }} /></Box>
+                  <Box>
+                    <Typography variant="caption" color={TEXT_MUTED} fontWeight="600" display="block" sx={{ mb: 0.1, fontSize: '0.7rem' }}>IFSC Code</Typography>
+                    <Typography variant="body2" fontWeight="700" color="#334155" sx={{ letterSpacing: 0.3 }}>{termsData?.bankDetails?.ifscCode || "N/A"}</Typography>
+                  </Box>
+                </Box>
+              </Grid>
+
+              {/* Account Type */}
+              <Grid item xs={12} sm={6} md={4}>
+                <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
+                  <Box sx={{ color: TEAL_MAIN, mt: 0.3 }}><Description sx={{ fontSize: '1.2rem' }} /></Box>
+                  <Box>
+                    <Typography variant="caption" color={TEXT_MUTED} fontWeight="600" display="block" sx={{ mb: 0.1, fontSize: '0.7rem' }}>Account Type</Typography>
+                    <Typography variant="body2" fontWeight="700" color="#334155">{termsData?.bankDetails?.accountType || "N/A"}</Typography>
+                  </Box>
+                </Box>
+              </Grid>
+
+              {/* Branch Name */}
+              <Grid item xs={12} sm={6} md={4}>
+                <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
+                  <Box sx={{ color: TEAL_MAIN, mt: 0.3 }}><LocationOn sx={{ fontSize: '1.2rem' }} /></Box>
+                  <Box>
+                    <Typography variant="caption" color={TEXT_MUTED} fontWeight="600" display="block" sx={{ mb: 0.1, fontSize: '0.7rem' }}>Branch Location</Typography>
+                    <Typography variant="body2" fontWeight="700" color="#334155">{termsData?.bankDetails?.branchName || "N/A"}</Typography>
+                  </Box>
+                </Box>
+              </Grid>
+
+              {/* Routing / SWIFT (Conditional) */}
+              {termsData?.bankDetails?.routing && (
+                <Grid item xs={12} sm={6} md={4}>
+                  <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
+                    <Box sx={{ color: TEAL_MAIN, mt: 0.3 }}><Public sx={{ fontSize: '1.2rem' }} /></Box>
+                    <Box>
+                      <Typography variant="caption" color={TEXT_MUTED} fontWeight="600" display="block" sx={{ mb: 0.1, fontSize: '0.7rem' }}>SWIFT / Routing</Typography>
+                      <Typography variant="body2" fontWeight="700" color="#334155">{termsData.bankDetails.routing}</Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+              )}
+
+              {/* Bank Notes Block */}
+              {termsData?.bankDetails?.bankNotes && (
+                <Grid item xs={12}>
+                  <Box sx={{ mt: 1, p: 2.5, bgcolor: '#f0fdfa', borderRadius: 2, borderLeft: `3px solid ${TEAL_MAIN}` }}>
+                    <Typography variant="caption" color={TEAL_MAIN} fontWeight="700" display="block" sx={{ mb: 0.5, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '0.68rem' }}>Important Payment Instructions</Typography>
+                    <Typography variant="body2" color="#475569" sx={{ whiteSpace: 'pre-line', fontSize: '0.85rem', lineHeight: 1.5 }}>
+                      {termsData.bankDetails.bankNotes}
+                    </Typography>
+                  </Box>
+                </Grid>
+              )}
+
+            </Grid>
+          </Box>
         </Paper>
 
       </Container>
 
-      {/* 8. FOOTER */}
-      <Box sx={{ bgcolor: NAVY_DARK, py: 8 }}>
+      {/* 9. FOOTER */}
+      <Box sx={{ bgcolor: NAVY_DARK, pt: 8, pageBreakInside: 'avoid', breakInside: 'avoid' }}>
         <Container maxWidth="md">
-          <Paper elevation={0} sx={{ p: 4, borderRadius: 3, bgcolor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', color: '#fff' }}>
-            <Typography variant="h6" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, mb: 1 }}>Your Luxury Consultant</Typography>
-            <Typography variant="body2" sx={{ color: '#94a3b8', mb: 4 }}>Available 24/7 for any questions</Typography>
-
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
-              <Avatar sx={{ width: 64, height: 64, bgcolor: '#fff', border: '2px solid #e2e8f0' }} src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200" />
-              <Box sx={{ textAlign: 'left' }}>
-                <Typography variant="subtitle1" fontWeight="700">Sarah Mitchell</Typography>
-                <Typography variant="caption" sx={{ color: '#94a3b8' }}>Senior Travel Designer</Typography>
+          <Paper elevation={0} sx={{ p: { xs: 4, md: 6 }, borderRadius: 4, bgcolor: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', color: '#fff', mb: 6 }}>
+            <Typography variant="h4" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, mb: 1 }}>Your Travel Consultant</Typography>
+            <Typography variant="body2" sx={{ color: '#cbd5e1', mb: 5 }}>Dedicated to making your journey extraordinary</Typography>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: 'center', gap: { xs: 3, md: 5 } }}>
+              <Avatar sx={{ width: 100, height: 100, border: '4px solid #f59e0b', bgcolor: '#fff', color: '#cbd5e1' }} src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200" />
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: { xs: 'center', md: 'flex-start' } }}>
+                <Typography variant="h5" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, mb: 0.5 }}>{agentName}</Typography>
+                <Typography variant="body2" sx={{ color: '#cbd5e1', mb: 3 }}>Senior Luxury Travel Specialist</Typography>
+                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: { xs: 'center', md: 'flex-start' } }}>
+                  <Button variant="outlined" startIcon={<Phone fontSize="small"/>} sx={{ color: '#fff', borderColor: 'rgba(255,255,255,0.3)' }}>{phone}</Button>
+                  <Button variant="outlined" startIcon={<Email fontSize="small"/>} sx={{ color: '#fff', borderColor: 'rgba(255,255,255,0.3)' }}>{email}</Button>
+                </Box>
               </Box>
-            </Box>
-
-            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
-              <Button variant="outlined" startIcon={<Phone />} sx={{ color: '#fff', borderColor: 'rgba(255,255,255,0.3)', textTransform: 'none', px: 3 }}>Call Advisor</Button>
-              <Button variant="outlined" startIcon={<Email />} sx={{ color: '#fff', borderColor: 'rgba(255,255,255,0.3)', textTransform: 'none', px: 3 }}>Send Message</Button>
             </Box>
           </Paper>
 
-          <Typography variant="caption" display="block" textAlign="center" sx={{ color: '#64748b', mt: 4 }}>
-            © 2026 Coastal Luxury Travel. All rights reserved.<br/>
-            Pricing and availability are subject to change until final confirmation.
-          </Typography>
+          <Box sx={{ bgcolor: '#fff', py: 4, px: 2, textAlign: 'center', borderTop: '1px solid #e2e8f0' }}>
+            <Typography variant="body2" color="#64748b" mb={2}>
+              This itinerary is subject to availability and confirmation.<br/>
+              All times are local. Please arrive at airports 3 hours prior to international flights.
+            </Typography>
+            <Divider sx={{ maxWidth: 200, mx: 'auto', mb: 2, borderColor: '#e2e8f0' }} />
+            <Typography variant="caption" color="#475569" fontWeight="600">
+              Triumph Holidays - Creating Unforgettable Memories Since 2005
+            </Typography>
+          </Box>
         </Container>
       </Box>
 
