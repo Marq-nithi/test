@@ -24,6 +24,8 @@ import {
   BusinessOutlined,
   WbSunnyOutlined,
   ColorizeOutlined,
+  DeleteOutline,
+  AddOutlined
 } from "@mui/icons-material";
 
 // --- STYLED SUB-COMPONENTS ---
@@ -44,7 +46,7 @@ const FieldLabel = ({ text }) => (
 
 const SectionHeader = ({ title, icon }) => (
   <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
-    {icon}
+    {icon && icon}
     <Typography variant="subtitle1" fontWeight="800" color="#0f172a">
       {title}
     </Typography>
@@ -96,7 +98,11 @@ export default function Settings() {
   const [userD, setUserD] = useState(userDetails || {});
   const [logoUrl, setLogoUrl] = useState("");
 
+  // 🚨 LOCAL STATE FOR BRANDING (NO BACKEND INTEGRATION) 🚨
+  const [brandingList, setBrandingList] = useState([{ title: "", subtitle: "" }]);
+
   const handleSaveChanges = () => {
+    // 🚨 BACKEND PAYLOAD UNTOUCHED 🚨
     const newPayaLoad = {
       "custom:full_name": userD["custom:full_name"] || "",
       email: userD.email || "",
@@ -111,6 +117,7 @@ export default function Settings() {
       });
     });
   };
+
   useEffect(() => {
     setUserD(userDetails || {});
   }, [userDetails]);
@@ -177,6 +184,7 @@ export default function Settings() {
         </Typography>
       </Box>
 
+      {/* 1. PROFILE INFORMATION */}
       <Paper
         elevation={0}
         sx={{
@@ -337,33 +345,167 @@ export default function Settings() {
         </Box>
       </Paper>
 
-      {/* 3. NOTIFICATION PREFERENCES */}
-      {/* <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: 3, border: '1px solid #e2e8f0', bgcolor: '#fff' }}>
-        <Typography variant="subtitle1" fontWeight="800" color="#0f172a" mb={3}>Notification Preferences</Typography>
+      {/* 3. CONTACT INFORMATION */}
+      <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: 3, border: '1px solid #e2e8f0', bgcolor: '#fff' }}>
+        <SectionHeader title="Contact Information" />
         
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-          {[
-            { key: 'email', label: 'Email Notifications', sub: 'Receive updates via email' },
-            { key: 'push', label: 'Push Notifications', sub: 'Receive push notifications' },
-            { key: 'sms', label: 'SMS Notifications', sub: 'Receive SMS updates' }
-          ].map((item) => (
-            <Box key={item.key} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: '#f8fafc', borderRadius: 2 }}>
-              <Box>
-                <Typography variant="body2" fontWeight="700" color="#0f172a" mb={0.2}>{item.label}</Typography>
-                <Typography variant="caption" color="#64748b">{item.sub}</Typography>
-              </Box>
-              <Switch 
-                checked={notifications[item.key]} 
-                onChange={(e) => setNotifications({...notifications, [item.key]: e.target.checked})}
-                color="primary"
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6}>
+            <FieldLabel text="Primary Contact" />
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Select 
+                size="small" 
+                defaultValue="+91" 
+                sx={{ 
+                  width: 85, bgcolor: '#f8fafc', borderRadius: 2, 
+                  '& fieldset': { borderColor: '#e2e8f0' },
+                  '&:hover fieldset': { borderColor: '#cbd5e1' },
+                  '& .MuiSelect-select': { py: 1.05, fontSize: '0.875rem', fontWeight: 500, color: '#334155' }
+                }}
+              >
+                <MenuItem value="+91">+91</MenuItem>
+                <MenuItem value="+1">+1</MenuItem>
+                <MenuItem value="+44">+44</MenuItem>
+              </Select>
+              <StyledTextField 
+                fullWidth 
+                placeholder="9876543210" 
+                value={userD["custom:primary_contact"] || ""}
+                onChange={(e) => handeleUserDtChange("custom:primary_contact", e.target.value)}
               />
             </Box>
-          ))}
-        </Box>
-      </Paper> */}
+          </Grid>
 
-      {/* 4. CHANGE PASSWORD (NEW) */}
-      {/* <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: 3, border: '1px solid #e2e8f0', bgcolor: '#fff' }}>
+          <Grid item xs={12} md={6}>
+            <FieldLabel text="Secondary Contact" />
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Select 
+                size="small" 
+                defaultValue="+91" 
+                sx={{ 
+                  width: 85, bgcolor: '#f8fafc', borderRadius: 2, 
+                  '& fieldset': { borderColor: '#e2e8f0' },
+                  '&:hover fieldset': { borderColor: '#cbd5e1' },
+                  '& .MuiSelect-select': { py: 1.05, fontSize: '0.875rem', fontWeight: 500, color: '#334155' }
+                }}
+              >
+                <MenuItem value="+91">+91</MenuItem>
+                <MenuItem value="+1">+1</MenuItem>
+                <MenuItem value="+44">+44</MenuItem>
+              </Select>
+              <StyledTextField 
+                fullWidth 
+                placeholder="9876543210" 
+                value={userD["custom:secondary_contact"] || ""}
+                onChange={(e) => handeleUserDtChange("custom:secondary_contact", e.target.value)}
+              />
+            </Box>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <FieldLabel text="Support Email" />
+            <StyledTextField 
+              fullWidth 
+              placeholder="support@travelhub.com" 
+              value={userD["custom:support_email"] || ""}
+              onChange={(e) => handeleUserDtChange("custom:support_email", e.target.value)}
+            />
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <FieldLabel text="Website" />
+            <StyledTextField 
+              fullWidth 
+              placeholder="www.travelhub.com" 
+              value={userD["custom:website"] || ""}
+              onChange={(e) => handeleUserDtChange("custom:website", e.target.value)}
+            />
+          </Grid>
+
+          <Grid item xs={12}>
+            <FieldLabel text="Office Address" />
+            <StyledTextField 
+              fullWidth 
+              placeholder="eg: 123 Commerce St, Adyar, Chennai -28" 
+              value={userD["custom:office_address"] || ""}
+              onChange={(e) => handeleUserDtChange("custom:office_address", e.target.value)}
+            />
+          </Grid>
+        </Grid>
+      </Paper>
+
+      {/* 🚨 4. BRANDING DETAILS (LOCAL UI ONLY) 🚨 */}
+      <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: 3, border: '1px solid #e2e8f0', bgcolor: '#fff' }}>
+        <SectionHeader title="Branding" />
+        
+        {brandingList.map((item, index) => (
+          <Grid container spacing={2} alignItems="flex-end" mb={3} key={index}>
+            <Grid item xs={12} md={4}>
+              <FieldLabel text="Title" />
+              <StyledTextField 
+                fullWidth 
+                placeholder="IATA Accredited" 
+                value={item.title}
+                onChange={(e) => {
+                  const newList = [...brandingList];
+                  newList[index].title = e.target.value;
+                  setBrandingList(newList);
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <FieldLabel text="Sub-Title" />
+              <StyledTextField 
+                fullWidth 
+                placeholder="Certified by International Air Transport" 
+                value={item.subtitle}
+                onChange={(e) => {
+                  const newList = [...brandingList];
+                  newList[index].subtitle = e.target.value;
+                  setBrandingList(newList);
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} md={2} sx={{ display: 'flex', gap: 1 }}>
+              <Button 
+                variant="outlined" 
+                color="error"
+                onClick={() => {
+                  if (brandingList.length > 1) {
+                    setBrandingList(brandingList.filter((_, i) => i !== index));
+                  }
+                }}
+                disabled={brandingList.length === 1}
+                sx={{ minWidth: 40, width: 40, height: 40, p: 0, borderRadius: 2, borderColor: '#fecaca', bgcolor: '#fef2f2' }}
+              >
+                <DeleteOutline fontSize="small" />
+              </Button>
+              {index === brandingList.length - 1 && (
+                <Button 
+                  variant="outlined" 
+                  onClick={() => setBrandingList([...brandingList, { title: "", subtitle: "" }])}
+                  sx={{ minWidth: 40, width: 40, height: 40, p: 0, borderRadius: 2, borderColor: '#e2e8f0', color: '#0f172a' }}
+                >
+                  <AddOutlined fontSize="small" />
+                </Button>
+              )}
+            </Grid>
+          </Grid>
+        ))}
+
+        <Box>
+          <FieldLabel text="Footer Text" />
+          <StyledTextField 
+            fullWidth 
+            placeholder="Add custom footer text..." 
+            value={userD["custom:footer_text"] || ""}
+            onChange={(e) => handeleUserDtChange("custom:footer_text", e.target.value)}
+          />
+        </Box>
+      </Paper>
+
+      {/* CHANGE PASSWORD */}
+      <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: 3, border: '1px solid #e2e8f0', bgcolor: '#fff' }}>
         <Typography variant="subtitle1" fontWeight="800" color="#0f172a" mb={3}>Change Password</Typography>
         
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
@@ -380,273 +522,7 @@ export default function Settings() {
             <StyledTextField fullWidth type="password" placeholder="Confirm new password" />
           </Box>
         </Box>
-      </Paper> */}
-
-      {/* 5. THEME & APPEARANCE CARDS */}
-      {false && (
-        <Grid container spacing={3} mb={4}>
-          {/* Color Theme */}
-          <Grid item xs={12} md={6}>
-            <Paper
-              elevation={0}
-              sx={{
-                p: 4,
-                borderRadius: 3,
-                border: "1px solid #e2e8f0",
-                bgcolor: "#fff",
-                height: "100%",
-              }}
-            >
-              <Typography
-                variant="subtitle1"
-                fontWeight="800"
-                color="#0f172a"
-                mb={3}
-              >
-                Color Theme
-              </Typography>
-
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                {/* Gradient Box Mockup */}
-                <Box
-                  sx={{
-                    height: 140,
-                    width: "100%",
-                    borderRadius: 2,
-                    background:
-                      "linear-gradient(to bottom right, #fff, #9333ea, #000)",
-                    position: "relative",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      top: 20,
-                      right: 30,
-                      width: 12,
-                      height: 12,
-                      borderRadius: "50%",
-                      border: "2px solid #fff",
-                    }}
-                  />
-                </Box>
-
-                {/* Sliders Mockup */}
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <Box
-                    sx={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: 1,
-                      bgcolor: "#9333ea",
-                    }}
-                  />
-                  <Box
-                    sx={{
-                      flexGrow: 1,
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 1,
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        height: 12,
-                        width: "100%",
-                        borderRadius: 5,
-                        background:
-                          "linear-gradient(to right, red, yellow, lime, cyan, blue, magenta, red)",
-                        position: "relative",
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          position: "absolute",
-                          right: "10%",
-                          top: -2,
-                          width: 16,
-                          height: 16,
-                          borderRadius: "50%",
-                          bgcolor: "#fff",
-                          border: "2px solid #e2e8f0",
-                          boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                        }}
-                      />
-                    </Box>
-                    <Box
-                      sx={{
-                        height: 12,
-                        width: "100%",
-                        borderRadius: 5,
-                        background:
-                          "linear-gradient(to right, #e2e8f0, #9333ea)",
-                        position: "relative",
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          position: "absolute",
-                          right: "0%",
-                          top: -2,
-                          width: 16,
-                          height: 16,
-                          borderRadius: "50%",
-                          bgcolor: "#fff",
-                          border: "2px solid #e2e8f0",
-                          boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                        }}
-                      />
-                    </Box>
-                  </Box>
-                  <Box
-                    sx={{
-                      bgcolor: "#0f172a",
-                      color: "#fff",
-                      px: 1,
-                      py: 0.5,
-                      borderRadius: 1,
-                      fontSize: "0.65rem",
-                      fontWeight: 800,
-                    }}
-                  >
-                    80%
-                  </Box>
-                </Box>
-
-                {/* Format Toggles */}
-                <Box
-                  sx={{
-                    display: "flex",
-                    bgcolor: "#f1f5f9",
-                    borderRadius: 2,
-                    p: 0.5,
-                    mt: 1,
-                  }}
-                >
-                  {["Hex", "RGB", "HSL", "HSB"].map((fmt, i) => (
-                    <Box
-                      key={fmt}
-                      sx={{
-                        flex: 1,
-                        textAlign: "center",
-                        py: 0.5,
-                        bgcolor: i === 0 ? "#fff" : "transparent",
-                        borderRadius: 1.5,
-                        fontSize: "0.75rem",
-                        fontWeight: i === 0 ? 700 : 500,
-                        color: i === 0 ? "#0f172a" : "#64748b",
-                        cursor: "pointer",
-                        boxShadow:
-                          i === 0 ? "0 1px 3px rgba(0,0,0,0.05)" : "none",
-                      }}
-                    >
-                      {fmt}
-                    </Box>
-                  ))}
-                </Box>
-
-                {/* Hex Input */}
-                <Box
-                  sx={{
-                    display: "flex",
-                    gap: 1.5,
-                    alignItems: "center",
-                    mt: 1,
-                  }}
-                >
-                  <ColorizeOutlined sx={{ color: "#475569", fontSize: 20 }} />
-                  <StyledTextField
-                    size="small"
-                    defaultValue="#9E00FF"
-                    sx={{ flexGrow: 1 }}
-                  />
-                  <StyledTextField
-                    size="small"
-                    defaultValue="80"
-                    sx={{ width: 60 }}
-                    InputProps={{
-                      endAdornment: (
-                        <Typography variant="caption" color="#94a3b8">
-                          %
-                        </Typography>
-                      ),
-                    }}
-                  />
-                </Box>
-              </Box>
-            </Paper>
-          </Grid>
-
-          {/* Appearance */}
-          <Grid item xs={12} md={6}>
-            <Paper
-              elevation={0}
-              sx={{
-                p: 4,
-                borderRadius: 3,
-                border: "1px solid #e2e8f0",
-                bgcolor: "#fff",
-                height: "100%",
-              }}
-            >
-              <Typography
-                variant="subtitle1"
-                fontWeight="800"
-                color="#0f172a"
-                mb={3}
-              >
-                Appearance
-              </Typography>
-
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  mb: 3,
-                  p: 2,
-                  bgcolor: "#f8fafc",
-                  borderRadius: 2,
-                }}
-              >
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                  <WbSunnyOutlined sx={{ color: "#f59e0b", fontSize: 22 }} />
-                  <Box>
-                    <Typography
-                      variant="body2"
-                      fontWeight="700"
-                      color="#0f172a"
-                    >
-                      Dark Mode
-                    </Typography>
-                    <Typography variant="caption" color="#64748b">
-                      Toggle dark theme
-                    </Typography>
-                  </Box>
-                </Box>
-                <Switch
-                  checked={darkMode}
-                  onChange={(e) => setDarkMode(e.target.checked)}
-                />
-              </Box>
-
-              <Box>
-                <FieldLabel text="Font Style" />
-                <StyledTextField
-                  select
-                  fullWidth
-                  value={fontStyle}
-                  onChange={(e) => setFontStyle(e.target.value)}
-                >
-                  <MenuItem value="Poppins">Poppins</MenuItem>
-                  <MenuItem value="Inter">Inter</MenuItem>
-                  <MenuItem value="Roboto">Roboto</MenuItem>
-                </StyledTextField>
-              </Box>
-            </Paper>
-          </Grid>
-        </Grid>
-      )}
+      </Paper> 
 
       {/* SAVE BUTTON */}
       <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>

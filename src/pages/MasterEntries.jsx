@@ -16,6 +16,7 @@ import {
   Checkbox,
   FormControlLabel,
   MenuItem,
+  Divider,
 } from "@mui/material";
 import {
   Search,
@@ -63,7 +64,7 @@ const StyledTextField = (props) => (
         },
         "&:hover fieldset": { borderColor: "#cbd5e1" },
         "&.Mui-focused fieldset": {
-          borderColor: "#0ea5e9",
+          borderColor: "#8b5cf6", // Updated focus color to match the modal's purple theme
           borderWidth: "1px",
         },
       },
@@ -81,6 +82,10 @@ export default function MasterEntries() {
   const [activeTab, setActiveTab] = useState("Destinations");
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // 🚨 Local state for the current activity input string inside the modal 🚨
+  const [currentActivityInput, setCurrentActivityInput] = useState("");
+
   const { getAllMasterEntries, createMasterEntries, deleteMasterEntrie } =
     useMasterEntries();
 
@@ -119,8 +124,8 @@ export default function MasterEntries() {
         country: "",
         budget: "",
         popular: false,
-        // Default array for the day-wise activities
-        days: [{ title: "", description: "", activities: "" }],
+        // 🚨 Note: activities is now an array 🚨
+        days: [{ title: "", description: "", activities: [] }], 
       });
     if (activeTab === "Hotels")
       setFormData({
@@ -143,7 +148,12 @@ export default function MasterEntries() {
         difficulty: "Easy",
       });
     if (activeTab === "Transport")
-      setFormData({ name: "", type: "Car", capacity: "", price: "" });
+      setFormData({ 
+        name: "", 
+        type: "Water Sports", 
+        route: "", 
+        capacity: "" 
+      });
 
     setIsModalOpen(true);
   };
@@ -151,6 +161,7 @@ export default function MasterEntries() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setFormData({});
+    setCurrentActivityInput(""); // reset local input
   };
 
   const handleInputChange = (e) => {
@@ -165,12 +176,36 @@ export default function MasterEntries() {
     setFormData({ ...formData, days: newDays });
   };
 
+  // 🚨 FIXED LOGIC FOR ADDING ACTIVITIES TO A SPECIFIC DAY 🚨
+  const handleAddActivityToDay = (dayIndex) => {
+    if (!currentActivityInput.trim()) return;
+    
+    const newDays = [...(formData.days || [])];
+    const currentActivities = newDays[dayIndex].activities || [];
+    
+    // Ensure activities is an array, then push new item
+    newDays[dayIndex].activities = Array.isArray(currentActivities) 
+      ? [...currentActivities, currentActivityInput.trim()]
+      : [currentActivityInput.trim()];
+
+    setFormData({ ...formData, days: newDays });
+    setCurrentActivityInput(""); // Clear the input field after adding
+  };
+
+  const handleRemoveActivityFromDay = (dayIndex, activityIndex) => {
+    const newDays = [...(formData.days || [])];
+    if (Array.isArray(newDays[dayIndex].activities)) {
+      newDays[dayIndex].activities = newDays[dayIndex].activities.filter((_, i) => i !== activityIndex);
+      setFormData({ ...formData, days: newDays });
+    }
+  };
+
   const handleAddDay = () => {
     setFormData({
       ...formData,
       days: [
         ...(formData.days || []),
-        { title: "", description: "", activities: "" },
+        { title: "", description: "", activities: [] },
       ],
     });
   };
@@ -182,7 +217,11 @@ export default function MasterEntries() {
 
   const handleAddEntry = () => {
     if (!formData.name?.trim()) return;
+    
+    // Convert array of activities back to string if needed by backend, 
+    // or keep as array if backend supports it. Assuming array is fine.
     const newEntry = { category: activeTab, ...formData };
+    
     createMasterEntries(newEntry).then(() => {
       handleAllMasters();
     });
@@ -193,7 +232,7 @@ export default function MasterEntries() {
     const matchesTab = entry.category === activeTab;
     const matchesSearch =
       (entry.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (entry.country || entry.location || "")
+      (entry.country || entry.location || entry.route || "")
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
     return matchesTab && matchesSearch;
@@ -347,37 +386,48 @@ export default function MasterEntries() {
                       }
                     />
                   </Box>
+
+                  {/* 🚨 FIXED ACTIVITY INPUT FIELD 🚨 */}
                   <Box>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                      }}
-                    >
-                      <FieldLabel text="Activities & Experiences" />
-                      <Button
-                        size="small"
-                        startIcon={<Add fontSize="small" />}
-                        sx={{
-                          textTransform: "none",
-                          color: "#64748b",
-                          fontWeight: 700,
-                          py: 0,
+                    <FieldLabel text="Activities & Experiences" />
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <StyledTextField
+                        fullWidth
+                        placeholder="e.g., Colosseum Guided Tour"
+                        value={currentActivityInput}
+                        onChange={(e) => setCurrentActivityInput(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddActivityToDay(index);
+                          }
                         }}
+                      />
+                      <Button
+                        variant="contained"
+                        onClick={() => handleAddActivityToDay(index)}
+                        sx={{ bgcolor: '#0ea5e9', '&:hover': { bgcolor: '#0284c7' }, minWidth: '80px', boxShadow: 'none' }}
                       >
                         Add
                       </Button>
                     </Box>
-                    <StyledTextField
-                      fullWidth
-                      placeholder="List out the day's activities"
-                      value={day.activities}
-                      onChange={(e) =>
-                        handleDayChange(index, "activities", e.target.value)
-                      }
-                    />
+                    
+                    {/* Display Added Activities */}
+                    {Array.isArray(day.activities) && day.activities.length > 0 && (
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1.5 }}>
+                        {day.activities.map((act, actIndex) => (
+                          <Chip 
+                            key={actIndex} 
+                            label={act} 
+                            onDelete={() => handleRemoveActivityFromDay(index, actIndex)}
+                            size="small"
+                            sx={{ bgcolor: '#e0f2fe', color: '#0369a1', fontWeight: 600 }}
+                          />
+                        ))}
+                      </Box>
+                    )}
                   </Box>
+
                 </Box>
               </Box>
             ))}
@@ -579,14 +629,54 @@ export default function MasterEntries() {
         </Grid>
       );
 
+    // 🚨 UPDATED TRANSPORT FORM UI 🚨
     return (
       <Grid container spacing={2.5} sx={{ mt: 0.5 }}>
         <Grid item xs={12}>
-          <FieldLabel text="Vehicle Name/Type" />
+          <FieldLabel text="Vehicle Name" />
           <StyledTextField
             fullWidth
             name="name"
+            placeholder="e.g., Scuba Diving"
             value={formData.name || ""}
+            onChange={handleInputChange}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <FieldLabel text="Vehicle Type" />
+          <StyledTextField
+            select
+            fullWidth
+            name="type"
+            value={formData.type || "Water Sports"}
+            onChange={handleInputChange}
+          >
+            <MenuItem value="Water Sports">Water Sports</MenuItem>
+            <MenuItem value="Private Transfer">Private Transfer</MenuItem>
+            <MenuItem value="Shared Coach">Shared Coach</MenuItem>
+            <MenuItem value="Ferry / Boat">Ferry / Boat</MenuItem>
+            <MenuItem value="Flight">Flight</MenuItem>
+            <MenuItem value="Train">Train</MenuItem>
+          </StyledTextField>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <FieldLabel text="Route" />
+          <StyledTextField
+            fullWidth
+            name="route"
+            placeholder="e.g., NYC-Paris"
+            value={formData.route || ""}
+            onChange={handleInputChange}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <FieldLabel text="Capacity" />
+          <StyledTextField
+            fullWidth
+            type="number"
+            name="capacity"
+            placeholder="2"
+            value={formData.capacity || ""}
             onChange={handleInputChange}
           />
         </Grid>
@@ -662,6 +752,33 @@ export default function MasterEntries() {
             <span style={{ marginLeft: 8, color: "#10b981" }}>
               Price: {entry.price || "TBA"}
             </span>
+          </Typography>
+        </Box>
+      );
+    }
+    
+    if (activeTab === "Transport") {
+      return (
+        <Box>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+            <DirectionsCar sx={{ color: "#475569", fontSize: 20 }} />
+            <Typography variant="subtitle1" fontWeight="800" color="#0f172a">
+              {entry.name}
+            </Typography>
+            <Chip
+              label={entry.type || "Vehicle"}
+              size="small"
+              sx={{
+                bgcolor: "#f3e8ff",
+                color: "#7e22ce",
+                fontWeight: 700,
+                height: 20,
+                fontSize: "0.65rem",
+              }}
+            />
+          </Box>
+          <Typography variant="caption" color="#64748b" fontWeight="600">
+            Route: {entry.route || "N/A"} | Capacity: {entry.capacity || "N/A"} PAX
           </Typography>
         </Box>
       );
@@ -879,14 +996,15 @@ export default function MasterEntries() {
           onClose={handleCloseModal}
           maxWidth="sm"
           fullWidth
-          PaperProps={{ sx: { borderRadius: "16px", p: 1 } }}
+          PaperProps={{ sx: { borderRadius: "16px" } }}
         >
           <DialogTitle
             sx={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              pb: 1,
+              p: 3,
+              pb: 2,
             }}
           >
             <Typography variant="h6" fontWeight="800" color="#0f172a">
@@ -901,42 +1019,48 @@ export default function MasterEntries() {
             </IconButton>
           </DialogTitle>
 
-          <DialogContent sx={{ p: 3, pt: 1 }}>
+          <DialogContent sx={{ px: 3, py: 1 }}>
             {renderModalContent()}
           </DialogContent>
 
-          <DialogActions sx={{ p: 3, pt: 0 }}>
-            <Button
-              onClick={handleCloseModal}
-              variant="outlined"
-              sx={{
-                color: "#64748b",
-                borderColor: "#e2e8f0",
-                textTransform: "none",
-                fontWeight: 600,
-                flex: 1,
-                borderRadius: "8px",
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleAddEntry}
-              variant="contained"
-              sx={{
-                bgcolor: "#0ea5e9",
-                color: "#fff",
-                textTransform: "none",
-                fontWeight: 700,
-                flex: 1,
-                borderRadius: "8px",
-                boxShadow: "none",
-                "&:hover": { bgcolor: "#0284c7" },
-              }}
-            >
-              Add Entry
-            </Button>
-          </DialogActions>
+          <Box sx={{ px: 3, pb: 3, pt: 1 }}>
+            <Divider sx={{ mb: 3 }} />
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <Button
+                onClick={handleCloseModal}
+                variant="outlined"
+                sx={{
+                  color: "#475569",
+                  borderColor: "#e2e8f0",
+                  textTransform: "none",
+                  fontWeight: 700,
+                  flex: 1,
+                  borderRadius: "8px",
+                  py: 1,
+                  "&:hover": { bgcolor: "#f8fafc", borderColor: "#cbd5e1" },
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleAddEntry}
+                variant="contained"
+                sx={{
+                  background: "linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%)", // 🚨 EXACT PURPLE GRADIENT FROM SCREENSHOT 🚨
+                  color: "#fff",
+                  textTransform: "none",
+                  fontWeight: 700,
+                  flex: 1,
+                  borderRadius: "8px",
+                  boxShadow: "none",
+                  py: 1,
+                  "&:hover": { opacity: 0.9 },
+                }}
+              >
+                Add Entry
+              </Button>
+            </Box>
+          </Box>
         </Dialog>
       </Box>
     </MainLayout>
