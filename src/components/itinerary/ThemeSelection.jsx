@@ -344,7 +344,17 @@ export default function ThemeSelection() {
                   style={{ width: "100%", height: "100%" }}
                 />
                 <IconButton
-                  onClick={removeImage}
+                  sx={{
+                    position: "absolute",
+                    top: 8,
+                    left: 8,
+                    bgcolor: "rgba(255,255,255,0.9)",
+                    "&:hover": { bgcolor: "#fee2e2", color: "#ef4444" },
+                  }}
+                >
+                  <CameraswitchIcon onClick={handleBoxClick} fontSize="small" />
+                </IconButton>
+                <IconButton
                   sx={{
                     position: "absolute",
                     top: 8,
@@ -353,7 +363,16 @@ export default function ThemeSelection() {
                     "&:hover": { bgcolor: "#fee2e2", color: "#ef4444" },
                   }}
                 >
-                  <CameraswitchIcon onClick={handleBoxClick} fontSize="small" />
+                  <DeleteOutline
+                    onClick={() => {
+                      setConfig((prev) => ({
+                        ...prev,
+                        coverImage: "",
+                        coverImageId: "",
+                      }));
+                    }}
+                    fontSize="small"
+                  />
                 </IconButton>
               </Box>
             ) : (
