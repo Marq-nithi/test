@@ -42,12 +42,12 @@ const StyledTextField = (props) => (
     sx={{
       "& .MuiOutlinedInput-root": {
         bgcolor: "#fff",
-        borderRadius: "8px",     // Exact border radius
-        height: "44px",          // Exact height
+        borderRadius: "8px",
+        height: "44px",
         padding: props.select ? "0px" : "0px",
         "& fieldset": {
           borderColor: "#e2e8f0",
-          borderWidth: "0.67px", // Exact border width
+          borderWidth: "0.67px",
           transition: "all 0.2s ease-in-out",
         },
         "&:hover fieldset": { borderColor: "#cbd5e1" },
@@ -78,10 +78,44 @@ const StyledTextField = (props) => (
   />
 );
 
+// ✅ Native time picker styled to match the rest of the form
+const StyledTimePicker = ({ value, onChange }) => (
+  <Box
+    sx={{
+      border: "0.67px solid #e2e8f0",
+      borderRadius: "8px",
+      height: "44px",
+      bgcolor: "#fff",
+      display: "flex",
+      alignItems: "center",
+      px: 1.5,
+      transition: "all 0.2s ease-in-out",
+      "&:hover": { borderColor: "#cbd5e1" },
+      "&:focus-within": { borderColor: "#0ea5e9", borderWidth: "1px" },
+    }}
+  >
+    <input
+      type="time"
+      value={value || ""}
+      onChange={(e) => onChange(e.target.value)}
+      style={{
+        border: "none",
+        outline: "none",
+        width: "100%",
+        fontFamily: "'Inter', sans-serif",
+        fontSize: "14px",
+        fontWeight: 400,
+        color: "#334155",
+        background: "transparent",
+        cursor: "pointer",
+      }}
+    />
+  </Box>
+);
+
 export default function StayDetails() {
   const { stayData, setStayData } = useItinerary();
 
-  // The default blueprint for a new hotel
   const defaultHotel = {
     id: Date.now(),
     type: "main",
@@ -90,23 +124,22 @@ export default function StayDetails() {
     hotelPref: "Luxury Resort",
     roomCat: "Deluxe",
     checkInDate: "",
-    checkInTime: "3:00 PM",
+    checkInTime: "15:00",
     checkOutDate: "",
-    checkOutTime: "11:00 AM",
+    checkOutTime: "11:00",
     rooms: 1,
     price: "",
     amenities: [],
     meals: { breakfast: true, lunch: false, dinner: true, allInclusive: false },
   };
 
-  // Load existing data from the global brain, otherwise start fresh
   const [hotels, setHotels] = useState(
     stayData?.hotels?.length ? stayData.hotels : [{ ...defaultHotel }],
   );
   const [sugg, setSugg] = useState([]);
 
   const { getAllMasterEntries } = useMasterEntries();
-  
+
   useEffect(() => {
     getAllMasterEntries().then((data) => {
       const entries = Array.isArray(data?.data)
@@ -136,7 +169,6 @@ export default function StayDetails() {
     if (setStayData) setStayData({ hotels });
   }, [hotels, setStayData]);
 
-  // Handlers
   const handleAddHotel = () => {
     setHotels((prevHotels) => [
       ...prevHotels,
@@ -226,12 +258,12 @@ export default function StayDetails() {
       event.preventDefault();
       const newAmenity = event.target.value.trim();
       const hotel = hotels.find((h) => h.id === hotelId);
-      const safeAmenities = hotel.amenities || []; 
+      const safeAmenities = hotel.amenities || [];
 
       if (!safeAmenities.includes(newAmenity)) {
         handleUpdate(hotelId, "amenities", [...safeAmenities, newAmenity]);
       }
-      event.target.value = ""; 
+      event.target.value = "";
     }
   };
 
@@ -252,7 +284,7 @@ export default function StayDetails() {
         bgcolor: "#f8fafc",
         minHeight: "100vh",
         pb: 12,
-        fontFamily: "'Inter', sans-serif"
+        fontFamily: "'Inter', sans-serif",
       }}
     >
       <Box sx={{ maxWidth: "1136px", mx: "auto" }}>
@@ -266,10 +298,20 @@ export default function StayDetails() {
           }}
         >
           <Box>
-            <Typography variant="h6" fontWeight="800" color="#0f172a" mb={0.5} sx={{ fontFamily: "'Inter', sans-serif" }}>
+            <Typography
+              variant="h6"
+              fontWeight="800"
+              color="#0f172a"
+              mb={0.5}
+              sx={{ fontFamily: "'Inter', sans-serif" }}
+            >
               Hotel Details
             </Typography>
-            <Typography variant="body2" color="#64748b" sx={{ fontFamily: "'Inter', sans-serif" }}>
+            <Typography
+              variant="body2"
+              color="#64748b"
+              sx={{ fontFamily: "'Inter', sans-serif" }}
+            >
               Configure hotel accommodation for your client's trip
             </Typography>
           </Box>
@@ -285,7 +327,7 @@ export default function StayDetails() {
               px: 3,
               height: "36px",
               bgcolor: "#fff",
-              fontFamily: "'Inter', sans-serif"
+              fontFamily: "'Inter', sans-serif",
             }}
           >
             Clear All
@@ -302,14 +344,14 @@ export default function StayDetails() {
               elevation={0}
               sx={{
                 p: 4,
-                border: "0.6px solid #e2e8f0", // Exact border width
-                borderRadius: "12.51px",       // Exact border radius
+                border: "0.6px solid #e2e8f0",
+                borderRadius: "12.51px",
                 mb: 3,
                 bgcolor: "#fff",
                 position: "relative",
                 width: "100%",
-                maxWidth: "1136px",            // Exact width constraint
-                minHeight: "399px",            // Exact height constraint
+                maxWidth: "1136px",
+                minHeight: "399px",
               }}
             >
               {/* CARD TITLE & DELETE BUTTON */}
@@ -323,7 +365,11 @@ export default function StayDetails() {
               >
                 <Typography
                   variant="subtitle1"
-                  sx={{ fontWeight: 800, color: "#0f172a", fontFamily: "'Inter', sans-serif" }}
+                  sx={{
+                    fontWeight: 800,
+                    color: "#0f172a",
+                    fontFamily: "'Inter', sans-serif",
+                  }}
                 >
                   {hotel.type === "main"
                     ? "Hotel Accommodation"
@@ -348,10 +394,8 @@ export default function StayDetails() {
                 )}
               </Box>
 
-              {/* 🚨 EXPLICIT VERTICAL LAYOUT TO PREVENT GRID COLLAPSING 🚨 */}
               <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                
-                {/* --- ROW 1: LOCATION (Isolated, Exact 357px Width) --- */}
+                {/* --- ROW 1: LOCATION --- */}
                 <Box sx={{ width: "100%", maxWidth: "357px" }}>
                   <FieldLabel text="Location" />
                   <StyledTextField
@@ -392,11 +436,17 @@ export default function StayDetails() {
                         }
                       }}
                       getOptionLabel={(option) =>
-                        typeof option === "string" ? option : option?.label || ""
+                        typeof option === "string"
+                          ? option
+                          : option?.label || ""
                       }
                       isOptionEqualToValue={(option, val) => {
                         if (!option || !val) return false;
-                        return option?.value === val?.value || option?.label === val?.label || option?.label === val;
+                        return (
+                          option?.value === val?.value ||
+                          option?.label === val?.label ||
+                          option?.label === val
+                        );
                       }}
                       renderInput={(params) => (
                         <StyledTextField
@@ -417,11 +467,51 @@ export default function StayDetails() {
                         handleUpdate(hotel.id, "hotelPref", e.target.value)
                       }
                     >
-                      <MenuItem value="Budget" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>Budget</MenuItem>
-                      <MenuItem value="3 Star" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>3 Star</MenuItem>
-                      <MenuItem value="4 Star" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>4 Star</MenuItem>
-                      <MenuItem value="5 Star" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>5 Star</MenuItem>
-                      <MenuItem value="Luxury Resort" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>Luxury Resort</MenuItem>
+                      <MenuItem
+                        value="Budget"
+                        sx={{
+                          fontFamily: "'Inter', sans-serif",
+                          fontSize: "14px",
+                        }}
+                      >
+                        Budget
+                      </MenuItem>
+                      <MenuItem
+                        value="3 Star"
+                        sx={{
+                          fontFamily: "'Inter', sans-serif",
+                          fontSize: "14px",
+                        }}
+                      >
+                        3 Star
+                      </MenuItem>
+                      <MenuItem
+                        value="4 Star"
+                        sx={{
+                          fontFamily: "'Inter', sans-serif",
+                          fontSize: "14px",
+                        }}
+                      >
+                        4 Star
+                      </MenuItem>
+                      <MenuItem
+                        value="5 Star"
+                        sx={{
+                          fontFamily: "'Inter', sans-serif",
+                          fontSize: "14px",
+                        }}
+                      >
+                        5 Star
+                      </MenuItem>
+                      <MenuItem
+                        value="Luxury Resort"
+                        sx={{
+                          fontFamily: "'Inter', sans-serif",
+                          fontSize: "14px",
+                        }}
+                      >
+                        Luxury Resort
+                      </MenuItem>
                     </StyledTextField>
                   </Grid>
                   <Grid item xs={12} md={3}>
@@ -436,7 +526,7 @@ export default function StayDetails() {
                     />
                   </Grid>
 
-                  {/* ROOMS COUNTER (Exact 44px Height) */}
+                  {/* ROOMS COUNTER */}
                   <Grid item xs={12} md={3}>
                     <FieldLabel text="Rooms" required />
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -447,7 +537,7 @@ export default function StayDetails() {
                           borderRadius: "8px",
                           width: "44px",
                           height: "44px",
-                          bgcolor: "#f8fafc"
+                          bgcolor: "#f8fafc",
                         }}
                       >
                         <Remove sx={{ color: "#64748b", fontSize: "1.2rem" }} />
@@ -455,18 +545,22 @@ export default function StayDetails() {
                       <Box
                         sx={{
                           border: "0.67px solid #e2e8f0",
-                          flexGrow: 1, 
+                          flexGrow: 1,
                           height: "44px",
                           borderRadius: "8px",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          bgcolor: "#f8fafc"
+                          bgcolor: "#f8fafc",
                         }}
                       >
                         <Typography
                           variant="body2"
-                          sx={{ fontWeight: 500, color: "#334155", fontFamily: "'Inter', sans-serif" }}
+                          sx={{
+                            fontWeight: 500,
+                            color: "#334155",
+                            fontFamily: "'Inter', sans-serif",
+                          }}
                         >
                           {hotel.rooms || 1}
                         </Typography>
@@ -478,7 +572,7 @@ export default function StayDetails() {
                           borderRadius: "8px",
                           width: "44px",
                           height: "44px",
-                          bgcolor: "#f8fafc"
+                          bgcolor: "#f8fafc",
                         }}
                       >
                         <Add sx={{ color: "#64748b", fontSize: "1.2rem" }} />
@@ -501,21 +595,18 @@ export default function StayDetails() {
                       InputLabelProps={{ shrink: true }}
                     />
                   </Grid>
+
+                  {/* ✅ CHANGED: Check-In Time → native time picker */}
                   <Grid item xs={12} md={3}>
                     <FieldLabel text="Check-In Time" />
-                    <StyledTextField
-                      select
-                      fullWidth
-                      value={hotel.checkInTime || "3:00 PM"}
-                      onChange={(e) =>
-                        handleUpdate(hotel.id, "checkInTime", e.target.value)
+                    <StyledTimePicker
+                      value={hotel.checkInTime}
+                      onChange={(val) =>
+                        handleUpdate(hotel.id, "checkInTime", val)
                       }
-                    >
-                      <MenuItem value="12:00 PM" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>12:00 PM</MenuItem>
-                      <MenuItem value="2:00 PM" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>2:00 PM</MenuItem>
-                      <MenuItem value="3:00 PM" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>3:00 PM</MenuItem>
-                    </StyledTextField>
+                    />
                   </Grid>
+
                   <Grid item xs={12} md={3}>
                     <FieldLabel text="Check-Out Date" required />
                     <StyledTextField
@@ -528,24 +619,20 @@ export default function StayDetails() {
                       InputLabelProps={{ shrink: true }}
                     />
                   </Grid>
+
+                  {/* ✅ CHANGED: Check-Out Time → native time picker */}
                   <Grid item xs={12} md={3}>
                     <FieldLabel text="Check-Out Time" />
-                    <StyledTextField
-                      select
-                      fullWidth
-                      value={hotel.checkOutTime || "11:00 AM"}
-                      onChange={(e) =>
-                        handleUpdate(hotel.id, "checkOutTime", e.target.value)
+                    <StyledTimePicker
+                      value={hotel.checkOutTime}
+                      onChange={(val) =>
+                        handleUpdate(hotel.id, "checkOutTime", val)
                       }
-                    >
-                      <MenuItem value="10:00 AM" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>10:00 AM</MenuItem>
-                      <MenuItem value="11:00 AM" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>11:00 AM</MenuItem>
-                      <MenuItem value="12:00 PM" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>12:00 PM</MenuItem>
-                    </StyledTextField>
+                    />
                   </Grid>
                 </Grid>
 
-                {/* --- ROW 4: MEAL PLAN (Isolated to its own row) --- */}
+                {/* --- ROW 4: MEAL PLAN --- */}
                 <Box>
                   <FieldLabel text="Meal Plan" />
                   <FormGroup row sx={{ mt: 0, gap: 3 }}>
@@ -554,14 +641,26 @@ export default function StayDetails() {
                         <Checkbox
                           checked={hotel.meals?.breakfast || false}
                           onChange={(e) =>
-                            handleMealUpdate(hotel.id, "breakfast", e.target.checked)
+                            handleMealUpdate(
+                              hotel.id,
+                              "breakfast",
+                              e.target.checked,
+                            )
                           }
                           size="small"
                           sx={{ "&.Mui-checked": { color: "#0ea5e9" } }}
                         />
                       }
                       label={
-                        <Typography variant="body2" color="#334155" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px", fontWeight: 500 }}>
+                        <Typography
+                          variant="body2"
+                          color="#334155"
+                          sx={{
+                            fontFamily: "'Inter', sans-serif",
+                            fontSize: "14px",
+                            fontWeight: 500,
+                          }}
+                        >
                           Breakfast
                         </Typography>
                       }
@@ -571,14 +670,26 @@ export default function StayDetails() {
                         <Checkbox
                           checked={hotel.meals?.lunch || false}
                           onChange={(e) =>
-                            handleMealUpdate(hotel.id, "lunch", e.target.checked)
+                            handleMealUpdate(
+                              hotel.id,
+                              "lunch",
+                              e.target.checked,
+                            )
                           }
                           size="small"
                           sx={{ "&.Mui-checked": { color: "#0ea5e9" } }}
                         />
                       }
                       label={
-                        <Typography variant="body2" color="#334155" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px", fontWeight: 500 }}>
+                        <Typography
+                          variant="body2"
+                          color="#334155"
+                          sx={{
+                            fontFamily: "'Inter', sans-serif",
+                            fontSize: "14px",
+                            fontWeight: 500,
+                          }}
+                        >
                           Lunch
                         </Typography>
                       }
@@ -588,14 +699,26 @@ export default function StayDetails() {
                         <Checkbox
                           checked={hotel.meals?.dinner || false}
                           onChange={(e) =>
-                            handleMealUpdate(hotel.id, "dinner", e.target.checked)
+                            handleMealUpdate(
+                              hotel.id,
+                              "dinner",
+                              e.target.checked,
+                            )
                           }
                           size="small"
                           sx={{ "&.Mui-checked": { color: "#0ea5e9" } }}
                         />
                       }
                       label={
-                        <Typography variant="body2" color="#334155" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px", fontWeight: 500 }}>
+                        <Typography
+                          variant="body2"
+                          color="#334155"
+                          sx={{
+                            fontFamily: "'Inter', sans-serif",
+                            fontSize: "14px",
+                            fontWeight: 500,
+                          }}
+                        >
                           Dinner
                         </Typography>
                       }
@@ -605,21 +728,33 @@ export default function StayDetails() {
                         <Checkbox
                           checked={hotel.meals?.allInclusive || false}
                           onChange={(e) =>
-                            handleMealUpdate(hotel.id, "allInclusive", e.target.checked)
+                            handleMealUpdate(
+                              hotel.id,
+                              "allInclusive",
+                              e.target.checked,
+                            )
                           }
                           size="small"
                           sx={{ "&.Mui-checked": { color: "#0ea5e9" } }}
                         />
                       }
                       label={
-                        <Typography variant="body2" color="#334155" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px", fontWeight: 500 }}>
+                        <Typography
+                          variant="body2"
+                          color="#334155"
+                          sx={{
+                            fontFamily: "'Inter', sans-serif",
+                            fontSize: "14px",
+                            fontWeight: 500,
+                          }}
+                        >
                           All Inclusive
                         </Typography>
                       }
                     />
                   </FormGroup>
                 </Box>
-                
+
                 {/* --- ROW 5: AMENITIES --- */}
                 <Grid container spacing={3}>
                   <Grid item xs={12} md={4}>
@@ -635,7 +770,7 @@ export default function StayDetails() {
                     <FieldLabel text="Selected Amenities" />
                     <Box
                       sx={{
-                        minHeight: "44px", // Matches input height
+                        minHeight: "44px",
                         border: "0.67px solid #e2e8f0",
                         borderRadius: "8px",
                         bgcolor: "#fff",
@@ -650,7 +785,9 @@ export default function StayDetails() {
                         <Chip
                           key={amenity}
                           label={amenity}
-                          onDelete={() => handleRemoveAmenity(hotel.id, amenity)}
+                          onDelete={() =>
+                            handleRemoveAmenity(hotel.id, amenity)
+                          }
                           size="small"
                           sx={{
                             bgcolor: "#f0f9ff",
@@ -667,7 +804,11 @@ export default function StayDetails() {
                       {safeAmenities.length === 0 && (
                         <Typography
                           variant="body2"
-                          sx={{ color: "#94a3b8", ml: 1, fontFamily: "'Inter', sans-serif" }}
+                          sx={{
+                            color: "#94a3b8",
+                            ml: 1,
+                            fontFamily: "'Inter', sans-serif",
+                          }}
                         >
                           No amenities added
                         </Typography>
@@ -675,7 +816,6 @@ export default function StayDetails() {
                     </Box>
                   </Grid>
                 </Grid>
-
               </Box>
             </Paper>
           );
@@ -707,7 +847,7 @@ export default function StayDetails() {
                 px: 2,
                 height: "36px",
                 bgcolor: "#fff",
-                fontFamily: "'Inter', sans-serif"
+                fontFamily: "'Inter', sans-serif",
               }}
             >
               Hotel
@@ -726,7 +866,7 @@ export default function StayDetails() {
                 px: 2,
                 height: "36px",
                 bgcolor: "#fff",
-                fontFamily: "'Inter', sans-serif"
+                fontFamily: "'Inter', sans-serif",
               }}
             >
               Split Stay
@@ -745,7 +885,7 @@ export default function StayDetails() {
               px: 3,
               height: "36px",
               bgcolor: "#fff",
-              fontFamily: "'Inter', sans-serif"
+              fontFamily: "'Inter', sans-serif",
             }}
           >
             Add-Ons

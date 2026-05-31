@@ -24,6 +24,7 @@ import CameraswitchIcon from "@mui/icons-material/Cameraswitch";
 
 import { useApi } from "@michaeldothedi-service/dta-crm-sl-sdk";
 import { useBlobDownload, useBlobUpload } from "../../services/backendApi";
+
 // --- COMPACT Styled Components for the Customization Form ---
 const FormSection = ({ title, children, icon }) => (
   <Paper
@@ -66,16 +67,18 @@ export default function ThemeSelection() {
   const { getBlob } = useBlobDownload();
 
   const [config, setConfig] = useState({
-    coverImage: userD["custom:tmp_cover_img_id"],
-    coverImageId: userD["custom:tmp_cover_img_id"],
-    primaryColor: userD["custom:tmp_pr_color"],
-    secondaryColor: userD["custom:tmp_se_color"],
-    primaryContact: userD["custom:tmp_pr_contact"],
-    secondaryContact: userD["custom:tmp_se_contact"],
-    supportEmail: userD["custom:tmp_support_email"],
-    website: userD["custom:tmp_website"],
-    fontStyle: userD["custom:tmp_font_style"],
-    footerText: userD["custom:tmp_footer_text"],
+    // ✅ FIX 1: Don't store the blob ID as coverImage — start as empty string.
+    // The actual URL will be resolved async in useEffect below.
+    coverImage: "",
+    coverImageId: userD["custom:tmp_cover_img_id"] || "",
+    primaryColor: userD["custom:tmp_pr_color"] || "",
+    secondaryColor: userD["custom:tmp_se_color"] || "",
+    primaryContact: userD["custom:tmp_pr_contact"] || "",
+    secondaryContact: userD["custom:tmp_se_contact"] || "",
+    supportEmail: userD["custom:tmp_support_email"] || "",
+    website: userD["custom:tmp_website"] || "",
+    fontStyle: userD["custom:tmp_font_style"] || "",
+    footerText: userD["custom:tmp_footer_text"] || "",
   });
 
   useEffect(() => {
@@ -83,18 +86,42 @@ export default function ThemeSelection() {
   }, [userDetails]);
 
   useEffect(() => {
-    api.auth.loadUserDetails().then((data) => {
-      setUserD(data);
-    });
-    const blobid = userD["custom:tmp_cover_img_id"];
-    if (blobid) {
-      const blobData = getBlob(blobid).then((res) => {
-        setConfig((prev) => ({
-          ...prev,
-          coverImage: res.url,
-        }));
-      });
-    }
+    const init = async () => {
+      // ✅ FIX 2: Load user details first so we get the latest cover ID
+      let freshUser = userD;
+      try {
+        freshUser = await api.auth.loadUserDetails();
+        setUserD(freshUser);
+      } catch (err) {
+        console.error("Failed to load user details:", err);
+      }
+
+      // ✅ FIX 3: Resolve blob ID → URL in a separate try/catch with proper fallback
+      const blobId = freshUser?.["custom:tmp_cover_img_id"];
+      if (blobId && blobId.length > 0) {
+        try {
+          const res = await getBlob(blobId);
+          const resolvedUrl = res?.url;
+          setConfig((prev) => ({
+            ...prev,
+            // ✅ FIX 4: Only set coverImage if we actually got a valid URL back
+            coverImage:
+              resolvedUrl && resolvedUrl.length > 0 ? resolvedUrl : "",
+            coverImageId: blobId,
+          }));
+        } catch (err) {
+          console.error("Failed to load cover image blob:", err);
+          // ✅ FIX 5: On failure, keep coverImage as "" (show the upload box, not a broken image)
+          setConfig((prev) => ({
+            ...prev,
+            coverImage: "",
+            coverImageId: blobId, // keep the ID so we don't lose the reference
+          }));
+        }
+      }
+    };
+
+    init();
   }, []);
 
   const handleSaveChanges = () => {
@@ -112,18 +139,29 @@ export default function ThemeSelection() {
   };
 
   const handleBoxClick = async () => {
-    const uploadedId = await uploadBlob("image/*");
-    if (!uploadedId) return;
-    const blobData = await getBlob(uploadedId);
-    const url = blobData?.url;
-    setConfig((prev) => ({
-      ...prev,
-      coverImage: url,
-      coverImageId: uploadedId,
-    }));
+    // ✅ FIX 6: Wrap upload+blob fetch in try/catch to avoid silent failures
+    try {
+      const uploadedId = await uploadBlob("image/*");
+      if (!uploadedId) return;
+
+      const blobData = await getBlob(uploadedId);
+      const url = blobData?.url;
+
+      if (!url) {
+        console.error("Uploaded blob returned no URL");
+        return;
+      }
+
+      setConfig((prev) => ({
+        ...prev,
+        coverImage: url,
+        coverImageId: uploadedId,
+      }));
+    } catch (err) {
+      console.error("Failed to upload or fetch cover image:", err);
+    }
   };
 
-  // 🚨 THE FIX: This Ref directly controls the hidden file input
   const fileInputRef = useRef(null);
 
   const themes = [
@@ -174,8 +212,6 @@ export default function ThemeSelection() {
   };
 
   const removeImage = () => handleCustomChange("coverImage", null);
-
-  // Helper to trigger the hidden file input
 
   return (
     <Box
@@ -322,7 +358,8 @@ export default function ThemeSelection() {
           >
             <StyledLabel text="Cover Image" />
 
-            {config.coverImage ? (
+            {/* ✅ FIX 7: Check for a truthy non-empty string URL, not just any truthy value */}
+            {config.coverImage && config.coverImage.length > 0 ? (
               <Box
                 sx={{
                   position: "relative",
@@ -336,9 +373,10 @@ export default function ThemeSelection() {
                 <img
                   src={config.coverImage}
                   alt="Cover"
-                  style={{ width: "100%", height: "100%" }}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
                 <IconButton
+                  onClick={handleBoxClick}
                   sx={{
                     position: "absolute",
                     top: 8,
@@ -347,9 +385,17 @@ export default function ThemeSelection() {
                     "&:hover": { bgcolor: "#fee2e2", color: "#ef4444" },
                   }}
                 >
-                  <CameraswitchIcon onClick={handleBoxClick} fontSize="small" />
+                  {/* ✅ FIX 8: onClick moved to the IconButton, not the icon child */}
+                  <CameraswitchIcon fontSize="small" />
                 </IconButton>
                 <IconButton
+                  onClick={() => {
+                    setConfig((prev) => ({
+                      ...prev,
+                      coverImage: "",
+                      coverImageId: "",
+                    }));
+                  }}
                   sx={{
                     position: "absolute",
                     top: 8,
@@ -358,48 +404,36 @@ export default function ThemeSelection() {
                     "&:hover": { bgcolor: "#fee2e2", color: "#ef4444" },
                   }}
                 >
-                  <DeleteOutline
-                    onClick={() => {
-                      setConfig((prev) => ({
-                        ...prev,
-                        coverImage: "",
-                        coverImageId: "",
-                      }));
-                    }}
-                    fontSize="small"
-                  />
+                  {/* ✅ FIX 9: onClick moved to the IconButton, not the icon child */}
+                  <DeleteOutline fontSize="small" />
                 </IconButton>
               </Box>
             ) : (
-              <>
-                {/* 🚨 THE FIX: Hidden Input triggered by the Ref */}
-
-                <Box
-                  onClick={handleBoxClick} // 🚨 THE FIX: Direct click handler
-                  sx={{
-                    border: "1.5px dashed #cbd5e1",
-                    borderRadius: 2,
-                    p: 2,
-                    textAlign: "center",
-                    mb: 2,
-                    bgcolor: "#f8fafc",
-                    cursor: "pointer",
-                    "&:hover": { bgcolor: "#f1f5f9", borderColor: "#3b82f6" },
-                  }}
+              <Box
+                onClick={handleBoxClick}
+                sx={{
+                  border: "1.5px dashed #cbd5e1",
+                  borderRadius: 2,
+                  p: 2,
+                  textAlign: "center",
+                  mb: 2,
+                  bgcolor: "#f8fafc",
+                  cursor: "pointer",
+                  "&:hover": { bgcolor: "#f1f5f9", borderColor: "#3b82f6" },
+                }}
+              >
+                <CloudUploadOutlined
+                  sx={{ fontSize: 28, color: "#94a3b8", mb: 0.5 }}
+                />
+                <Typography
+                  variant="caption"
+                  fontWeight="700"
+                  color="#475569"
+                  display="block"
                 >
-                  <CloudUploadOutlined
-                    sx={{ fontSize: 28, color: "#94a3b8", mb: 0.5 }}
-                  />
-                  <Typography
-                    variant="caption"
-                    fontWeight="700"
-                    color="#475569"
-                    display="block"
-                  >
-                    Click to upload or drag and drop
-                  </Typography>
-                </Box>
-              </>
+                  Click to upload or drag and drop
+                </Typography>
+              </Box>
             )}
 
             <Grid container spacing={2}>
@@ -481,15 +515,9 @@ export default function ThemeSelection() {
                 </Box>
               </Grid>
             </Grid>
-            <Box
-              sx={{
-                mt: 4,
-              }}
-            >
+            <Box sx={{ mt: 4 }}>
               <Button
-                sx={{
-                  color: "white",
-                }}
+                sx={{ color: "white" }}
                 onClick={handleSaveChanges}
                 variant="contained"
               >
