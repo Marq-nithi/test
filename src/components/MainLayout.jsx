@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Box,
@@ -12,7 +12,6 @@ import {
   Button,
   Avatar,
   Paper,
-  Chip,
   IconButton,
   AppBar,
   Toolbar,
@@ -25,7 +24,9 @@ import {
   Search,
   Menu as MenuIcon,
   ChevronLeft,
-  Storage, // 🚨 Imported Storage icon for Master Entries
+  Storage,
+  SupportAgent,
+  TravelExplore
 } from "@mui/icons-material";
 import { useItinerary } from "../context/ItineraryContext";
 import { useApi } from "@michaeldothedi-service/dta-crm-sl-sdk";
@@ -43,14 +44,19 @@ export default function MainLayout({ children }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
 
-  // 🚨 NEW CHECK: Are we currently on the Itinerary Builder page?
+  // 🚨 ADDED LOCAL STATE: Guarantees the button updates instantly when clicked
+  const [activeTab, setActiveTab] = useState(location.pathname);
+
+  useEffect(() => {
+    setActiveTab(location.pathname);
+  }, [location.pathname]);
+
   const isItineraryBuilder = location.pathname === "/itinerary-builder";
 
-  // 🚨 ADDED MASTER ENTRIES HERE
   const menuItems = [
     { text: "Dashboard", path: "/dashboard", icon: <Dashboard /> },
     { text: "Itinerary Builder", path: "/itinerary-builder", icon: <Map /> },
-    { text: "Lead Management", path: "/lead-management", icon: <Settings /> },
+    { text: "Lead Management", path: "/lead-management", icon: <SupportAgent /> },
     { text: "Master Entries", path: "/masterentry", icon: <Storage /> },
     { text: "Settings", path: "/settings", icon: <Settings /> },
   ];
@@ -61,26 +67,33 @@ export default function MainLayout({ children }) {
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        bgcolor: settings.mode === "dark" ? "#0F172A" : "#fff",
+        bgcolor: settings.mode === "dark" ? "#202a0f" : "#ffffff",
+        fontFamily: "'Inter', sans-serif", // 🚨 APPLIED INTER FONT
       }}
     >
+      {/* 1. LOGO AREA */}
       <Box sx={{ p: 3, display: "flex", alignItems: "center", gap: 1.5 }}>
         <Box
           sx={{
-            bgcolor: settings.primaryColor,
+            width: 32,  
+            height: 32,
+            background: "linear-gradient(90deg,rgba(59, 114, 235, 1) 0%, rgba(0, 187, 167, 1) 50%)", 
             color: "#fff",
-            borderRadius: 1.5,
-            p: 0.5,
+            borderRadius: 1,
             display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
-          <Map fontSize="small" />
+          <TravelExplore sx={{ fontSize: 20 }} />
         </Box>
         <Typography
           variant="h6"
           sx={{
-            fontWeight: 800,
-            color: settings.mode === "dark" ? "#fff" : "#1a1a1a",
+            fontFamily: "'Inter', sans-serif",
+            fontWeight: 800, // Kept a bit bolder for the brand logo
+            letterSpacing: 1,
+            color: settings.mode === "dark" ? "#fff" : "#0f172a",
           }}
         >
           ATLAS
@@ -92,99 +105,141 @@ export default function MainLayout({ children }) {
           <ChevronLeft />
         </IconButton>
       </Box>
-      <Box sx={{ px: 3, mb: 4, mt: 1 }}>
-        <TextField
-          fullWidth
-          size="small"
-          placeholder="Search..."
+
+      {/* 2. SEARCH BAR */}
+      <Box sx={{ px: 3, mb: 3 }}>
+        <Box
           sx={{
-            bgcolor: settings.mode === "dark" ? "#1E293B" : "#f5f7fa",
+            display: "flex",
+            alignItems: "center",
+            bgcolor: settings.mode === "dark" ? "#1E293B" : "#f1f5f9",
             borderRadius: 2,
-            "& fieldset": { border: "none" },
+            px: 2,
+            py: 1,
           }}
-          InputProps={{
-            startAdornment: (
-              <Search sx={{ color: "text.secondary", mr: 1, fontSize: 20 }} />
-            ),
-          }}
-        />
+        >
+          <Search sx={{ color: "#94a3b8", fontSize: 20, mr: 1 }} />
+          <TextField
+            variant="standard"
+            placeholder="Search..."
+            InputProps={{ disableUnderline: true }}
+            sx={{ 
+              width: "100%", 
+              "& input": { 
+                fontFamily: "'Inter', sans-serif", 
+                fontWeight: 500, // 🚨 FONT WEIGHT 500
+                fontSize: "0.875rem", 
+                p: 0 
+              } 
+            }}
+          />
+        </Box>
       </Box>
+
+      {/* 3. NAVIGATION MENU */}
       <List sx={{ px: 2, flexGrow: 1 }}>
         {menuItems.map((item) => {
-          const isActive = location.pathname.startsWith(item.path);
+          const isActive = activeTab.includes(item.path);
+
           return (
             <ListItem
               button
               key={item.text}
               onClick={() => {
+                setActiveTab(item.path); 
                 navigate(item.path);
                 setMobileOpen(false);
               }}
               sx={{
                 borderRadius: 2,
                 mb: 0.5,
-                py: 1.5,
-                ...(isActive && {
-                  bgcolor: settings.primaryColor,
-                  color: "#fff",
-                }),
+                py: 1,
+                background: isActive ? "linear-gradient(90deg,rgba(59, 114, 235, 1) 0%, rgba(0, 187, 167, 1) 50%)" : "transparent",
+                color: isActive ? "#ffffff" : "#475569",
+                "&:hover": {
+                  background: isActive ? "linear-gradient(90deg,rgba(59, 114, 235, 1) 0%, rgba(0, 187, 167, 1) 50%)" : "#f1f5f9",
+                },
+                transition: "all 0.2s",
               }}
             >
               <ListItemIcon
                 sx={{
-                  color: isActive ? "#fff" : "text.secondary",
                   minWidth: 40,
+                  color: isActive ? "#ffffff" : "#64748b",
                 }}
               >
-                {item.icon}
+                {React.cloneElement(item.icon, { fontSize: "small" })}
               </ListItemIcon>
               <ListItemText
                 primary={item.text}
-                primaryTypographyProps={{ fontWeight: isActive ? 700 : 500 }}
+                primaryTypographyProps={{
+                  fontFamily: "'Inter', sans-serif", // 🚨 APPLIED INTER FONT
+                  fontSize: "0.875rem",
+                  fontWeight: 500, // 🚨 FONT WEIGHT 500 FOR ALL ITEMS
+                }}
               />
             </ListItem>
           );
         })}
       </List>
-      <Box
-        sx={{
-          p: 3,
-          display: "flex",
-          alignItems: "center",
-          gap: 2,
-          borderTop: "1px solid",
-          borderColor: "divider",
-        }}
-      >
-        <Avatar sx={{ bgcolor: settings.primaryColor }}>
-          {userDetails["custom:full_name"]?.[0] || "U"}
-        </Avatar>
-        <Box>
-          <Typography variant="subtitle2" fontWeight="bold">
-            {userDetails["custom:full_name"]}
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            {userDetails["custom:agency_name"]}
-          </Typography>
+
+      {/* 4. BOTTOM USER PROFILE */}
+      <Box sx={{ mt: "auto" }}>
+        <Divider sx={{ borderColor: "#e2e8f0" }} />
+        <Box sx={{ p: 3, display: "flex", alignItems: "center", gap: 2 }}>
+          <Avatar
+            sx={{
+              width: 40,
+              height: 40,
+              background: "linear-gradient(90deg,rgba(59, 114, 235, 1) 0%, rgba(0, 187, 167, 1) 50%)", 
+              color: "#fff",
+              fontFamily: "'Inter', sans-serif",
+              fontWeight: 600,
+            }}
+          >
+            {userDetails?.["custom:full_name"]?.[0] || "U"}
+          </Avatar>
+          <Box>
+            <Typography
+              variant="subtitle2"
+              sx={{ 
+                fontFamily: "'Inter', sans-serif", // 🚨 APPLIED INTER FONT
+                fontWeight: 600, // Clean medium-bold look
+                color: "#0f172a" 
+              }}
+            >
+              {userDetails?.["custom:full_name"] || "User"}
+            </Typography>
+            <Typography
+              variant="caption"
+              sx={{ 
+                fontFamily: "'Inter', sans-serif", // 🚨 APPLIED INTER FONT
+                color: "#64748b", 
+                fontWeight: 500 // 🚨 FONT WEIGHT 500
+              }}
+            >
+              {userDetails?.["custom:agency_name"] || "Agency"}
+            </Typography>
+          </Box>
         </Box>
       </Box>
+
+      {/* 5. LOGOUT BUTTON */}
       <Divider />
-      <Box
-        sx={{
-          p: 3,
-          display: "flex",
-          justifyContent: "center",
-        }}
-      >
+      <Box sx={{ p: 2, display: "flex", justifyContent: "center" }}>
         <Button
           onClick={async () => {
             await api.auth.handleLogout();
           }}
-          variant="contained" 
-          sx={{
-            color: "white",
-          }}
+          variant="outlined"
+          color="error"
           fullWidth
+          sx={{
+            fontFamily: "'Inter', sans-serif", // 🚨 APPLIED INTER FONT
+            fontWeight: 500, // 🚨 FONT WEIGHT 500
+            textTransform: "none",
+            borderRadius: 2,
+          }}
         >
           Logout
         </Button>
@@ -194,7 +249,12 @@ export default function MainLayout({ children }) {
 
   return (
     <Box
-      sx={{ display: "flex", height: "100vh", bgcolor: "background.default" }}
+      sx={{ 
+        display: "flex", 
+        height: "100vh", 
+        bgcolor: "background.default",
+        fontFamily: "'Inter', sans-serif" // 🚨 APPLIED GLOBALLY
+      }}
     >
       <AppBar
         position="fixed"
@@ -216,7 +276,14 @@ export default function MainLayout({ children }) {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" fontWeight="800" color="text.primary">
+          <Typography 
+            variant="h6" 
+            sx={{ 
+              fontFamily: "'Inter', sans-serif", 
+              fontWeight: 800, 
+              color: "text.primary" 
+            }}
+          >
             ATLAS CRM
           </Typography>
         </Toolbar>
@@ -268,7 +335,6 @@ export default function MainLayout({ children }) {
           pt: { xs: 7, md: 0 },
         }}
       >
-        {/* 🚨 Only apply heavy bottom padding if the footer is showing */}
         <Box sx={{ flexGrow: 1, overflowY: "auto", pb: isItineraryBuilder ? 14 : 4 }}>
           {children}
         </Box>
@@ -309,9 +375,16 @@ export default function MainLayout({ children }) {
               >
                 <Typography
                   variant="caption"
-                  sx={{ display: { xs: "none", sm: "block" }, opacity: 0.7 }}
+                  sx={{ 
+                    fontFamily: "'Inter', sans-serif",
+                    display: { xs: "none", sm: "block" }, 
+                    opacity: 0.7 
+                  }}
                 ></Typography>
-                <Typography variant="h6" sx={{ fontWeight: "bold" }}></Typography>
+                <Typography 
+                  variant="h6" 
+                  sx={{ fontFamily: "'Inter', sans-serif", fontWeight: 600 }}
+                ></Typography>
               </Box>
               <Box
                 sx={{
@@ -323,13 +396,20 @@ export default function MainLayout({ children }) {
                 <Typography
                   variant="caption"
                   color="text.secondary"
-                  sx={{ display: { xs: "none", sm: "block" }, fontWeight: 700 }}
+                  sx={{ 
+                    fontFamily: "'Inter', sans-serif",
+                    display: { xs: "none", sm: "block" }, 
+                    fontWeight: 500 
+                  }}
                 ></Typography>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <Typography
                     variant="h6"
-                    fontWeight="bold"
-                    color={settings.primaryColor}
+                    sx={{
+                      fontFamily: "'Inter', sans-serif",
+                      fontWeight: 600,
+                      color: settings.primaryColor
+                    }}
                   ></Typography>
                 </Box>
               </Box>
@@ -341,9 +421,10 @@ export default function MainLayout({ children }) {
                 onClick={handlePrev}
                 disabled={step === 1}
                 sx={{
+                  fontFamily: "'Inter', sans-serif", // 🚨 APPLIED INTER FONT
                   minWidth: { xs: 0, md: 64 },
                   px: { xs: 1, md: 2 },
-                  fontWeight: 700,
+                  fontWeight: 500, // 🚨 FONT WEIGHT 500
                 }}
               >
                 Prev
@@ -351,11 +432,15 @@ export default function MainLayout({ children }) {
               <Button
                 variant="contained"
                 onClick={handleNext}
-                disabled={step ===10}
+                disabled={step === 10}
                 sx={{
+                  fontFamily: "'Inter', sans-serif", // 🚨 APPLIED INTER FONT
+                  fontWeight: 500, // 🚨 FONT WEIGHT 500
                   px: { xs: 2, md: 5 },
-                  bgcolor: settings.primaryColor,
+                  background: "linear-gradient(90deg,rgba(59, 114, 235, 1) 0%, rgba(0, 187, 167, 1) 50%)", 
                   color: "#fff",
+                  boxShadow: "none",
+                  textTransform: "none"
                 }}
               >
                 Next Step

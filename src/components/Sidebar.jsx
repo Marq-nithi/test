@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -18,7 +18,7 @@ import {
   Settings,
   Search,
   TravelExplore,
-  Storage, // 🚨 Imported new icon for Master Entries
+  Storage,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useApi } from "@michaeldothedi-service/dta-crm-sl-sdk";
@@ -28,14 +28,27 @@ export default function Sidebar() {
   const location = useLocation();
   const { userDetails } = useApi();
 
-  // 🚨 Updated Menu Items mapped to the actual routes
+  // 🚨 ADDED LOCAL STATE: This guarantees the button updates instantly when clicked!
+  const [activeTab, setActiveTab] = useState(location.pathname);
+
+  // Keep it synced if the URL changes from somewhere else (like the browser back button)
+  useEffect(() => {
+    setActiveTab(location.pathname);
+  }, [location.pathname]);
+
   const menuItems = [
     { title: "Dashboard", icon: <GridView />, path: "/dashboard" },
-    { title: "Lead Management", icon: <SupportAgent />, path: "/lead-management" }, // Fixed path
+    { title: "Lead Management", icon: <SupportAgent />, path: "/lead-management" },
     { title: "Itinerary Builder", icon: <Map />, path: "/itinerary-builder" },
-    { title: "Master Entries", icon: <Storage />, path: "/masterentry" }, // 🚨 NEW SECTION ADDED
+    { title: "Master Entries", icon: <Storage />, path: "/masterentry" },
     { title: "Settings", icon: <Settings />, path: "/settings" },
   ];
+
+  // Custom handler to force the state update immediately on click
+  const handleNavigation = (path) => {
+    setActiveTab(path); // Instantly change the active color
+    navigate(path);     // Then navigate
+  };
 
   return (
     <Box
@@ -47,7 +60,7 @@ export default function Sidebar() {
         display: "flex",
         flexDirection: "column",
         flexShrink: 0,
-        position: "fixed", // Keeps it locked to the left side
+        position: "fixed",
         left: 0,
         top: 0,
         zIndex: 1200,
@@ -57,9 +70,9 @@ export default function Sidebar() {
       <Box sx={{ p: 3, display: "flex", alignItems: "center", gap: 1.5 }}>
         <Box
           sx={{
-            width: 32,
+            width: 32,  
             height: 32,
-            bgcolor: "#00c6ff",
+            bgcolor: "#8b5cf6", // Purple Logo box
             borderRadius: 1,
             display: "flex",
             alignItems: "center",
@@ -99,19 +112,20 @@ export default function Sidebar() {
       {/* 3. NAVIGATION MENU */}
       <List sx={{ px: 2, flexGrow: 1 }}>
         {menuItems.map((item) => {
-          // Checks if the current URL matches the path so it highlights the right button
-          const isActive = location.pathname.startsWith(item.path);
+          // 🚨 Now checks against our fast local state instead of just the URL string
+          // We use includes() to catch nested routes (e.g., /itinerary-builder/new)
+          const isActive = activeTab.includes(item.path);
 
           return (
             <ListItem key={item.title} disablePadding sx={{ mb: 0.5 }}>
               <ListItemButton
-                onClick={() => navigate(item.path)}
+                onClick={() => handleNavigation(item.path)}
                 sx={{
                   borderRadius: 2,
-                  bgcolor: isActive ? "#00c6ff" : "transparent",
+                  bgcolor: isActive ? "#8b5cf6" : "transparent", // Purple active background
                   color: isActive ? "#ffffff" : "#475569",
                   "&:hover": {
-                    bgcolor: isActive ? "#00c6ff" : "#f1f5f9",
+                    bgcolor: isActive ? "#8b5cf6" : "#f1f5f9",
                   },
                   transition: "all 0.2s",
                 }}
@@ -142,7 +156,7 @@ export default function Sidebar() {
             sx={{
               width: 40,
               height: 40,
-              bgcolor: "#00c6ff",
+              bgcolor: "#8b5cf6", // Purple Avatar background
               color: "#fff",
               fontWeight: 800,
             }}

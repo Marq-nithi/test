@@ -17,6 +17,7 @@ const FieldLabel = ({ text, required }) => (
   <Typography
     variant="caption"
     sx={{
+      fontFamily: "'Inter', sans-serif",
       fontWeight: 700,
       color: "#334155",
       mb: 0.8,
@@ -26,6 +27,40 @@ const FieldLabel = ({ text, required }) => (
   >
     {text} {required && <span style={{ color: "#ef4444" }}>*</span>}
   </Typography>
+);
+
+// 🚨 Styled TextField to match exact Figma specifications
+const StyledTextField = (props) => (
+  <TextField
+    {...props}
+    size="small"
+    sx={{
+      "& .MuiOutlinedInput-root": {
+        bgcolor: "#f8fafc",
+        borderRadius: 2,
+        "& fieldset": {
+          borderColor: "#e2e8f0",
+        },
+        "&:hover fieldset": {
+          borderColor: "#cbd5e1",
+        },
+        "&.Mui-focused fieldset": {
+          borderColor: "#0ea5e9",
+          borderWidth: "1px",
+        },
+      },
+      "& .MuiInputBase-input": {
+        fontFamily: "'Inter', sans-serif",
+        fontWeight: 400,
+        fontSize: "14px",
+        lineHeight: "100%",
+        letterSpacing: "0px",
+        color: "#334155",
+        py: 1.15,
+      },
+      ...props.sx,
+    }}
+  />
 );
 
 export default function ClientDetails() {
@@ -64,27 +99,6 @@ export default function ClientDetails() {
     if (setClientData) setClientData(formData);
   }, [formData, setClientData]);
 
-  // AUTO-CALCULATION: Dates to Nights/Days
-  // useEffect(() => {
-  //   if (formData.startDate && formData.endDate) {
-  //     const start = new Date(formData.startDate);
-  //     const end = new Date(formData.endDate);
-  //     if (end >= start) {
-  //       const diffTime = Math.abs(end - start);
-  //       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  //       setFormData((prev) => ({
-  //         ...prev,
-  //         nights: diffDays.toString(),
-  //         days: (diffDays + 1).toString(),
-  //       }));
-  //     } else {
-  //       setFormData((prev) => ({ ...prev, nights: "", days: "" }));
-  //     }
-  //   } else {
-  //     setFormData((prev) => ({ ...prev, nights: "", days: "" }));
-  //   }
-  // }, [formData.startDate, formData.endDate]);
-
   const handleContactChange = (e) => {
     const value = e.target.value;
     if (/^\d{0,10}$/.test(value)) handleChange("contact", value);
@@ -106,45 +120,39 @@ export default function ClientDetails() {
       sx={{
         maxWidth: 1200,
         mx: "auto",
-        p: { xs: 2, md: 4 },
-        bgcolor: "#f8fafc",
+        p: { xs: 2, md: 1 },
+        bgcolor: "transparent",
         minHeight: "100vh",
         pb: 12,
+        fontFamily: "'Inter', sans-serif",
       }}
     >
       <Box
         sx={{
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "center",
-          mb: 4,
+          alignItems: "flex-start",
+          mb: 3,
         }}
       >
         <Box>
-          <Typography variant="h5" fontWeight="900" color="#2563eb" mb={0.5}>
+          <Typography
+            variant="h6"
+            fontWeight="800"
+            color="#1e3a8a"
+            mb={0.5}
+            sx={{ fontFamily: "'Inter', sans-serif" }}
+          >
             Client Information
           </Typography>
-          <Typography variant="body2" color="#64748b">
-            Enter your client's details to start building their perfect
-            itinerary
+          <Typography
+            variant="body2"
+            color="#64748b"
+            sx={{ fontFamily: "'Inter', sans-serif" }}
+          >
+            Enter your client's details to start building their perfect itinerary
           </Typography>
         </Box>
-        <Button
-          variant="outlined"
-          size="small"
-          onClick={() => setFormData(emptyState)}
-          sx={{
-            borderColor: "#cbd5e1",
-            color: "#475569",
-            fontWeight: 700,
-            textTransform: "none",
-            borderRadius: 2,
-            px: 3,
-            bgcolor: "#fff",
-          }}
-        >
-          Clear All
-        </Button>
       </Box>
 
       <Paper
@@ -157,53 +165,58 @@ export default function ClientDetails() {
         }}
       >
         {/* PERSONAL INFORMATION */}
-        <Typography variant="subtitle1" fontWeight="800" color="#0f172a" mb={3}>
+        <Typography
+          variant="subtitle2"
+          fontWeight="800"
+          color="#0f172a"
+          mb={3}
+          sx={{ fontFamily: "'Inter', sans-serif", fontSize: "1rem" }}
+        >
           Personal Information
         </Typography>
+        
         <Grid container spacing={3} mb={5}>
           <Grid item xs={12} md={4}>
             <FieldLabel text="Customer Name" required />
             <Box sx={{ display: "flex", gap: 1 }}>
-              <TextField
+              <StyledTextField
                 select
-                size="small"
                 value={formData.title}
                 onChange={(e) => handleChange("title", e.target.value)}
-                sx={{ width: "80px" }}
+                sx={{ width: "90px" }}
               >
-                <MenuItem value="" disabled>
+                <MenuItem value="" disabled sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>
                   Title
                 </MenuItem>
-                <MenuItem value="Mr">Mr</MenuItem>
-                <MenuItem value="Mrs">Mrs</MenuItem>
-                <MenuItem value="Ms">Ms</MenuItem>
-              </TextField>
-              <TextField
+                <MenuItem value="Mr" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>Mr</MenuItem>
+                <MenuItem value="Mrs" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>Mrs</MenuItem>
+                <MenuItem value="Ms" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>Ms</MenuItem>
+              </StyledTextField>
+              <StyledTextField
                 fullWidth
-                size="small"
-                placeholder="Enter Name"
+                placeholder="John Smith"
                 value={formData.name}
                 onChange={(e) => handleChange("name", e.target.value)}
               />
             </Box>
           </Grid>
+          
           <Grid item xs={12} md={4}>
             <FieldLabel text="Contact Number" required />
-            <TextField
+            <StyledTextField
               fullWidth
-              size="small"
-              placeholder="Enter 10-digit number"
+              placeholder="+91 9876543621"
               type="tel"
               value={formData.contact}
               onChange={handleContactChange}
             />
           </Grid>
+          
           <Grid item xs={12} md={4}>
             <FieldLabel text="Email Address" />
-            <TextField
+            <StyledTextField
               fullWidth
-              size="small"
-              placeholder="example@gmail.com"
+              placeholder="john@example.com"
               type="email"
               value={formData.email}
               onChange={(e) => handleChange("email", e.target.value)}
@@ -213,96 +226,91 @@ export default function ClientDetails() {
               }
             />
           </Grid>
+
           <Grid item xs={12} md={4}>
             <FieldLabel text="Budget" />
-            <TextField
+            <StyledTextField
               fullWidth
-              size="small"
-              type="number"
-              placeholder="0"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">$</InputAdornment>
-                ),
-              }}
+              type="text"
+              placeholder="$4000"
               value={formData.budget}
               onChange={(e) => handleChange("budget", e.target.value)}
             />
           </Grid>
+          
           <Grid item xs={12} md={4}>
             <FieldLabel text="Number of Adults" required />
-            <TextField
+            <StyledTextField
               select
               fullWidth
-              size="small"
               value={formData.adults}
               onChange={(e) => handleChange("adults", e.target.value)}
             >
-              <MenuItem value="" disabled>
+              <MenuItem value="" disabled sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>
                 Select
               </MenuItem>
-              <MenuItem value="1">1</MenuItem>
-              <MenuItem value="2">2</MenuItem>
-              <MenuItem value="3">3</MenuItem>
-              <MenuItem value="4+">4+</MenuItem>
-            </TextField>
+              <MenuItem value="1" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>1</MenuItem>
+              <MenuItem value="2" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>2</MenuItem>
+              <MenuItem value="3" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>3</MenuItem>
+              <MenuItem value="4+" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>4+</MenuItem>
+            </StyledTextField>
           </Grid>
+          
           <Grid item xs={12} md={4}>
             <FieldLabel text="Number of Infant (0-2 Years)" />
-            <TextField
+            <StyledTextField
               select
               fullWidth
-              size="small"
               value={formData.infants}
               onChange={(e) => handleChange("infants", e.target.value)}
             >
-              <MenuItem value="" disabled>
+              <MenuItem value="" disabled sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>
                 Select
               </MenuItem>
-              <MenuItem value="0">0</MenuItem>
-              <MenuItem value="1">1</MenuItem>
-              <MenuItem value="2">2</MenuItem>
-            </TextField>
+              <MenuItem value="0" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>0</MenuItem>
+              <MenuItem value="1" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>1</MenuItem>
+              <MenuItem value="2" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>2</MenuItem>
+            </StyledTextField>
           </Grid>
+          
           <Grid item xs={12} md={4}>
             <FieldLabel text="Number of Children" />
-            <TextField
+            <StyledTextField
               select
               fullWidth
-              size="small"
               value={formData.children}
               onChange={(e) => {
                 handleChange("children", e.target.value);
                 handleChange("childAges", []);
               }}
             >
-              <MenuItem value="0">0</MenuItem>
-              <MenuItem value="1">1</MenuItem>
-              <MenuItem value="2">2</MenuItem>
-              <MenuItem value="3">3</MenuItem>
-              <MenuItem value="4">4</MenuItem>
-            </TextField>
+              <MenuItem value="0" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>0</MenuItem>
+              <MenuItem value="1" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>1</MenuItem>
+              <MenuItem value="2" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>2</MenuItem>
+              <MenuItem value="3" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>3</MenuItem>
+              <MenuItem value="4" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>4</MenuItem>
+            </StyledTextField>
           </Grid>
+
           {Array.from({ length: Number(formData.children) || 0 }).map(
             (_, index) => (
               <Grid item xs={12} md={4} key={index}>
                 <FieldLabel text={`Age of Child ${index + 1}`} required />
-                <TextField
+                <StyledTextField
                   select
                   fullWidth
-                  size="small"
                   value={formData.childAges[index] || ""}
                   onChange={(e) => handleChildAgeChange(index, e.target.value)}
                 >
-                  <MenuItem value="" disabled>
+                  <MenuItem value="" disabled sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>
                     Select Age
                   </MenuItem>
                   {[...Array(11).keys()].map((age) => (
-                    <MenuItem key={age + 2} value={(age + 2).toString()}>
+                    <MenuItem key={age + 2} value={(age + 2).toString()} sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>
                       {age + 2}
                     </MenuItem>
                   ))}
-                </TextField>
+                </StyledTextField>
               </Grid>
             ),
           )}
@@ -310,144 +318,150 @@ export default function ClientDetails() {
 
         {/* TRAVEL DETAILS */}
         <Typography
-          variant="subtitle1"
+          variant="subtitle2"
           fontWeight="800"
           color="#0f172a"
           mb={3}
           mt={formData.children > 2 ? 4 : 0}
+          sx={{ fontFamily: "'Inter', sans-serif", fontSize: "1rem" }}
         >
           Travel Details
         </Typography>
+        
         <Grid container spacing={3} mb={5}>
           <Grid item xs={12} md={4}>
             <FieldLabel text="Destination" required />
-            <TextField
+            <StyledTextField
               select
               fullWidth
-              size="small"
               value={formData.destination}
               onChange={(e) => handleChange("destination", e.target.value)}
             >
-              <MenuItem value="" disabled>
-                Select Destination
+              <MenuItem value="" disabled sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>
+                Destination
               </MenuItem>
-              <MenuItem value="Maldives">Singapore</MenuItem>{" "}
-              <MenuItem value="Maldives">Maldives</MenuItem>
-              <MenuItem value="Switzerland">Switzerland</MenuItem>
-              <MenuItem value="Japan">Japan</MenuItem>
-              <MenuItem value="Dubai">Dubai</MenuItem>
-              <MenuItem value="Goa">Goa</MenuItem>
-            </TextField>
+              <MenuItem value="Singapore" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>Singapore</MenuItem>
+              <MenuItem value="Maldives" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>Maldives</MenuItem>
+              <MenuItem value="Switzerland" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>Switzerland</MenuItem>
+              <MenuItem value="Japan" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>Japan</MenuItem>
+              <MenuItem value="Dubai" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>Dubai</MenuItem>
+              <MenuItem value="Goa" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>Goa</MenuItem>
+            </StyledTextField>
           </Grid>
+          
           <Grid item xs={12} md={4}>
             <FieldLabel text="Start Date" required />
-            <TextField
+            <StyledTextField
               type="date"
               fullWidth
-              size="small"
               InputLabelProps={{ shrink: true }}
               value={formData.startDate}
               onChange={(e) => handleChange("startDate", e.target.value)}
             />
           </Grid>
+          
           <Grid item xs={12} md={4}>
             <FieldLabel text="End Date" required />
-            <TextField
+            <StyledTextField
               type="date"
               fullWidth
-              size="small"
               InputLabelProps={{ shrink: true }}
               value={formData.endDate}
               onChange={(e) => handleChange("endDate", e.target.value)}
             />
           </Grid>
+          
           <Grid item xs={12} md={4}>
             <FieldLabel text="Duration" />
             <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-              <TextField
-                size="small"
+              <StyledTextField
                 value={formData.nights}
-                placeholder="0"
+                placeholder="4"
+                onChange={(e) => handleChange("nights", e.target.value)}
                 InputProps={{
-                  readOnly: true,
                   endAdornment: (
-                    <InputAdornment position="end">Nights</InputAdornment>
+                    <InputAdornment position="end" sx={{ "& .MuiTypography-root": { fontFamily: "'Inter', sans-serif", fontSize: "14px" } }}>Nights</InputAdornment>
                   ),
                 }}
-                sx={{ width: "50%", bgcolor: "#f8fafc" }}
+                sx={{ width: "50%" }}
               />
-              <TextField
-                size="small"
+              <StyledTextField
                 value={formData.days}
-                placeholder="0"
+                placeholder="4"
+                onChange={(e) => handleChange("days", e.target.value)}
                 InputProps={{
-                  readOnly: true,
                   endAdornment: (
-                    <InputAdornment position="end">Days</InputAdornment>
+                    <InputAdornment position="end" sx={{ "& .MuiTypography-root": { fontFamily: "'Inter', sans-serif", fontSize: "14px" } }}>Days</InputAdornment>
                   ),
                 }}
-                sx={{ width: "50%", bgcolor: "#f8fafc" }}
+                sx={{ width: "50%" }}
               />
             </Box>
           </Grid>
         </Grid>
 
         {/* LEAD MANAGEMENT */}
-        <Typography variant="subtitle1" fontWeight="800" color="#0f172a" mb={3}>
+        <Typography
+          variant="subtitle2"
+          fontWeight="800"
+          color="#0f172a"
+          mb={3}
+          sx={{ fontFamily: "'Inter', sans-serif", fontSize: "1rem" }}
+        >
           Lead Management
         </Typography>
+        
         <Grid container spacing={3}>
           <Grid item xs={12} md={4}>
             <FieldLabel text="Query Handled by" required />
-            <TextField
+            <StyledTextField
               select
               fullWidth
-              size="small"
               value={formData.queryHandledBy}
               onChange={(e) => handleChange("queryHandledBy", e.target.value)}
             >
-              <MenuItem value="" disabled>
+              <MenuItem value="" disabled sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>
                 Select Agent
               </MenuItem>
-              <MenuItem value="Alex">Alex</MenuItem>
-              <MenuItem value="Sarah">Sarah</MenuItem>
-              <MenuItem value="Mike">Mike</MenuItem>
-            </TextField>
+              <MenuItem value="Alex" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>Alex</MenuItem>
+              <MenuItem value="Sarah" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>Sarah</MenuItem>
+              <MenuItem value="Mike" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>Mike</MenuItem>
+            </StyledTextField>
           </Grid>
+          
           <Grid item xs={12} md={4}>
             <FieldLabel text="Status" required />
-            <TextField
+            <StyledTextField
               select
               fullWidth
-              size="small"
-              value={formData.status}
+              value={formData.status || "New"}
               onChange={(e) => handleChange("status", e.target.value)}
             >
-              <MenuItem value="" disabled>
+              <MenuItem value="" disabled sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>
                 Select Status
               </MenuItem>
-              <MenuItem value="New">New</MenuItem>
-              <MenuItem value="In Progress">In Progress</MenuItem>
-              <MenuItem value="Closed">Closed</MenuItem>
-              <MenuItem value="Contacted">Closed</MenuItem>
-            </TextField>
+              <MenuItem value="New" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>New</MenuItem>
+              <MenuItem value="In Progress" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>In Progress</MenuItem>
+              <MenuItem value="Closed" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>Closed</MenuItem>
+              <MenuItem value="Contacted" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>Contacted</MenuItem>
+            </StyledTextField>
           </Grid>
+          
           <Grid item xs={12} md={4}>
             <FieldLabel text="Source" required />
-            <TextField
+            <StyledTextField
               select
               fullWidth
-              size="small"
-              value={formData.source}
+              value={formData.source || "Website"}
               onChange={(e) => handleChange("source", e.target.value)}
             >
-              <MenuItem value="" disabled>
+              <MenuItem value="" disabled sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>
                 Select Source
               </MenuItem>
-              <MenuItem value="Website">Website</MenuItem>
-              <MenuItem value="Referral">Referral</MenuItem>
-              <MenuItem value="Social Media">Social Media</MenuItem>
-            </TextField>
+              <MenuItem value="Website" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>Website</MenuItem>
+              <MenuItem value="Referral" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>Referral</MenuItem>
+              <MenuItem value="Social Media" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>Social Media</MenuItem>
+            </StyledTextField>
           </Grid>
         </Grid>
       </Paper>

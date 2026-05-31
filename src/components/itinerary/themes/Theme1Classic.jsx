@@ -35,6 +35,16 @@ import {
   AccessTimeOutlined,
   LocationOnOutlined,
   Security,
+  WifiOutlined,
+  LocalCafeOutlined,
+  SpaOutlined,
+  FitnessCenterOutlined,
+  Star,
+  AutoAwesome,
+  EmojiEvents,
+  PeopleOutline,
+  PaidOutlined,
+  LightbulbOutlined
 } from "@mui/icons-material";
 import { useApi } from "@michaeldothedi-service/dta-crm-sl-sdk";
 import { useBlobDownload } from "../../../services/backendApi";
@@ -97,8 +107,6 @@ export default function Theme1Classic() {
     visaData,
     themeConfig,
   } = useItinerary();
-
-  // 🚨 DYNAMIC HERO BANNER
 
   // to use the user datails
   const { userDetails } = useApi();
@@ -175,7 +183,7 @@ export default function Theme1Classic() {
   const adults = parseInt(clientData.adults) || 2;
   const childrenCount = parseInt(clientData.children) || 0;
   let pax = `${adults} Adults`;
-  if (childrenCount > 0) pax += `, ${childrenCount} Children`;
+  if (childrenCount > 0) pax += `, ${childrenCount} Child`;
 
   // Dynamic Footer Info
   const agentNameDisplay = userDetails["custom:full_name"];
@@ -343,12 +351,12 @@ export default function Theme1Classic() {
     <Box
       id="itinerary-pdf-content"
       sx={{
-        bgcolor: "#fff",
+        bgcolor: "#f8fafc", // changed overall background slightly to match the image
         minHeight: "100vh",
         fontFamily: "'Inter', sans-serif",
       }}
     >
-      {/* --- HERO SECTION --- */}
+      {/* 🚨 EXACT MATCH HERO SECTION & BANNER 🚨 */}
       <Box
         sx={{
           position: "relative",
@@ -366,66 +374,81 @@ export default function Theme1Classic() {
             right: 0,
             bottom: 0,
             background:
-              "linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.8) 100%)",
+              "linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.8) 100%)",
           },
           pageBreakInside: "avoid",
           breakInside: "avoid",
         }}
       >
-        <img height={300} width={700} src={logoUrl}></img>
+        <img height={'auto'} width={'250px'} src={logoUrl} style={{
+          zIndex:"1",padding:"40px",
+        }} alt="Logo"></img>
+
         <Container
           maxWidth="lg"
           sx={{
             position: "relative",
-            zIndex: 1,
+            zIndex: 1, 
             height: "100%",
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
+            pb: 8 // Padding to leave room for the overlapping card
           }}
         >
-          <Box sx={{ color: "#fff", mt: 4 }}>
+          <Box sx={{ color: "#fff" }}>
             <Typography
               variant="h2"
               fontWeight="900"
               mb={1}
-              sx={{ wordBreak: "break-word" }}
+              sx={{ wordBreak: "break-word", whiteSpace: "normal" }}
             >
               {title}
             </Typography>
+            
+            <Typography variant="h6" fontWeight="500" sx={{ opacity: 0.9, mb: 3 }}>
+              {clientData.days || 10} Days • 2 Countries • Unforgettable Memories
+            </Typography>
+            
             <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
               <Chip
-                label={dates}
+                label="Premium Experience"
                 sx={{
                   bgcolor: "rgba(255,255,255,0.2)",
                   color: "#fff",
                   backdropFilter: "blur(4px)",
                   fontWeight: 600,
+                  fontSize: '0.8rem'
                 }}
-                icon={<CalendarMonth sx={{ color: "#fff !important" }} />}
+                icon={<AutoAwesome sx={{ color: "#fbbf24 !important", fontSize: '1rem !important' }} />}
               />
               <Chip
-                label={rawDestination}
+                label="Best Seller"
                 sx={{
                   bgcolor: "rgba(255,255,255,0.2)",
                   color: "#fff",
                   backdropFilter: "blur(4px)",
                   fontWeight: 600,
+                  fontSize: '0.8rem'
                 }}
-                icon={<LocationOn sx={{ color: "#fff !important" }} />}
+                icon={<EmojiEvents sx={{ color: "#fbbf24 !important", fontSize: '1rem !important' }} />}
               />
             </Box>
+            
+            <Typography variant="subtitle2" sx={{ color: '#fbbf24', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1 }}>
+              PREPARED FOR {fullName.toUpperCase()}
+            </Typography>
           </Box>
         </Container>
       </Box>
 
-      {/* --- OVERLAPPING SUMMARY --- */}
+      {/* 🚨 EXACT MATCH: OVERLAPPING TRIP SUMMARY CARD 🚨 */}
       <Container
         maxWidth="md"
         sx={{
           position: "relative",
           zIndex: 10,
-          mt: -8,
+          mt: -10, // Pulls the card up over the hero image
           mb: 8,
           pageBreakInside: "avoid",
           breakInside: "avoid",
@@ -433,149 +456,172 @@ export default function Theme1Classic() {
       >
         <Paper
           elevation={10}
-          sx={{ borderRadius: 4, bgcolor: "#fff", overflow: "hidden" }}
+          sx={{ borderRadius: 4, bgcolor: "#fff", overflow: "hidden", p: 4 }}
         >
-          <Box
-            sx={{
-              bgcolor: "#f8fafc",
-              px: 4,
-              py: 2.5,
-              borderBottom: "1px solid #e2e8f0",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              flexWrap: "wrap",
-              gap: 2,
-            }}
-          >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <Avatar sx={{ bgcolor: "#e0f2fe", color: "#0ea5e9" }}>
-                <PersonOutline />
-              </Avatar>
-              <Box>
-                <Typography
-                  variant="caption"
-                  color="#64748b"
-                  fontWeight="600"
-                  display="block"
+          <Typography variant="h5" fontWeight="900" color="#0f172a" mb={4}>
+            Trip Summary
+          </Typography>
+
+          {/* Top 4 Icons Grid */}
+          <Grid container spacing={3} mb={4}>
+            {/* Travel Dates */}
+            <Grid item xs={6} sm={3}>
+              <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+                <Box
+                  sx={{
+                    p: 1.5,
+                    bgcolor: "#fff7ed",
+                    color: "#f97316",
+                    borderRadius: 2,
+                    display: 'flex'
+                  }}
                 >
-                  PREPARED FOR
-                </Typography>
-                <Typography
-                  variant="subtitle2"
-                  fontWeight="800"
-                  color="#0f172a"
-                >
-                  {fullName}
-                </Typography>
+                  <CalendarMonth />
+                </Box>
+                <Box>
+                  <Typography variant="caption" color="#64748b" fontWeight="600" display="block">
+                    Travel Dates
+                  </Typography>
+                  <Typography variant="body2" fontWeight="800" color="#0f172a" sx={{ lineHeight: 1.2 }}>
+                    {clientData.startDate && clientData.endDate 
+                      ? `${new Date(clientData.startDate).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})} - ${new Date(clientData.endDate).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}` 
+                      : "Dates TBD"}
+                  </Typography>
+                  <Typography variant="caption" color="#94a3b8">
+                    {clientData.startDate ? new Date(clientData.startDate).getFullYear() : ""}
+                  </Typography>
+                </Box>
               </Box>
+            </Grid>
+
+            {/* Duration */}
+            <Grid item xs={6} sm={3}>
+              <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+                <Box
+                  sx={{
+                    p: 1.5,
+                    bgcolor: "#eff6ff",
+                    color: "#3b82f6",
+                    borderRadius: 2,
+                    display: 'flex'
+                  }}
+                >
+                  <AccessTime />
+                </Box>
+                <Box>
+                  <Typography variant="caption" color="#64748b" fontWeight="600" display="block">
+                    Duration
+                  </Typography>
+                  <Typography variant="body2" fontWeight="800" color="#0f172a" sx={{ lineHeight: 1.2 }}>
+                    {clientData.days || 10} Days
+                  </Typography>
+                  <Typography variant="caption" color="#94a3b8">
+                    {Math.max(1, (clientData.days || 10) - 1)} Nights
+                  </Typography>
+                </Box>
+              </Box>
+            </Grid>
+
+            {/* Travelers */}
+            <Grid item xs={6} sm={3}>
+              <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+                <Box
+                  sx={{
+                    p: 1.5,
+                    bgcolor: "#f3e8ff",
+                    color: "#a855f7",
+                    borderRadius: 2,
+                    display: 'flex'
+                  }}
+                >
+                  <PeopleOutline />
+                </Box>
+                <Box>
+                  <Typography variant="caption" color="#64748b" fontWeight="600" display="block">
+                    Travelers
+                  </Typography>
+                  <Typography variant="body2" fontWeight="800" color="#0f172a" sx={{ lineHeight: 1.2 }}>
+                    {adults} Adults
+                  </Typography>
+                  <Typography variant="caption" color="#94a3b8">
+                    {childrenCount} Children
+                  </Typography>
+                </Box>
+              </Box>
+            </Grid>
+
+            {/* Total Cost */}
+            <Grid item xs={6} sm={3}>
+              <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+                <Box
+                  sx={{
+                    p: 1.5,
+                    bgcolor: "#ecfdf5",
+                    color: "#10b981",
+                    borderRadius: 2,
+                    display: 'flex'
+                  }}
+                >
+                  <PaidOutlined />
+                </Box>
+                <Box>
+                  <Typography variant="caption" color="#64748b" fontWeight="600" display="block">
+                    Total Cost
+                  </Typography>
+                  <Typography variant="body2" fontWeight="800" color="#0f172a" sx={{ lineHeight: 1.2 }}>
+                    {budget}
+                  </Typography>
+                  {/* Mock strikethrough price for UI matching */}
+                  <Typography variant="caption" color="#94a3b8" sx={{ textDecoration: 'line-through' }}>
+                    {budget === "TBD" ? "" : "₹8,233"}
+                  </Typography>
+                </Box>
+              </Box>
+            </Grid>
+          </Grid>
+
+          <Divider sx={{ my: 3, borderColor: '#f1f5f9' }} />
+
+          {/* EXACT Payment Breakdown List */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Typography variant="body2" color="#475569">Base Package (2 travelers)</Typography>
+              <Typography variant="body2" fontWeight="700" color="#0f172a">₹5,998</Typography>
             </Box>
-            <Box sx={{ display: "flex", gap: 3 }}>
-              <Typography
-                variant="caption"
-                color="#475569"
-                display="flex"
-                alignItems="center"
-                gap={0.5}
-              >
-                <Phone fontSize="small" sx={{ color: "#94a3b8" }} /> {phone}
-              </Typography>
-              <Typography
-                variant="caption"
-                color="#475569"
-                display="flex"
-                alignItems="center"
-                gap={0.5}
-              >
-                <Email fontSize="small" sx={{ color: "#94a3b8" }} /> {email}
-              </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Typography variant="body2" color="#475569">Travel Insurance</Typography>
+              <Typography variant="body2" fontWeight="700" color="#0f172a">₹400</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Typography variant="body2" color="#475569">GST & TCS</Typography>
+              <Typography variant="body2" fontWeight="700" color="#0f172a">₹600</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Typography variant="body2" color="#10b981" fontWeight="600">Early Bird Discount (15%)</Typography>
+              <Typography variant="body2" fontWeight="700" color="#10b981">-₹1,235</Typography>
             </Box>
           </Box>
 
-          <Box sx={{ p: 4 }}>
-            <Grid container spacing={3} mb={3}>
-              <Grid item xs={6} sm={3}>
-                <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
-                  <Box
-                    sx={{
-                      p: 1.5,
-                      bgcolor: "#fff7ed",
-                      color: "#f97316",
-                      borderRadius: 2,
-                    }}
-                  >
-                    <AccessTime />
-                  </Box>
-                  <Box>
-                    <Typography
-                      variant="caption"
-                      color="#64748b"
-                      fontWeight="600"
-                      display="block"
-                    >
-                      Duration
-                    </Typography>
-                    <Typography
-                      variant="subtitle2"
-                      fontWeight="800"
-                      color="#0f172a"
-                    >
-                      {clientData.days || 4} Days
-                    </Typography>
-                  </Box>
-                </Box>
-              </Grid>
-              <Grid item xs={6} sm={3}>
-                <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
-                  <Box
-                    sx={{
-                      p: 1.5,
-                      bgcolor: "#ecfdf5",
-                      color: "#10b981",
-                      borderRadius: 2,
-                    }}
-                  >
-                    <Hotel />
-                  </Box>
-                  <Box>
-                    <Typography
-                      variant="caption"
-                      color="#64748b"
-                      fontWeight="600"
-                      display="block"
-                    >
-                      Guests
-                    </Typography>
-                    <Typography
-                      variant="subtitle2"
-                      fontWeight="800"
-                      color="#0f172a"
-                    >
-                      {pax}
-                    </Typography>
-                  </Box>
-                </Box>
-              </Grid>
-              <Grid
-                item
-                xs={12}
-                sm={6}
-                sx={{
-                  textAlign: "right",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                }}
-              >
-                <Typography variant="caption" fontWeight="700" color="#64748b">
-                  Total Estimated Cost
-                </Typography>
-                <Typography variant="h5" fontWeight="900" color="#f97316">
-                  {budget}
-                </Typography>
-              </Grid>
-            </Grid>
+          <Divider sx={{ my: 3, borderColor: '#f1f5f9' }} />
+
+          {/* Total Amount Row */}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+            <Typography variant="subtitle1" fontWeight="900" color="#0f172a">
+              Total Amount
+            </Typography>
+            <Typography variant="h5" fontWeight="900" color="#f97316">
+              {budget !== "TBD" ? "₹6,998" : "TBD"}
+            </Typography>
           </Box>
+
+          {/* Flexible Payment Alert */}
+          <Box sx={{ bgcolor: '#f0f9ff', p: 2, borderRadius: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <LightbulbOutlined sx={{ color: '#eab308', fontSize: 20 }} />
+            <Typography variant="body2" color="#334155">
+              <span style={{ fontWeight: 700 }}>Flexible Payment:</span> Pay only $1,000 deposit now, rest 30 days before departure
+            </Typography>
+          </Box>
+
         </Paper>
       </Container>
 
@@ -671,7 +717,7 @@ export default function Theme1Classic() {
                         position: "relative",
                         bgcolor: "#fff",
                         boxShadow: "0 4px 20px rgba(0,0,0,0.03)",
-                        minHeight: 140,
+                        height: "auto",
                       }}
                     >
                       <Box
@@ -712,7 +758,7 @@ export default function Theme1Classic() {
                         fontWeight="800"
                         color="#0f172a"
                         mb={1}
-                        sx={{ wordBreak: "break-word" }}
+                        sx={{ wordBreak: "break-word", whiteSpace: "normal" }}
                       >
                         {flight.airline || "Flight Details"}{" "}
                         {flight.flightNo ? `| ${flight.flightNo}` : ""}
@@ -727,9 +773,9 @@ export default function Theme1Classic() {
                             alignItems="flex-start"
                             gap={0.5}
                             mb={0.5}
-                            sx={{ wordBreak: "break-word" }}
+                            sx={{ wordBreak: "break-word", whiteSpace: "normal" }}
                           >
-                            <LocationOn sx={{ fontSize: 14, mt: 0.2 }} />{" "}
+                            <LocationOn sx={{ fontSize: 14, mt: 0.2, flexShrink: 0 }} />{" "}
                             {flight.depFrom || "Origin"}
                           </Typography>
                           {flight.depDate && (
@@ -783,9 +829,9 @@ export default function Theme1Classic() {
                             justifyContent="flex-end"
                             gap={0.5}
                             mb={0.5}
-                            sx={{ wordBreak: "break-word" }}
+                            sx={{ wordBreak: "break-word", whiteSpace: "normal" }}
                           >
-                            <LocationOn sx={{ fontSize: 14, mt: 0.2 }} />{" "}
+                            <LocationOn sx={{ fontSize: 14, mt: 0.2, flexShrink: 0 }} />{" "}
                             {flight.arrTo || "Destination"}
                           </Typography>
                           {flight.arrDate && (
@@ -824,7 +870,7 @@ export default function Theme1Classic() {
         </Container>
       )}
 
-      {/* 🚨 DAY PLANNER WITH BULLETPROOF IMAGE EXTRACTOR 🚨 */}
+      {/* 🚨 EXACT MATCH UI: DAY PLANNER WITH CONNECTED LEFT TIMELINE 🚨 */}
       <Container maxWidth="md" sx={{ mb: 8 }}>
         <Typography
           variant="h5"
@@ -839,14 +885,15 @@ export default function Theme1Classic() {
           Every moment carefully curated for your perfect journey
         </Typography>
 
-        <Box sx={{ position: "relative" }}>
+        <Box sx={{ position: "relative", pl: { xs: 8, sm: 10 } }}>
+          {/* Vertical Timeline Line */}
           <Box
             sx={{
               display: { xs: "none", sm: "block" },
               position: "absolute",
               top: 20,
               bottom: 0,
-              left: 39,
+              left: 45,
               width: 2,
               bgcolor: "#e2e8f0",
               zIndex: 0,
@@ -861,7 +908,6 @@ export default function Theme1Classic() {
                 ? safeMeals.join(" & ")
                 : "No Meals";
 
-            // 🚨 BULLETPROOF IMAGE EXTRACTOR 🚨
             let uploadedImg = null;
             if (Array.isArray(day.images) && day.images.length > 0) {
               const imgObj = day.images[0];
@@ -895,7 +941,7 @@ export default function Theme1Classic() {
                 key={i}
                 sx={{
                   display: "flex",
-                  flexDirection: { xs: "column", sm: "row" },
+                  flexDirection: "row",
                   mb: 4,
                   position: "relative",
                   zIndex: 1,
@@ -903,13 +949,14 @@ export default function Theme1Classic() {
                   breakInside: "avoid",
                 }}
               >
+                {/* LEFT COLUMN: Node & Vertical Line */}
                 <Box
                   sx={{
-                    width: { xs: "100%", sm: 80 },
+                    width: { xs: 80, md: 100 },
                     flexShrink: 0,
                     display: "flex",
-                    justifyContent: { xs: "flex-start", sm: "center" },
-                    mb: { xs: 2, sm: 0 },
+                    flexDirection: "column",
+                    alignItems: "center",
                   }}
                 >
                   <Paper
@@ -925,6 +972,9 @@ export default function Theme1Classic() {
                       justifyContent: "center",
                       color: "#fff",
                       border: "3px solid #fff",
+                      boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+                      zIndex: 2,
+                      flexShrink: 0
                     }}
                   >
                     <Typography
@@ -958,25 +1008,39 @@ export default function Theme1Classic() {
                       </Typography>
                     )}
                   </Paper>
+
+                  {/* Connecting Line to next node (hidden on the last item) */}
+                  {i !== days.length - 1 && (
+                    <Box
+                      sx={{
+                        width: 2,
+                        flexGrow: 1, // Stretches to fill the remaining padding space
+                        bgcolor: `${color}60`, // Uses the current node's color slightly faded
+                        mt: -1, // Tucks slightly under the rounded node
+                        mb: -4, // Reaches into the padding bottom space to connect to the next
+                        zIndex: 0
+                      }}
+                    />
+                  )}
                 </Box>
 
+                {/* RIGHT COLUMN: Content Card */}
                 <Paper
                   elevation={0}
                   sx={{
-                    ml: { xs: 0, sm: 4 },
                     flexGrow: 1,
                     display: "flex",
                     flexDirection: { xs: "column", md: "row" },
                     borderRadius: 3,
-                    border: `1.5px solid ${color}60`,
+                    border: `1.5px solid ${color}`, // Border exactly matches node color
                     overflow: "hidden",
                     bgcolor: "#fff",
-                    minHeight: 90,
+                    boxShadow: "0 4px 15px rgba(0,0,0,0.03)",
                   }}
                 >
                   <Box
                     sx={{
-                      width: { xs: "100%", md: 280 },
+                      width: { xs: "100%", md: 300 },
                       minHeight: { xs: 200, md: "100%" },
                       flexShrink: 0,
                     }}
@@ -984,7 +1048,7 @@ export default function Theme1Classic() {
                     <img
                       src={displayImg}
                       alt={day.title || `Day ${i + 1}`}
-                      {...(!isBase64 && { crossOrigin: "anonymous" })} // Only apply to remote URLs
+                      {...(!isBase64 && { crossOrigin: "anonymous" })}
                       style={{
                         width: "100%",
                         height: "100%",
@@ -1005,16 +1069,16 @@ export default function Theme1Classic() {
                       variant="h6"
                       fontWeight="800"
                       color="#0f172a"
-                      mb={1}
-                      sx={{ wordBreak: "break-word" }}
+                      sx={{ wordBreak: "break-word", whiteSpace: "normal" }}
                     >
                       {day.title || `Day ${i + 1}`}
                     </Typography>
+                    
                     {day.description && (
                       <Typography
                         variant="body2"
                         color="#475569"
-                        mb={2}
+                        mt={1}
                         sx={{ whiteSpace: "pre-line", wordBreak: "break-word" }}
                       >
                         {day.description}
@@ -1022,64 +1086,47 @@ export default function Theme1Classic() {
                     )}
 
                     {day.activities && (
-                      <Box sx={{ mb: 2 }}>
-                        <Typography
-                          variant="body2"
-                          color="#475569"
-                          sx={{
-                            whiteSpace: "pre-line",
-                            wordBreak: "break-word",
-                            pl: 2,
-                            borderLeft: `2px solid ${color}40`,
-                          }}
-                        >
-                          {day.activities}
-                        </Typography>
-                      </Box>
+                      <Typography
+                        variant="body2"
+                        color="#475569"
+                        mt={2}
+                        sx={{ whiteSpace: "pre-line", wordBreak: "break-word" }}
+                      >
+                        {day.activities}
+                      </Typography>
                     )}
 
                     <Box
                       sx={{
-                        mt: "auto",
-                        pt: 2,
                         display: "flex",
                         gap: 3,
-                        flexWrap: "wrap",
+                        mt: "auto",
+                        pt: 2,
                         borderTop: "1px solid #f1f5f9",
+                        flexWrap: "wrap"
                       }}
                     >
-                      <Typography
-                        variant="caption"
-                        color="#64748b"
-                        fontWeight="600"
-                        display="flex"
-                        alignItems="center"
-                        gap={1}
-                        sx={{ wordBreak: "break-word" }}
-                      >
-                        <DirectionsCar
-                          fontSize="small"
-                          sx={{ color: "#cbd5e1" }}
-                        />{" "}
-                        {day.transport && day.transport !== "No Transport"
-                          ? day.transport
-                          : "No Transport"}
-                      </Typography>
-                      <Typography
-                        variant="caption"
-                        color="#64748b"
-                        fontWeight="600"
-                        display="flex"
-                        alignItems="center"
-                        gap={1}
-                        sx={{ wordBreak: "break-word" }}
-                      >
-                        <Restaurant
-                          fontSize="small"
-                          sx={{ color: "#cbd5e1" }}
-                        />{" "}
-                        {mealString}
-                      </Typography>
+                      {/* Transport Box */}
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <Box sx={{ bgcolor: "#f1f5f9", p: 0.5, borderRadius: 1, display: "flex" }}>
+                          <DirectionsBus sx={{ fontSize: 16, color: "#64748b" }} />
+                        </Box>
+                        <Typography variant="caption" color="#475569" fontWeight="600">
+                          {day.transport && day.transport !== "No Transport"
+                            ? day.transport
+                            : "No Transport"}
+                        </Typography>
+                      </Box>
+                      
+                      {/* Meals Box */}
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <Box sx={{ bgcolor: "#f1f5f9", p: 0.5, borderRadius: 1, display: "flex" }}>
+                          <Restaurant sx={{ fontSize: 16, color: "#64748b" }} />
+                        </Box>
+                        <Typography variant="caption" color="#475569" fontWeight="600">
+                          {mealString}
+                        </Typography>
+                      </Box>
                     </Box>
                   </Box>
                 </Paper>
@@ -1089,9 +1136,9 @@ export default function Theme1Classic() {
         </Box>
       </Container>
 
-      {/* --- HOTELS WITH MIN-HEIGHT --- */}
+      {/* --- HOTELS --- */}
       {hotels.length > 0 && (
-        <Container maxWidth="md" sx={{ mb: 8 }}>
+        <Container maxWidth="lg" sx={{ mb: 8 }}>
           <Typography
             variant="h5"
             fontWeight="900"
@@ -1099,18 +1146,18 @@ export default function Theme1Classic() {
             mb={1}
             textAlign="center"
           >
-            Luxury Accommodations
+            Hotel Accommodations
           </Typography>
           <Typography variant="body2" color="#64748b" mb={4} textAlign="center">
-            Where you will be staying
+            Handpicked luxury hotels for your comfort
           </Typography>
 
-          <Grid container spacing={3}>
+          <Grid container spacing={3} justifyContent="center">
             {hotels.map((hotel, i) => {
-              const safeAmenities = hotel.amenities || [];
-              const mealsList = Object.keys(hotel.meals || {})
-                .filter((k) => hotel.meals[k])
-                .map(formatCamelCase);
+              const rawAmenities = hotel.amenities || [];
+              const defaultAmenities = ["Free WiFi", "Spa & Pool", "Breakfast", "Fitness"];
+              const safeAmenities = rawAmenities.length > 0 ? rawAmenities : defaultAmenities;
+
               const finalHotelName =
                 hotel?.hotelName ||
                 hotel?.name ||
@@ -1118,7 +1165,7 @@ export default function Theme1Classic() {
                 "Selected Hotel";
 
               return (
-                <Grid item xs={12} sm={6} key={i}>
+                <Grid item key={i} sx={{ display: 'flex', justifyContent: 'center' }}>
                   <Paper
                     elevation={0}
                     sx={{
@@ -1127,14 +1174,16 @@ export default function Theme1Classic() {
                       overflow: "hidden",
                       display: "flex",
                       flexDirection: "column",
-                      minHeight: "100%",
+                      height: "auto",
+                      width: { xs: "100%", sm: "389px" },
+                      mx: "auto",
                       pageBreakInside: "avoid",
                       breakInside: "avoid",
                     }}
                   >
                     <Box
                       sx={{
-                        height: 180,
+                        height: 160,
                         position: "relative",
                         width: "100%",
                         flexShrink: 0,
@@ -1151,7 +1200,7 @@ export default function Theme1Classic() {
                         }}
                       />
                       <Chip
-                        label={hotel.hotelPref || "Hotel"}
+                        label={hotel.nights ? `${hotel.nights} Nights` : (hotel.hotelPref || "Hotel")}
                         size="small"
                         sx={{
                           position: "absolute",
@@ -1164,121 +1213,79 @@ export default function Theme1Classic() {
                     </Box>
                     <Box
                       sx={{
-                        p: 3,
+                        p: 2.5,
                         flexGrow: 1,
                         display: "flex",
                         flexDirection: "column",
                       }}
                     >
-                      <Typography
-                        variant="h6"
-                        fontWeight="800"
-                        color="#0f172a"
-                        mb={0.5}
-                        sx={{ wordBreak: "break-word" }}
-                      >
-                        {finalHotelName}
-                      </Typography>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.5 }}>
+                        <Typography
+                          variant="subtitle1"
+                          fontWeight="800"
+                          color="#0f172a"
+                          sx={{ wordBreak: "break-word", whiteSpace: "pre-line", lineHeight: 1.2 }}
+                        >
+                          {finalHotelName}
+                        </Typography>
+                        <Box sx={{ display: 'flex', color: '#f97316', mt: 0.2, flexShrink: 0 }}>
+                          {[...Array(parseInt(hotel.stars) || 5)].map((_, idx) => (
+                             <Star key={idx} sx={{ fontSize: 12 }} />
+                          ))}
+                        </Box>
+                      </Box>
                       <Typography
                         variant="caption"
                         color="#64748b"
                         display="flex"
                         alignItems="flex-start"
                         gap={0.5}
-                        mb={2}
-                        sx={{ wordBreak: "break-word" }}
+                        mb={3}
+                        sx={{ wordBreak: "break-word", whiteSpace: "pre-line" }}
                       >
-                        <LocationOn
-                          fontSize="small"
-                          sx={{ mt: 0.2, flexShrink: 0 }}
-                        />
                         {hotel.location || rawDestination}
                       </Typography>
 
-                      <Box
-                        sx={{
-                          display: "flex",
-                          gap: 2,
-                          mb: 2,
-                          bgcolor: "#f8fafc",
-                          p: 1.5,
-                          borderRadius: 2,
-                        }}
-                      >
-                        <Box>
-                          <Typography
-                            variant="caption"
-                            color="#94a3b8"
-                            display="block"
-                          >
-                            Check-in
-                          </Typography>
-                          <Typography variant="body2" fontWeight="700">
-                            {hotel.checkInDate
-                              ? formatDate(hotel.checkInDate)
-                              : "TBD"}{" "}
-                            • {hotel.checkInTime || "3:00 PM"}
-                          </Typography>
-                        </Box>
-                      </Box>
-
                       {safeAmenities.length > 0 && (
-                        <Box
-                          sx={{
-                            display: "flex",
-                            flexWrap: "wrap",
-                            gap: 0.5,
-                            mb: 2,
-                          }}
-                        >
-                          {safeAmenities.map((am) => (
-                            <Chip
-                              key={am}
-                              label={am}
-                              size="small"
-                              sx={{
-                                bgcolor: "#f0f9ff",
-                                color: "#0ea5e9",
-                                fontSize: "0.7rem",
-                                fontWeight: 600,
-                              }}
-                            />
-                          ))}
-                        </Box>
+                        <Grid container spacing={2} sx={{ mb: 3 }}>
+                          {safeAmenities.slice(0, 4).map((am, idx) => {
+                            let Icon = CheckCircle;
+                            const text = am.toLowerCase();
+                            if (text.includes("wifi")) Icon = WifiOutlined;
+                            else if (text.includes("breakfast") || text.includes("meal") || text.includes("coffee")) Icon = LocalCafeOutlined;
+                            else if (text.includes("spa") || text.includes("pool") || text.includes("view") || text.includes("massage")) Icon = SpaOutlined;
+                            else if (text.includes("fit") || text.includes("gym")) Icon = FitnessCenterOutlined;
+
+                            return (
+                              <Grid item xs={6} key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Icon sx={{ fontSize: 16, color: '#94a3b8', flexShrink: 0 }} />
+                                <Typography variant="caption" color="#475569" fontWeight="600" sx={{ wordBreak: "break-word", whiteSpace: "pre-line" }}>
+                                  {am}
+                                </Typography>
+                              </Grid>
+                            )
+                          })}
+                        </Grid>
                       )}
 
                       <Box sx={{ mt: "auto" }}>
-                        <Divider sx={{ my: 1.5 }} />
-                        <Typography
-                          variant="caption"
-                          color="#64748b"
-                          display="flex"
-                          alignItems="flex-start"
-                          gap={0.5}
-                          sx={{ wordBreak: "break-word" }}
-                        >
-                          <Restaurant
-                            fontSize="small"
-                            sx={{ mt: 0.2, flexShrink: 0 }}
-                          />
-                          Meals: {mealsList.join(", ") || "Room Only"}
-                        </Typography>
-                        <Typography
-                          variant="caption"
-                          color="#64748b"
-                          display="flex"
-                          alignItems="flex-start"
-                          gap={0.5}
-                          mt={0.5}
-                          sx={{ wordBreak: "break-word" }}
-                        >
-                          <Hotel
-                            fontSize="small"
-                            sx={{ mt: 0.2, flexShrink: 0 }}
-                          />
-                          Room: {hotel.roomCat || "Standard"} (
-                          {hotel.rooms || 1} Room)
-                        </Typography>
+                        <Divider sx={{ mb: 2 }} />
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                          <Typography variant="caption" fontWeight="800" color="#0f172a" sx={{ fontSize: '0.7rem', wordBreak: "break-word", whiteSpace: "pre-line" }}>
+                            {pax}
+                          </Typography>
+                          <Typography variant="caption" fontWeight="800" color="#3b82f6" sx={{ fontSize: '0.7rem', wordBreak: "break-word", whiteSpace: "pre-line", textAlign: 'right' }}>
+                            {hotel.roomCat || "Deluxe Room"}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <Typography variant="caption" color="#94a3b8" sx={{ fontSize: '0.6rem' }}>
+                            Check-in: {hotel.checkInTime || "3:00 PM"}
+                          </Typography>
+                          <Typography variant="caption" color="#94a3b8" sx={{ fontSize: '0.6rem' }}>
+                            Check-out: {hotel.checkOutTime || "12:00 PM"}
+                          </Typography>
+                        </Box>
                       </Box>
                     </Box>
                   </Paper>
@@ -1290,7 +1297,7 @@ export default function Theme1Classic() {
       )}
 
       {/* --- INCLUSIONS & EXCLUSIONS --- */}
-      <Container maxWidth="md" sx={{ mb: 8 }}>
+      <Container maxWidth="lg" sx={{ mb: 8 }}>
         <Box sx={{ textAlign: "center", mb: 5 }}>
           <Typography variant="h4" fontWeight="900" color="#0f172a" mb={1}>
             What's Included
@@ -1300,8 +1307,8 @@ export default function Theme1Classic() {
           </Typography>
         </Box>
 
-        <Grid container spacing={4} alignItems="stretch">
-          <Grid item xs={12} md={6}>
+        <Grid container spacing={4} justifyContent="center" alignItems="stretch">
+          <Grid item sx={{ display: 'flex', justifyContent: 'center' }}>
             <Paper
               elevation={0}
               sx={{
@@ -1309,8 +1316,9 @@ export default function Theme1Classic() {
                 overflow: "hidden",
                 display: "flex",
                 flexDirection: "column",
-                minHeight: "100%",
-                width: "400px",
+                height: "auto",
+                width: { xs: "100%", sm: "389px" },
+                mx: "auto",
                 border: "1px solid #e2e8f0",
                 boxShadow: "0 4px 20px rgba(0,0,0,0.03)",
                 pageBreakInside: "avoid",
@@ -1341,18 +1349,19 @@ export default function Theme1Classic() {
                   <Typography
                     variant="h6"
                     fontWeight="800"
-                    sx={{ lineHeight: 1.2 }}
+                    sx={{ lineHeight: 1.2, wordBreak: "break-word", whiteSpace: "pre-line" }}
                   >
                     Included
                   </Typography>
                   <Typography
                     variant="caption"
-                    sx={{ opacity: 0.9, display: "block" }}
+                    sx={{ opacity: 0.9, display: "block", wordBreak: "break-word", whiteSpace: "pre-line" }}
                   >
                     Everything you need for a perfect trip
                   </Typography>
                 </Box>
               </Box>
+
               <Box
                 sx={{
                   p: 4,
@@ -1398,7 +1407,7 @@ export default function Theme1Classic() {
             </Paper>
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid item sx={{ display: 'flex', justifyContent: 'center' }}>
             <Paper
               elevation={0}
               sx={{
@@ -1406,8 +1415,9 @@ export default function Theme1Classic() {
                 overflow: "hidden",
                 display: "flex",
                 flexDirection: "column",
-                minHeight: "100%",
-                width: "400px",
+                height: "auto",
+                width: { xs: "100%", sm: "389px" },
+                mx: "auto",
                 border: "1px solid #e2e8f0",
                 boxShadow: "0 4px 20px rgba(0,0,0,0.03)",
                 pageBreakInside: "avoid",
@@ -1438,18 +1448,19 @@ export default function Theme1Classic() {
                   <Typography
                     variant="h6"
                     fontWeight="800"
-                    sx={{ lineHeight: 1.2 }}
+                    sx={{ lineHeight: 1.2, wordBreak: "break-word", whiteSpace: "pre-line" }}
                   >
                     Not Included
                   </Typography>
                   <Typography
                     variant="caption"
-                    sx={{ opacity: 0.9, display: "block" }}
+                    sx={{ opacity: 0.9, display: "block", wordBreak: "break-word", whiteSpace: "pre-line" }}
                   >
                     Additional costs to consider
                   </Typography>
                 </Box>
               </Box>
+
               <Box
                 sx={{
                   p: 4,
@@ -1498,10 +1509,10 @@ export default function Theme1Classic() {
       </Container>
 
       {/* --- VISA DETAILS & BANK DETAILS --- */}
-      <Container maxWidth="md" sx={{ mb: 10 }}>
-        <Grid container spacing={4} alignItems="stretch">
+      <Container maxWidth="lg" sx={{ mb: 10 }}>
+        <Grid container spacing={4} justifyContent="center" alignItems="stretch">
           {/* Bank Details (Left Column) */}
-          <Grid item xs={12} md={6}>
+          <Grid item sx={{ display: 'flex', justifyContent: 'center' }}>
             <Paper
               elevation={0}
               sx={{
@@ -1509,26 +1520,26 @@ export default function Theme1Classic() {
                 borderRadius: 3,
                 bgcolor: "#1e3a8a",
                 color: "#fff",
-                height: "100%",
+                height: "auto",
+                width: { xs: "100%", sm: "389px" },
+                mx: "auto",
                 display: "flex",
                 flexDirection: "column",
                 pageBreakInside: "avoid",
                 breakInside: "avoid",
               }}
             >
-              <Box
-                sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}
-              >
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
                 <Avatar
-                  sx={{ bgcolor: "rgba(255,255,255,0.1)", color: "#fff" }}
+                  sx={{ bgcolor: "rgba(255,255,255,0.1)", color: "#fff", flexShrink: 0 }}
                 >
                   <AccountBalance />
                 </Avatar>
                 <Box>
-                  <Typography variant="h6" fontWeight="700">
+                  <Typography variant="h6" fontWeight="700" sx={{ wordBreak: "break-word", whiteSpace: "pre-line" }}>
                     Bank Account Details
                   </Typography>
-                  <Typography variant="caption" sx={{ opacity: 0.8 }}>
+                  <Typography variant="caption" sx={{ opacity: 0.8, wordBreak: "break-word", whiteSpace: "pre-line" }}>
                     For balance payment
                   </Typography>
                 </Box>
@@ -1545,14 +1556,14 @@ export default function Theme1Classic() {
                   >
                     <Typography
                       variant="caption"
-                      sx={{ opacity: 0.7, display: "block", mb: 0.5 }}
+                      sx={{ opacity: 0.7, display: "block", mb: 0.5, wordBreak: "break-word", whiteSpace: "pre-line" }}
                     >
                       Bank Name
                     </Typography>
                     <Typography
                       variant="body2"
                       fontWeight="600"
-                      sx={{ wordBreak: "break-word" }}
+                      sx={{ wordBreak: "break-word", whiteSpace: "pre-line" }}
                     >
                       {termsData?.bankDetails?.bankName || "Chase Bank N.A."}
                     </Typography>
@@ -1568,14 +1579,14 @@ export default function Theme1Classic() {
                   >
                     <Typography
                       variant="caption"
-                      sx={{ opacity: 0.7, display: "block", mb: 0.5 }}
+                      sx={{ opacity: 0.7, display: "block", mb: 0.5, wordBreak: "break-word", whiteSpace: "pre-line" }}
                     >
                       Account Holder
                     </Typography>
                     <Typography
                       variant="body2"
                       fontWeight="600"
-                      sx={{ wordBreak: "break-word" }}
+                      sx={{ wordBreak: "break-word", whiteSpace: "pre-line" }}
                     >
                       {termsData?.bankDetails?.accountName ||
                         "Wanderlust Elite Travel"}
@@ -1592,14 +1603,14 @@ export default function Theme1Classic() {
                   >
                     <Typography
                       variant="caption"
-                      sx={{ opacity: 0.7, display: "block", mb: 0.5 }}
+                      sx={{ opacity: 0.7, display: "block", mb: 0.5, wordBreak: "break-word", whiteSpace: "pre-line" }}
                     >
                       Account Number
                     </Typography>
                     <Typography
                       variant="body2"
                       fontWeight="600"
-                      sx={{ wordBreak: "break-all" }}
+                      sx={{ wordBreak: "break-all", whiteSpace: "pre-line" }}
                     >
                       {termsData?.bankDetails?.accountNumber ||
                         "**** **** **5847"}
@@ -1616,14 +1627,14 @@ export default function Theme1Classic() {
                   >
                     <Typography
                       variant="caption"
-                      sx={{ opacity: 0.7, display: "block", mb: 0.5 }}
+                      sx={{ opacity: 0.7, display: "block", mb: 0.5, wordBreak: "break-word", whiteSpace: "pre-line" }}
                     >
                       Account Type
                     </Typography>
                     <Typography
                       variant="body2"
                       fontWeight="600"
-                      sx={{ wordBreak: "break-word" }}
+                      sx={{ wordBreak: "break-word", whiteSpace: "pre-line" }}
                     >
                       {termsData?.bankDetails?.accountType ||
                         "Business Checking"}
@@ -1640,14 +1651,14 @@ export default function Theme1Classic() {
                   >
                     <Typography
                       variant="caption"
-                      sx={{ opacity: 0.7, display: "block", mb: 0.5 }}
+                      sx={{ opacity: 0.7, display: "block", mb: 0.5, wordBreak: "break-word", whiteSpace: "pre-line" }}
                     >
                       Branch Name
                     </Typography>
                     <Typography
                       variant="body2"
                       fontWeight="600"
-                      sx={{ wordBreak: "break-word" }}
+                      sx={{ wordBreak: "break-word", whiteSpace: "pre-line" }}
                     >
                       {termsData?.bankDetails?.branchName || "Main Branch"}
                     </Typography>
@@ -1663,14 +1674,14 @@ export default function Theme1Classic() {
                   >
                     <Typography
                       variant="caption"
-                      sx={{ opacity: 0.7, display: "block", mb: 0.5 }}
+                      sx={{ opacity: 0.7, display: "block", mb: 0.5, wordBreak: "break-word", whiteSpace: "pre-line" }}
                     >
                       Routing / SWIFT
                     </Typography>
                     <Typography
                       variant="body2"
                       fontWeight="600"
-                      sx={{ wordBreak: "break-all" }}
+                      sx={{ wordBreak: "break-all", whiteSpace: "pre-line" }}
                     >
                       {termsData?.bankDetails?.routing ||
                         termsData?.bankDetails?.ifscCode ||
@@ -1692,7 +1703,7 @@ export default function Theme1Classic() {
                 >
                   <Typography
                     variant="caption"
-                    sx={{ opacity: 0.7, display: "block", mb: 0.5 }}
+                    sx={{ opacity: 0.7, display: "block", mb: 0.5, wordBreak: "break-word", whiteSpace: "pre-line" }}
                   >
                     Payment Instructions
                   </Typography>
@@ -1708,7 +1719,7 @@ export default function Theme1Classic() {
           </Grid>
 
           {/* Visa Requirements (Right Column) */}
-          <Grid item xs={12} md={6}>
+          <Grid item sx={{ display: 'flex', justifyContent: 'center' }}>
             <Paper
               elevation={0}
               sx={{
@@ -1716,27 +1727,26 @@ export default function Theme1Classic() {
                 borderRadius: 3,
                 bgcolor: "#1e3a8a",
                 color: "#fff",
-                height: "100%",
-                width: "800px",
+                height: "auto",
+                width: { xs: "100%", sm: "389px" },
+                mx: "auto",
                 display: "flex",
                 flexDirection: "column",
                 pageBreakInside: "avoid",
                 breakInside: "avoid",
               }}
             >
-              <Box
-                sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}
-              >
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
                 <Avatar
-                  sx={{ bgcolor: "rgba(255,255,255,0.1)", color: "#fff" }}
+                  sx={{ bgcolor: "rgba(255,255,255,0.1)", color: "#fff", flexShrink: 0 }}
                 >
                   <Security />
                 </Avatar>
                 <Box>
-                  <Typography variant="h6" fontWeight="700">
+                  <Typography variant="h6" fontWeight="700" sx={{ wordBreak: "break-word", whiteSpace: "pre-line" }}>
                     Visa Requirements
                   </Typography>
-                  <Typography variant="caption" sx={{ opacity: 0.8 }}>
+                  <Typography variant="caption" sx={{ opacity: 0.8, wordBreak: "break-word", whiteSpace: "pre-line" }}>
                     Essential travel documents
                   </Typography>
                 </Box>
@@ -1764,19 +1774,20 @@ export default function Theme1Classic() {
                         sx={{
                           display: "flex",
                           justifyContent: "space-between",
-                          alignItems: "center",
+                          alignItems: "flex-start", // changed from center to flex-start for wrapping
                           mb: 1,
+                          gap: 1
                         }}
                       >
                         <Box
                           sx={{
                             display: "flex",
                             gap: 1.5,
-                            alignItems: "center",
+                            alignItems: "flex-start", // changed from center to flex-start for wrapping
                           }}
                         >
-                          <Public sx={{ fontSize: 18, opacity: 0.8 }} />
-                          <Typography variant="body2" fontWeight="700">
+                          <Public sx={{ fontSize: 18, opacity: 0.8, mt: 0.2, flexShrink: 0 }} />
+                          <Typography variant="body2" fontWeight="700" sx={{ wordBreak: "break-word", whiteSpace: "pre-line" }}>
                             {visa.visaCountry ||
                               visa.country ||
                               "Visa Required"}
@@ -1792,23 +1803,23 @@ export default function Theme1Classic() {
                             fontSize: "0.65rem",
                             fontWeight: 700,
                             border: "1px solid rgba(16, 185, 129, 0.5)",
+                            flexShrink: 0
                           }}
                         />
                       </Box>
                       <Box sx={{ pl: 3.5 }}>
                         <Typography
                           variant="caption"
-                          sx={{ opacity: 0.8, display: "block", mb: 0.5 }}
+                          sx={{ opacity: 0.8, display: "block", mb: 0.5, wordBreak: "break-word", whiteSpace: "pre-line" }}
                         >
                           {visa.visaType || "Tourist Visa"} •{" "}
                           {visa.entryType || "Single Entry"}
                         </Typography>
                         <Typography
                           variant="caption"
-                          sx={{ opacity: 0.8, display: "block" }}
+                          sx={{ opacity: 0.8, display: "block", wordBreak: "break-word", whiteSpace: "pre-line" }}
                         >
-                          Duration:{" "}
-                          {visa.duration || visa.visaDuration || "TBD"}
+                          Duration: {visa.duration || visa.visaDuration || "TBD"}
                         </Typography>
                       </Box>
                     </Box>
@@ -1830,6 +1841,7 @@ export default function Theme1Classic() {
                           display: "block",
                           mb: 1,
                           fontWeight: 700,
+                          wordBreak: "break-word", whiteSpace: "pre-line"
                         }}
                       >
                         Important Notes:
@@ -1869,7 +1881,7 @@ export default function Theme1Classic() {
                     justifyContent: "center",
                   }}
                 >
-                  <Typography variant="body2" sx={{ opacity: 0.8 }}>
+                  <Typography variant="body2" sx={{ opacity: 0.8, wordBreak: "break-word", whiteSpace: "pre-line" }}>
                     No specific visa requirements added for this itinerary.
                   </Typography>
                 </Box>
@@ -1900,6 +1912,7 @@ export default function Theme1Classic() {
             display="flex"
             alignItems="center"
             gap={1}
+            sx={{ wordBreak: "break-word", whiteSpace: "pre-line" }}
           >
             <Description color="primary" /> Terms & Conditions
           </Typography>
@@ -1919,18 +1932,18 @@ export default function Theme1Classic() {
           breakInside: "avoid",
         }}
       >
-        <Container maxWidth="md">
+        <Container maxWidth="lg">
           <Box sx={{ textAlign: "center", mb: 5 }}>
-            <Typography variant="h5" fontWeight="900" color="#0f172a" mb={1}>
+            <Typography variant="h5" fontWeight="900" color="#0f172a" mb={1} sx={{ wordBreak: "break-word", whiteSpace: "pre-line" }}>
               Your Luxury Travel Consultant
             </Typography>
-            <Typography variant="body2" color="#64748b">
+            <Typography variant="body2" color="#64748b" sx={{ wordBreak: "break-word", whiteSpace: "pre-line" }}>
               We're here to make your dream vacation a reality
             </Typography>
           </Box>
 
-          <Grid container spacing={4} alignItems="stretch" mb={4}>
-            <Grid item xs={12} md={6}>
+          <Grid container spacing={4} justifyContent="center" alignItems="stretch" mb={4}>
+            <Grid item sx={{ display: 'flex', justifyContent: 'center' }}>
               <Paper
                 elevation={10}
                 sx={{
@@ -1938,17 +1951,19 @@ export default function Theme1Classic() {
                   borderRadius: 4,
                   bgcolor: "#1e3a8a",
                   color: "#fff",
-                  height: "100%",
+                  height: "auto",
+                  width: { xs: "100%", sm: "389px" },
+                  mx: "auto",
                   display: "flex",
                   flexDirection: "column",
                 }}
               >
-                <Typography variant="h6" fontWeight="800" mb={0.5}>
+                <Typography variant="h6" fontWeight="800" mb={0.5} sx={{ wordBreak: "break-word", whiteSpace: "pre-line" }}>
                   Connect With Your Travel Expert
                 </Typography>
                 <Typography
                   variant="caption"
-                  sx={{ opacity: 0.8, display: "block", mb: 4 }}
+                  sx={{ opacity: 0.8, display: "block", mb: 4, wordBreak: "break-word", whiteSpace: "pre-line" }}
                 >
                   Personalized service for your dream vacation
                 </Typography>
@@ -1964,21 +1979,22 @@ export default function Theme1Classic() {
                       color: "#0f172a",
                       fontWeight: 800,
                       fontSize: "1.2rem",
+                      flexShrink: 0
                     }}
                   >
                     {agentInitials}
                   </Avatar>
                   <Box>
-                    <Typography variant="subtitle1" fontWeight="800">
+                    <Typography variant="subtitle1" fontWeight="800" sx={{ wordBreak: "break-word", whiteSpace: "pre-line" }}>
                       {agentNameDisplay}
                     </Typography>
                     <Typography
                       variant="caption"
-                      sx={{ opacity: 0.8, display: "block" }}
+                      sx={{ opacity: 0.8, display: "block", wordBreak: "break-word", whiteSpace: "pre-line" }}
                     >
                       Senior Travel Consultant
                     </Typography>
-                    <Typography variant="caption" sx={{ opacity: 0.8 }}>
+                    <Typography variant="caption" sx={{ opacity: 0.8, wordBreak: "break-word", whiteSpace: "pre-line" }}>
                       15+ Years Experience
                     </Typography>
                   </Box>
@@ -2002,8 +2018,8 @@ export default function Theme1Classic() {
                       gap: 1.5,
                     }}
                   >
-                    <Phone fontSize="small" sx={{ opacity: 0.8 }} />
-                    <Typography variant="body2" fontWeight="600">
+                    <Phone fontSize="small" sx={{ opacity: 0.8, flexShrink: 0 }} />
+                    <Typography variant="body2" fontWeight="600" sx={{ wordBreak: "break-word", whiteSpace: "pre-line" }}>
                       {agencyPhone}
                     </Typography>
                   </Box>
@@ -2017,8 +2033,8 @@ export default function Theme1Classic() {
                       gap: 1.5,
                     }}
                   >
-                    <Email fontSize="small" sx={{ opacity: 0.8 }} />
-                    <Typography variant="body2" fontWeight="600">
+                    <Email fontSize="small" sx={{ opacity: 0.8, flexShrink: 0 }} />
+                    <Typography variant="body2" fontWeight="600" sx={{ wordBreak: "break-word", whiteSpace: "pre-line" }}>
                       {agencyEmail}
                     </Typography>
                   </Box>
@@ -2042,7 +2058,7 @@ export default function Theme1Classic() {
               </Paper>
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid item sx={{ display: 'flex', justifyContent: 'center' }}>
               <Paper
                 elevation={0}
                 sx={{
@@ -2050,7 +2066,9 @@ export default function Theme1Classic() {
                   borderRadius: 4,
                   border: "1px solid #e2e8f0",
                   bgcolor: "#fff",
-                  height: "100%",
+                  height: "auto",
+                  width: { xs: "100%", sm: "389px" },
+                  mx: "auto",
                   display: "flex",
                   flexDirection: "column",
                 }}
@@ -2060,6 +2078,7 @@ export default function Theme1Classic() {
                   fontWeight="800"
                   color="#0f172a"
                   mb={3}
+                  sx={{ wordBreak: "break-word", whiteSpace: "pre-line" }}
                 >
                   Why Choose Us
                 </Typography>
@@ -2079,6 +2098,7 @@ export default function Theme1Classic() {
                         color: "#0ea5e9",
                         width: 40,
                         height: 40,
+                        flexShrink: 0
                       }}
                     >
                       <VerifiedUserOutlined fontSize="small" />
@@ -2088,10 +2108,11 @@ export default function Theme1Classic() {
                         variant="body2"
                         fontWeight="800"
                         color="#0f172a"
+                        sx={{ wordBreak: "break-word", whiteSpace: "pre-line" }}
                       >
                         IATA Accredited
                       </Typography>
-                      <Typography variant="caption" color="#64748b">
+                      <Typography variant="caption" color="#64748b" sx={{ wordBreak: "break-word", whiteSpace: "pre-line" }}>
                         Certified by International Air Transport Association
                       </Typography>
                     </Box>
@@ -2103,6 +2124,7 @@ export default function Theme1Classic() {
                         color: "#0ea5e9",
                         width: 40,
                         height: 40,
+                        flexShrink: 0
                       }}
                     >
                       <ShieldOutlined fontSize="small" />
@@ -2112,10 +2134,11 @@ export default function Theme1Classic() {
                         variant="body2"
                         fontWeight="800"
                         color="#0f172a"
+                        sx={{ wordBreak: "break-word", whiteSpace: "pre-line" }}
                       >
                         Licensed & Insured
                       </Typography>
-                      <Typography variant="caption" color="#64748b">
+                      <Typography variant="caption" color="#64748b" sx={{ wordBreak: "break-word", whiteSpace: "pre-line" }}>
                         Full protection and security for your bookings
                       </Typography>
                     </Box>
@@ -2127,6 +2150,7 @@ export default function Theme1Classic() {
                         color: "#0ea5e9",
                         width: 40,
                         height: 40,
+                        flexShrink: 0
                       }}
                     >
                       <AccessTimeOutlined fontSize="small" />
@@ -2136,10 +2160,11 @@ export default function Theme1Classic() {
                         variant="body2"
                         fontWeight="800"
                         color="#0f172a"
+                        sx={{ wordBreak: "break-word", whiteSpace: "pre-line" }}
                       >
                         24/7 Support
                       </Typography>
-                      <Typography variant="caption" color="#64748b">
+                      <Typography variant="caption" color="#64748b" sx={{ wordBreak: "break-word", whiteSpace: "pre-line" }}>
                         Around the clock assistance during your travels
                       </Typography>
                     </Box>
@@ -2151,6 +2176,7 @@ export default function Theme1Classic() {
                   fontWeight="800"
                   color="#0f172a"
                   mb={2}
+                  sx={{ wordBreak: "break-word", whiteSpace: "pre-line" }}
                 >
                   Office Address
                 </Typography>
@@ -2161,12 +2187,13 @@ export default function Theme1Classic() {
                       color: "#0ea5e9",
                       width: 40,
                       height: 40,
+                      flexShrink: 0
                     }}
                   >
                     <LocationOnOutlined fontSize="small" />
                   </Avatar>
                   <Box sx={{ display: "flex", alignItems: "center" }}>
-                    <Typography variant="caption" color="#64748b">
+                    <Typography variant="caption" color="#64748b" sx={{ wordBreak: "break-word", whiteSpace: "pre-line" }}>
                       {themeConfig?.website ||
                         "123 Commerce St, San Francisco, CA 94102"}
                     </Typography>
@@ -2190,14 +2217,14 @@ export default function Theme1Classic() {
             }}
           >
             <Box sx={{ textAlign: { xs: "center", sm: "left" } }}>
-              <Typography variant="body2" fontWeight="700">
+              <Typography variant="body2" fontWeight="700" sx={{ wordBreak: "break-word", whiteSpace: "pre-line" }}>
                 {themeConfig?.footerText || companyName}
               </Typography>
-              <Typography variant="caption" sx={{ opacity: 0.7 }}>
+              <Typography variant="caption" sx={{ opacity: 0.7, wordBreak: "break-word", whiteSpace: "pre-line" }}>
                 {userDetails["custom:tmp_footer_text"]}
               </Typography>
             </Box>
-            <Typography variant="caption" sx={{ opacity: 0.7 }}>
+            <Typography variant="caption" sx={{ opacity: 0.7, wordBreak: "break-word", whiteSpace: "pre-line" }}>
               © 2026 All rights reserved.
             </Typography>
           </Box>

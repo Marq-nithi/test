@@ -31,7 +31,10 @@ import {
   FolderOpen,
   CheckCircleOutline,
   DeleteOutline,
-  CardTravel, 
+  CardTravel,
+  AutoAwesome,
+  Save,
+  Add
 } from "@mui/icons-material";
 import { useItinerary } from "../context/ItineraryContext";
 import {
@@ -204,7 +207,7 @@ export default function ItineraryBuilder() {
       };
     };
 
-  const iternerary_dayplanner = dayPlannerData.map((v) => ({
+    const iternerary_dayplanner = dayPlannerData.map((v) => ({
       day: v.day,
       title: v.title,
       description: v.description,
@@ -406,9 +409,9 @@ export default function ItineraryBuilder() {
 
   const steps = [
     { label: "Client Details", id: 1, icon: <Person fontSize="small" /> },
-    { label: "Hotels", id: 2, icon: <Hotel fontSize="small" /> },
-    { label: "Transport", id: 3, icon: <Flight fontSize="small" /> },
     { label: "Day Planner", id: 4, icon: <CalendarMonth fontSize="small" /> },
+    { label: "Stay Details", id: 2, icon: <Hotel fontSize="small" /> },
+    { label: "Transport", id: 3, icon: <Flight fontSize="small" /> },
     { label: "Price Details", id: 5, icon: <AttachMoney fontSize="small" /> },
     { label: "Incl & Excl", id: 6, icon: <ListAlt fontSize="small" /> },
     { label: "Terms & Con", id: 7, icon: <Gavel fontSize="small" /> },
@@ -449,35 +452,29 @@ export default function ItineraryBuilder() {
     }
   };
 
-  // 🚨 FIXED: STABLE REAL-TIME CURRENT INPUT SINGLE-PAGE PDF DOWNLOADER
   const handleSharePdf = async () => {
     if (!componentRef.current) return;
 
     try {
-      // 1. Force a minor delay to ensure React commits context inputs to text nodes completely
       await new Promise((resolve) => setTimeout(resolve, 300));
-
-      // 2. Capture clean screen metrics configurations
       const canvas = await html2canvas(componentRef.current, {
-        scale: 2, // High resolution rendering for sharp typography fonts
-        useCORS: true, // Seamless external assets / Unsplash images fetching
+        scale: 2,
+        useCORS: true, 
         logging: false,
-        backgroundColor: "#fafaf9", // Synchronized clean theme light fallback bg color
-        windowWidth: 1200, // Enforce responsive design constraints to desktop widths
+        backgroundColor: "#fafaf9",
+        windowWidth: 1200, 
       });
 
       const imgData = canvas.toDataURL("image/jpeg", 0.98);
-      const pdfWidth = 210; // Standard layout scale horizontal footprint metric boundary
+      const pdfWidth = 210; 
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
-      // 3. Mount document container frame instance
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
-        format: [pdfWidth, pdfHeight], // Continuous infinite page dimension wrapper rule mapping
+        format: [pdfWidth, pdfHeight],
       });
 
-      // 4. Attach layout texture layer block and execute download
       pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight, undefined, "FAST");
       
       const fileName = clientData?.name 
@@ -497,8 +494,10 @@ export default function ItineraryBuilder() {
         flexDirection: "column",
         height: "100%",
         position: "relative",
+        fontFamily: "'Inter', sans-serif" // Applied Inter Font Globally
       }}
     >
+      {/* 🚨 EXACT UI REPLICATION: STICKY HEADER 🚨 */}
       <Box
         sx={{
           position: "sticky",
@@ -506,35 +505,48 @@ export default function ItineraryBuilder() {
           zIndex: 100,
           bgcolor: "#fff",
           borderBottom: "1px solid #e2e8f0",
+          fontFamily: "'Inter', sans-serif"
         }}
       >
         <Box
           sx={{
-            p: { xs: 2, md: 5 },
-            pb: 2,
+            p: { xs: 2, md: 3 },
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
+            flexWrap: "wrap",
+            gap: 2
           }}
         >
-          <Box>
-            <Typography variant="h4" sx={{ fontWeight: 900 }}>
-              Itinerary Builder
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Save progress as you build.
-            </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <AutoAwesome sx={{ color: '#0ea5e9', fontSize: 28 }} />
+            <Box>
+              <Typography variant="h5" sx={{ fontWeight: 800, color: '#0f172a', fontFamily: "'Inter', sans-serif" }}>
+                Itinerary Builder
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#64748b', fontFamily: "'Inter', sans-serif" }}>
+                Create stunning travel experiences for your clients
+              </Typography>
+            </Box>
           </Box>
-          <Box sx={{ display: "flex", gap: 1.5 }}>
+          
+          <Box sx={{ display: "flex", gap: 1.5, alignItems: 'center' }}>
             <Badge badgeContent={savedDrafts.length} color="primary">
               <Button
                 variant="outlined"
-                startIcon={<FolderOpen />}
                 onClick={async () => {
                   await loadDrafts();
                   setOpenDraftModal(true);
                 }}
-                sx={{ textTransform: "none", fontWeight: 700 }}
+                sx={{ 
+                  textTransform: "none", 
+                  fontWeight: 600,
+                  fontFamily: "'Inter', sans-serif",
+                  color: '#475569',
+                  borderColor: '#e2e8f0',
+                  borderRadius: '8px',
+                  height: '33px', 
+                }}
               >
                 Drafts
               </Button>
@@ -544,11 +556,24 @@ export default function ItineraryBuilder() {
               <Button
                 variant="contained"
                 onClick={handleSaveDraft}
+                startIcon={<Save sx={{ fontSize: '18px' }} />}
                 sx={{
-                  bgcolor: "#0f172a",
+                  background: "linear-gradient(90deg,rgba(59, 114, 235, 1) 0%, rgba(0, 187, 167, 1) 50%)", // 🚨 Exact Gradient Background
                   color: "#fff",
                   textTransform: "none",
-                  fontWeight: 700,
+                  fontWeight: 600,
+                  fontFamily: "'Inter', sans-serif", 
+                  width: '130px',      // 🚨 Exact Width
+                  height: '33px',      // 🚨 Exact Height
+                  borderRadius: '9.23px', // 🚨 Exact Border Radius
+                  paddingLeft: '14.76px', // 🚨 Exact Padding Left
+                  paddingRight: '14.76px',// 🚨 Exact Padding Right
+                  gap: '11.07px',      // 🚨 Exact Gap
+                  boxShadow: 'none',
+                  opacity: 1,
+                  "& .MuiButton-startIcon": {
+                    marginRight: 0 // MUI uses margin by default, overriding to let gap handle it
+                  }
                 }}
               >
                 Save Draft
@@ -560,10 +585,11 @@ export default function ItineraryBuilder() {
                 variant="contained"
                 onClick={() => handleSharePdf()}
                 sx={{
-                  bgcolor: "#00c6ff",
+                  bgcolor: "#00ff0d",
                   color: "#fff",
                   textTransform: "none",
                   fontWeight: 700,
+                  fontFamily: "'Inter', sans-serif",
                 }}
               >
                 Share PDF
@@ -572,13 +598,15 @@ export default function ItineraryBuilder() {
           </Box>
         </Box>
 
+        {/* 🚨 EXACT UI REPLICATION: WRAPPING STEPS 🚨 */}
         <Box
           sx={{
-            px: { xs: 2, md: 5 },
+            px: { xs: 2, md: 3 },
             display: "flex",
-            overflowX: "auto",
-            pb: 3,
-            gap: 1,
+            flexWrap: "wrap", // 🚨 Allows steps to wrap cleanly to the next line
+            alignItems: 'center',
+            pb: 2,
+            gap: 1.5,
           }}
         >
           {steps.map((s, idx) => (
@@ -588,21 +616,45 @@ export default function ItineraryBuilder() {
                 icon={s.icon}
                 onClick={() => setStep && setStep(s.id)}
                 sx={{
-                  bgcolor: step === s.id ? "primary.main" : "background.paper",
-                  color: step === s.id ? "#fff" : "text.primary",
-                  fontWeight: step === s.id ? 700 : 600,
-                  borderRadius: 2,
+                  bgcolor: step === s.id ? "transparent" : "#f8fafc",
+                  background: step === s.id ? "linear-gradient(90deg,rgba(59, 114, 235, 1) 0%, rgba(0, 187, 167, 1) 50%)" : "none",
+                  color: step === s.id ? "#fff" : "#64748b",
+                  fontWeight: step === s.id ? 600 : 500,
+                  borderRadius: "8px",
+                  fontFamily: "'Inter', sans-serif",
+                  border: step === s.id ? 'none' : '1px solid #f1f5f9',
                   cursor: "pointer",
+                  height: '32px',
+                  "& .MuiChip-icon": {
+                    color: step === s.id ? "#fff" : "#94a3b8",
+                  }
                 }}
               />
               {idx < steps.length - 1 && (
-                <ChevronRight sx={{ color: "divider" }} />
+                <ChevronRight sx={{ color: "#cbd5e1", fontSize: 18 }} />
               )}
             </React.Fragment>
           ))}
+          
+          <ChevronRight sx={{ color: "#cbd5e1", fontSize: 18 }} />
+          <Chip
+            label="Add New"
+            icon={<Add sx={{ fontSize: 16 }} />}
+            sx={{
+               bgcolor: "#f8fafc",
+               color: "#64748b",
+               fontWeight: 500,
+               borderRadius: "8px",
+               fontFamily: "'Inter', sans-serif",
+               border: '1px solid #f1f5f9',
+               height: '32px',
+               "& .MuiChip-icon": { color: "#94a3b8" }
+            }}
+          />
         </Box>
       </Box>
 
+      {/* CONTENT AREA */}
       <Box
         sx={{
           flexGrow: 1,
@@ -614,6 +666,7 @@ export default function ItineraryBuilder() {
         {renderStepContent()}
       </Box>
 
+      {/* DRAFTS MODAL (Untouched Original User Logic) */}
       <Dialog
         open={openDraftModal}
         onClose={() => setOpenDraftModal(false)}
@@ -629,7 +682,7 @@ export default function ItineraryBuilder() {
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <FolderOpen color="primary" />
-            <Typography variant="h6" fontWeight="900">
+            <Typography variant="h6" fontWeight="900" fontFamily="'Inter', sans-serif">
               Saved Drafts
             </Typography>
           </Box>
@@ -638,10 +691,10 @@ export default function ItineraryBuilder() {
           </IconButton>
         </DialogTitle>
 
-        <DialogContent dividers sx={{ bgcolor: "#f8fafc" }}>
+        <DialogContent dividers sx={{ bgcolor: "#f8fafc", fontFamily: "'Inter', sans-serif" }}>
           {savedDrafts.length === 0 ? (
             <Typography
-              sx={{ py: 4, textAlign: "center" }}
+              sx={{ py: 4, textAlign: "center", fontFamily: "'Inter', sans-serif" }}
               color="text.secondary"
             >
               No drafts found.
@@ -754,6 +807,7 @@ export default function ItineraryBuilder() {
                       sx={{
                         textTransform: "none",
                         fontWeight: 700,
+                        fontFamily: "'Inter', sans-serif",
                         bgcolor:
                           draft.id === currentDraftId
                             ? "#10b981"
