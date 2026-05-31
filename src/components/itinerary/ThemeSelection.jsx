@@ -102,12 +102,7 @@ export default function ThemeSelection() {
       "custom:tmp_cover_img_id": config.coverImageId || "",
       "custom:tmp_pr_color": config.primaryColor || "",
       "custom:tmp_se_color": config.secondaryColor || "",
-      "custom:tmp_pr_contact": config.primaryContact || "",
-      "custom:tmp_se_contact": config.secondaryContact || "",
-      "custom:tmp_support_email": config.supportEmail || "",
-      "custom:tmp_website": config.website || "",
       "custom:tmp_font_style": config.fontStyle || "",
-      "custom:tmp_footer_text": config.footerText || "",
     };
     api.auth.updateProfileAttribute(newPayload).then(() => {
       api.auth.loadUserDetails().then((data) => {
@@ -466,121 +461,39 @@ export default function ThemeSelection() {
                   />
                 </Box>
               </Grid>
-            </Grid>
-          </FormSection>
-
-          <FormSection
-            title="Contact Information"
-            icon={<ContactPhoneOutlined color="primary" />}
-          >
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <StyledLabel text="Primary Contact" />
-                <Box sx={{ display: "flex", gap: 1 }}>
-                  <Select size="small" defaultValue="+91" sx={{ width: 90 }}>
-                    <MenuItem value="+91">+91</MenuItem>
-                    <MenuItem value="+1">+1</MenuItem>
-                    <MenuItem value="+44">+44</MenuItem>
-                  </Select>
-                  <TextField
+              <Grid item>
+                <Box sx={{ mb: 2 }}>
+                  <StyledLabel text="Font Style" />
+                  <Select
                     fullWidth
                     size="small"
-                    placeholder="9876543210"
-                    value={config.primaryContact}
+                    value={config.fontStyle || "Inter"}
                     onChange={(e) =>
-                      handleCustomChange("primaryContact", e.target.value)
+                      handleCustomChange("fontStyle", e.target.value)
                     }
-                  />
-                </Box>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <StyledLabel text="Secondary Contact" />
-                <Box sx={{ display: "flex", gap: 1 }}>
-                  <Select size="small" defaultValue="+91" sx={{ width: 90 }}>
-                    <MenuItem value="+91">+91</MenuItem>
-                    <MenuItem value="+1">+1</MenuItem>
+                  >
+                    <MenuItem value="Inter">Inter (Modern)</MenuItem>
+                    <MenuItem value="Playfair Display">
+                      Playfair Display (Luxury)
+                    </MenuItem>
+                    <MenuItem value="Poppins">Poppins (Clean)</MenuItem>
                   </Select>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    placeholder="9876543210"
-                    value={config.secondaryContact}
-                    onChange={(e) =>
-                      handleCustomChange("secondaryContact", e.target.value)
-                    }
-                  />
                 </Box>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <StyledLabel text="Support Email" />
-                <TextField
-                  fullWidth
-                  size="small"
-                  placeholder="support@travelhub.com"
-                  value={config.supportEmail}
-                  onChange={(e) =>
-                    handleCustomChange("supportEmail", e.target.value)
-                  }
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <StyledLabel text="Website" />
-                <TextField
-                  fullWidth
-                  size="small"
-                  placeholder="www.travelhub.com"
-                  value={config.website}
-                  onChange={(e) =>
-                    handleCustomChange("website", e.target.value)
-                  }
-                />
               </Grid>
             </Grid>
-          </FormSection>
-
-          <FormSection
-            title="Branding & Style"
-            icon={<StyleOutlined color="primary" />}
-          >
-            <Box sx={{ mb: 2 }}>
-              <StyledLabel text="Font Style" />
-              <Select
-                fullWidth
-                size="small"
-                value={config.fontStyle || "Inter"}
-                onChange={(e) =>
-                  handleCustomChange("fontStyle", e.target.value)
-                }
-              >
-                <MenuItem value="Inter">Inter (Modern)</MenuItem>
-                <MenuItem value="Playfair Display">
-                  Playfair Display (Luxury)
-                </MenuItem>
-                <MenuItem value="Poppins">Poppins (Clean)</MenuItem>
-              </Select>
-            </Box>
-            <Box>
-              <StyledLabel text="Footer Text" />
-              <TextField
-                fullWidth
-                multiline
-                rows={2}
-                placeholder="Add custom footer text..."
-                variant="outlined"
-                size="small"
-                value={config.footerText}
-                onChange={(e) =>
-                  handleCustomChange("footerText", e.target.value)
-                }
-              />
-            </Box>
             <Box
               sx={{
                 mt: 4,
               }}
             >
-              <Button onClick={handleSaveChanges} variant="outlined">
-                Save
+              <Button
+                sx={{
+                  color: "white",
+                }}
+                onClick={handleSaveChanges}
+                variant="contained"
+              >
+                Save Custom Template
               </Button>
             </Box>
           </FormSection>

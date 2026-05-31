@@ -25,7 +25,7 @@ import {
   WbSunnyOutlined,
   ColorizeOutlined,
   DeleteOutline,
-  AddOutlined
+  AddOutlined,
 } from "@mui/icons-material";
 
 // --- STYLED SUB-COMPONENTS ---
@@ -95,14 +95,14 @@ export default function Settings() {
   const { uploadBlob } = useBlobUpload();
   const { getBlob } = useBlobDownload();
 
-  const [userD, setUserD] = useState(userDetails || {});
+  const [userD, setUserD] = useState(userDetails);
   const [logoUrl, setLogoUrl] = useState("");
 
-  // 🚨 LOCAL STATE FOR BRANDING (NO BACKEND INTEGRATION) 🚨
-  const [brandingList, setBrandingList] = useState([{ title: "", subtitle: "" }]);
+  const [brandingList, setBrandingList] = useState([
+    { title: "", subtitle: "" },
+  ]);
 
   const handleSaveChanges = () => {
-    // 🚨 BACKEND PAYLOAD UNTOUCHED 🚨
     const newPayaLoad = {
       "custom:full_name": userD["custom:full_name"] || "",
       email: userD.email || "",
@@ -110,6 +110,13 @@ export default function Settings() {
       "custom:agency_name": userD["custom:agency_name"],
       given_name: userD.given_name || "",
       picture: userD.picture || "",
+      "custom:tmp_website": userD["custom:tmp_website"],
+      "custom:office_address": userD["custom:office_address"],
+      "custom:support_email": userD["custom:support_email"],
+      "custom:tmp_pr_contact": userD["custom:tmp_pr_contact"],
+      "custom:tmp_se_contact": userD["custom:tmp_se_contact"],
+      "custom:tmp_footer_text": userD["custom:tmp_footer_text"],
+      "custom:branding": JSON.stringify(brandingList),
     };
     api.auth.updateProfileAttribute(newPayaLoad).then(() => {
       api.auth.loadUserDetails().then((data) => {
@@ -119,8 +126,24 @@ export default function Settings() {
   };
 
   useEffect(() => {
-    setUserD(userDetails || {});
-  }, [userDetails]);
+    if (!userD) return;
+    let branding = [];
+    try {
+      branding = JSON.parse(userD["custom:branding"] || "[]");
+    } catch (e) {
+      branding = [];
+    }
+    setBrandingList(
+      branding.length
+        ? branding
+        : [
+            {
+              title: "",
+              subtitle: "",
+            },
+          ],
+    );
+  }, [userD]);
 
   useEffect(() => {
     api.auth.loadUserDetails().then((data) => {
@@ -346,105 +369,146 @@ export default function Settings() {
       </Paper>
 
       {/* 3. CONTACT INFORMATION */}
-      <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: 3, border: '1px solid #e2e8f0', bgcolor: '#fff' }}>
+      <Paper
+        elevation={0}
+        sx={{
+          p: 4,
+          mb: 4,
+          borderRadius: 3,
+          border: "1px solid #e2e8f0",
+          bgcolor: "#fff",
+        }}
+      >
         <SectionHeader title="Contact Information" />
-        
+
         <Grid container spacing={3}>
           <Grid item xs={12} md={6}>
             <FieldLabel text="Primary Contact" />
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Select 
-                size="small" 
-                defaultValue="+91" 
-                sx={{ 
-                  width: 85, bgcolor: '#f8fafc', borderRadius: 2, 
-                  '& fieldset': { borderColor: '#e2e8f0' },
-                  '&:hover fieldset': { borderColor: '#cbd5e1' },
-                  '& .MuiSelect-select': { py: 1.05, fontSize: '0.875rem', fontWeight: 500, color: '#334155' }
+            <Box sx={{ display: "flex", gap: 1 }}>
+              <Select
+                size="small"
+                defaultValue="+91"
+                sx={{
+                  width: 85,
+                  bgcolor: "#f8fafc",
+                  borderRadius: 2,
+                  "& fieldset": { borderColor: "#e2e8f0" },
+                  "&:hover fieldset": { borderColor: "#cbd5e1" },
+                  "& .MuiSelect-select": {
+                    py: 1.05,
+                    fontSize: "0.875rem",
+                    fontWeight: 500,
+                    color: "#334155",
+                  },
                 }}
               >
                 <MenuItem value="+91">+91</MenuItem>
                 <MenuItem value="+1">+1</MenuItem>
                 <MenuItem value="+44">+44</MenuItem>
               </Select>
-              <StyledTextField 
-                fullWidth 
-                placeholder="9876543210" 
-                value={userD["custom:primary_contact"] || ""}
-                onChange={(e) => handeleUserDtChange("custom:primary_contact", e.target.value)}
+              <StyledTextField
+                fullWidth
+                placeholder="9876543210"
+                value={userD["custom:tmp_pr_contact"] || ""}
+                onChange={(e) =>
+                  handeleUserDtChange("custom:tmp_pr_contact", e.target.value)
+                }
               />
             </Box>
           </Grid>
 
           <Grid item xs={12} md={6}>
             <FieldLabel text="Secondary Contact" />
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Select 
-                size="small" 
-                defaultValue="+91" 
-                sx={{ 
-                  width: 85, bgcolor: '#f8fafc', borderRadius: 2, 
-                  '& fieldset': { borderColor: '#e2e8f0' },
-                  '&:hover fieldset': { borderColor: '#cbd5e1' },
-                  '& .MuiSelect-select': { py: 1.05, fontSize: '0.875rem', fontWeight: 500, color: '#334155' }
+            <Box sx={{ display: "flex", gap: 1 }}>
+              <Select
+                size="small"
+                defaultValue="+91"
+                sx={{
+                  width: 85,
+                  bgcolor: "#f8fafc",
+                  borderRadius: 2,
+                  "& fieldset": { borderColor: "#e2e8f0" },
+                  "&:hover fieldset": { borderColor: "#cbd5e1" },
+                  "& .MuiSelect-select": {
+                    py: 1.05,
+                    fontSize: "0.875rem",
+                    fontWeight: 500,
+                    color: "#334155",
+                  },
                 }}
               >
                 <MenuItem value="+91">+91</MenuItem>
                 <MenuItem value="+1">+1</MenuItem>
                 <MenuItem value="+44">+44</MenuItem>
               </Select>
-              <StyledTextField 
-                fullWidth 
-                placeholder="9876543210" 
-                value={userD["custom:secondary_contact"] || ""}
-                onChange={(e) => handeleUserDtChange("custom:secondary_contact", e.target.value)}
+              <StyledTextField
+                fullWidth
+                placeholder="9876543210"
+                value={userD["custom:tmp_se_contact"] || ""}
+                onChange={(e) =>
+                  handeleUserDtChange("custom:tmp_se_contact", e.target.value)
+                }
               />
             </Box>
           </Grid>
 
           <Grid item xs={12} md={6}>
             <FieldLabel text="Support Email" />
-            <StyledTextField 
-              fullWidth 
-              placeholder="support@travelhub.com" 
+            <StyledTextField
+              fullWidth
+              placeholder="support@travelhub.com"
               value={userD["custom:support_email"] || ""}
-              onChange={(e) => handeleUserDtChange("custom:support_email", e.target.value)}
+              onChange={(e) =>
+                handeleUserDtChange("custom:support_email", e.target.value)
+              }
             />
           </Grid>
 
           <Grid item xs={12} md={6}>
             <FieldLabel text="Website" />
-            <StyledTextField 
-              fullWidth 
-              placeholder="www.travelhub.com" 
-              value={userD["custom:website"] || ""}
-              onChange={(e) => handeleUserDtChange("custom:website", e.target.value)}
+            <StyledTextField
+              fullWidth
+              placeholder="www.travelhub.com"
+              value={userD["custom:tmp_website"] || ""}
+              onChange={(e) =>
+                handeleUserDtChange("custom:tmp_website", e.target.value)
+              }
             />
           </Grid>
 
           <Grid item xs={12}>
             <FieldLabel text="Office Address" />
-            <StyledTextField 
-              fullWidth 
-              placeholder="eg: 123 Commerce St, Adyar, Chennai -28" 
+            <StyledTextField
+              fullWidth
+              placeholder="eg: 123 Commerce St, Adyar, Chennai -28"
               value={userD["custom:office_address"] || ""}
-              onChange={(e) => handeleUserDtChange("custom:office_address", e.target.value)}
+              onChange={(e) =>
+                handeleUserDtChange("custom:office_address", e.target.value)
+              }
             />
           </Grid>
         </Grid>
       </Paper>
 
       {/* 🚨 4. BRANDING DETAILS (LOCAL UI ONLY) 🚨 */}
-      <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: 3, border: '1px solid #e2e8f0', bgcolor: '#fff' }}>
+      <Paper
+        elevation={0}
+        sx={{
+          p: 4,
+          mb: 4,
+          borderRadius: 3,
+          border: "1px solid #e2e8f0",
+          bgcolor: "#fff",
+        }}
+      >
         <SectionHeader title="Branding" />
-        
         {brandingList.map((item, index) => (
           <Grid container spacing={2} alignItems="flex-end" mb={3} key={index}>
             <Grid item xs={12} md={4}>
               <FieldLabel text="Title" />
-              <StyledTextField 
-                fullWidth 
-                placeholder="IATA Accredited" 
+              <StyledTextField
+                fullWidth
+                placeholder="IATA Accredited"
                 value={item.title}
                 onChange={(e) => {
                   const newList = [...brandingList];
@@ -455,9 +519,9 @@ export default function Settings() {
             </Grid>
             <Grid item xs={12} md={6}>
               <FieldLabel text="Sub-Title" />
-              <StyledTextField 
-                fullWidth 
-                placeholder="Certified by International Air Transport" 
+              <StyledTextField
+                fullWidth
+                placeholder="Certified by International Air Transport"
                 value={item.subtitle}
                 onChange={(e) => {
                   const newList = [...brandingList];
@@ -466,9 +530,9 @@ export default function Settings() {
                 }}
               />
             </Grid>
-            <Grid item xs={12} md={2} sx={{ display: 'flex', gap: 1 }}>
-              <Button 
-                variant="outlined" 
+            <Grid item xs={12} md={2} sx={{ display: "flex", gap: 1 }}>
+              <Button
+                variant="outlined"
                 color="error"
                 onClick={() => {
                   if (brandingList.length > 1) {
@@ -476,15 +540,36 @@ export default function Settings() {
                   }
                 }}
                 disabled={brandingList.length === 1}
-                sx={{ minWidth: 40, width: 40, height: 40, p: 0, borderRadius: 2, borderColor: '#fecaca', bgcolor: '#fef2f2' }}
+                sx={{
+                  minWidth: 40,
+                  width: 40,
+                  height: 40,
+                  p: 0,
+                  borderRadius: 2,
+                  borderColor: "#fecaca",
+                  bgcolor: "#fef2f2",
+                }}
               >
                 <DeleteOutline fontSize="small" />
               </Button>
               {index === brandingList.length - 1 && (
-                <Button 
-                  variant="outlined" 
-                  onClick={() => setBrandingList([...brandingList, { title: "", subtitle: "" }])}
-                  sx={{ minWidth: 40, width: 40, height: 40, p: 0, borderRadius: 2, borderColor: '#e2e8f0', color: '#0f172a' }}
+                <Button
+                  variant="outlined"
+                  onClick={() =>
+                    setBrandingList([
+                      ...brandingList,
+                      { title: "", subtitle: "" },
+                    ])
+                  }
+                  sx={{
+                    minWidth: 40,
+                    width: 40,
+                    height: 40,
+                    p: 0,
+                    borderRadius: 2,
+                    borderColor: "#e2e8f0",
+                    color: "#0f172a",
+                  }}
                 >
                   <AddOutlined fontSize="small" />
                 </Button>
@@ -495,34 +580,59 @@ export default function Settings() {
 
         <Box>
           <FieldLabel text="Footer Text" />
-          <StyledTextField 
-            fullWidth 
-            placeholder="Add custom footer text..." 
-            value={userD["custom:footer_text"] || ""}
-            onChange={(e) => handeleUserDtChange("custom:footer_text", e.target.value)}
+          <StyledTextField
+            fullWidth
+            placeholder="Add custom footer text..."
+            value={userD["custom:tmp_footer_text"] || ""}
+            onChange={(e) =>
+              handeleUserDtChange("custom:tmp_footer_text", e.target.value)
+            }
           />
         </Box>
       </Paper>
 
       {/* CHANGE PASSWORD */}
-      <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: 3, border: '1px solid #e2e8f0', bgcolor: '#fff' }}>
-        <Typography variant="subtitle1" fontWeight="800" color="#0f172a" mb={3}>Change Password</Typography>
-        
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+      <Paper
+        elevation={0}
+        sx={{
+          p: 4,
+          mb: 4,
+          borderRadius: 3,
+          border: "1px solid #e2e8f0",
+          bgcolor: "#fff",
+        }}
+      >
+        <Typography variant="subtitle1" fontWeight="800" color="#0f172a" mb={3}>
+          Change Password
+        </Typography>
+
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
           <Box>
             <FieldLabel text="Current Password" />
-            <StyledTextField fullWidth type="password" placeholder="Enter current password" />
+            <StyledTextField
+              fullWidth
+              type="password"
+              placeholder="Enter current password"
+            />
           </Box>
           <Box>
             <FieldLabel text="New Password" />
-            <StyledTextField fullWidth type="password" placeholder="Enter New current password" />
+            <StyledTextField
+              fullWidth
+              type="password"
+              placeholder="Enter New current password"
+            />
           </Box>
           <Box>
             <FieldLabel text="Confirm Password" />
-            <StyledTextField fullWidth type="password" placeholder="Confirm new password" />
+            <StyledTextField
+              fullWidth
+              type="password"
+              placeholder="Confirm new password"
+            />
           </Box>
         </Box>
-      </Paper> 
+      </Paper>
 
       {/* SAVE BUTTON */}
       <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>

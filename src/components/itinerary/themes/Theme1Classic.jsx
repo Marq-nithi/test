@@ -36,6 +36,7 @@ import {
   LocationOnOutlined,
   Security,
 } from "@mui/icons-material";
+import LanguageIcon from "@mui/icons-material/Language";
 import { useApi } from "@michaeldothedi-service/dta-crm-sl-sdk";
 import { useBlobDownload } from "../../../services/backendApi";
 
@@ -108,7 +109,6 @@ export default function Theme1Classic() {
   const [coverUrl, setCoverUrl] = useState("");
 
   useEffect(() => {
-    console.log(userDetails);
     const loadLogo = async () => {
       try {
         const logoId = userDetails?.picture;
@@ -1976,10 +1976,7 @@ export default function Theme1Classic() {
                       variant="caption"
                       sx={{ opacity: 0.8, display: "block" }}
                     >
-                      Senior Travel Consultant
-                    </Typography>
-                    <Typography variant="caption" sx={{ opacity: 0.8 }}>
-                      15+ Years Experience
+                      Your Travel Consultant
                     </Typography>
                   </Box>
                 </Box>
@@ -2004,7 +2001,11 @@ export default function Theme1Classic() {
                   >
                     <Phone fontSize="small" sx={{ opacity: 0.8 }} />
                     <Typography variant="body2" fontWeight="600">
-                      {agencyPhone}
+                      {userDetails["custom:tmp_pr_contact"]}
+                      {userDetails["custom:tmp_se_contact"] &&
+                      userDetails["custom:tmp_se_contact"].length > 0
+                        ? ` / ${userDetails["custom:tmp_se_contact"]}`
+                        : ""}
                     </Typography>
                   </Box>
                   <Box
@@ -2022,6 +2023,21 @@ export default function Theme1Classic() {
                       {agencyEmail}
                     </Typography>
                   </Box>
+                  <Box
+                    sx={{
+                      bgcolor: "rgba(255,255,255,0.1)",
+                      p: 1.5,
+                      borderRadius: 2,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1.5,
+                    }}
+                  >
+                    <LanguageIcon fontSize="small" sx={{ opacity: 0.8 }} />
+                    <Typography variant="body2" fontWeight="600">
+                      {userDetails["custom:tmp_website"]}
+                    </Typography>
+                  </Box>
                   <Button
                     variant="contained"
                     startIcon={<WhatsApp />}
@@ -2036,7 +2052,7 @@ export default function Theme1Classic() {
                       "&:hover": { bgcolor: "#059669" },
                     }}
                   >
-                    Chat on WhatsApp - {agencyPhone}
+                    Chat on WhatsApp - {userDetails["custom:tmp_pr_contact"]}
                   </Button>
                 </Box>
               </Paper>
@@ -2072,78 +2088,37 @@ export default function Theme1Classic() {
                     mb: 4,
                   }}
                 >
-                  <Box sx={{ display: "flex", gap: 2 }}>
-                    <Avatar
-                      sx={{
-                        bgcolor: "#e0f2fe",
-                        color: "#0ea5e9",
-                        width: 40,
-                        height: 40,
-                      }}
-                    >
-                      <VerifiedUserOutlined fontSize="small" />
-                    </Avatar>
-                    <Box>
-                      <Typography
-                        variant="body2"
-                        fontWeight="800"
-                        color="#0f172a"
-                      >
-                        IATA Accredited
-                      </Typography>
-                      <Typography variant="caption" color="#64748b">
-                        Certified by International Air Transport Association
-                      </Typography>
-                    </Box>
-                  </Box>
-                  <Box sx={{ display: "flex", gap: 2 }}>
-                    <Avatar
-                      sx={{
-                        bgcolor: "#e0f2fe",
-                        color: "#0ea5e9",
-                        width: 40,
-                        height: 40,
-                      }}
-                    >
-                      <ShieldOutlined fontSize="small" />
-                    </Avatar>
-                    <Box>
-                      <Typography
-                        variant="body2"
-                        fontWeight="800"
-                        color="#0f172a"
-                      >
-                        Licensed & Insured
-                      </Typography>
-                      <Typography variant="caption" color="#64748b">
-                        Full protection and security for your bookings
-                      </Typography>
-                    </Box>
-                  </Box>
-                  <Box sx={{ display: "flex", gap: 2 }}>
-                    <Avatar
-                      sx={{
-                        bgcolor: "#e0f2fe",
-                        color: "#0ea5e9",
-                        width: 40,
-                        height: 40,
-                      }}
-                    >
-                      <AccessTimeOutlined fontSize="small" />
-                    </Avatar>
-                    <Box>
-                      <Typography
-                        variant="body2"
-                        fontWeight="800"
-                        color="#0f172a"
-                      >
-                        24/7 Support
-                      </Typography>
-                      <Typography variant="caption" color="#64748b">
-                        Around the clock assistance during your travels
-                      </Typography>
-                    </Box>
-                  </Box>
+                  {userDetails["custom:branding"] &&
+                    JSON.parse(
+                      userDetails["custom:branding"]
+                        ? userDetails["custom:branding"]
+                        : [],
+                    ).map((value) => (
+                      <Box sx={{ display: "flex", gap: 2 }}>
+                        <Avatar
+                          sx={{
+                            bgcolor: "#e0f2fe",
+                            color: "#0ea5e9",
+                            width: 40,
+                            height: 40,
+                          }}
+                        >
+                          <VerifiedUserOutlined fontSize="small" />
+                        </Avatar>
+                        <Box>
+                          <Typography
+                            variant="body2"
+                            fontWeight="800"
+                            color="#0f172a"
+                          >
+                            {value.title}
+                          </Typography>
+                          <Typography variant="caption" color="#64748b">
+                            {value.subtitle}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    ))}
                 </Box>
 
                 <Typography
@@ -2167,8 +2142,7 @@ export default function Theme1Classic() {
                   </Avatar>
                   <Box sx={{ display: "flex", alignItems: "center" }}>
                     <Typography variant="caption" color="#64748b">
-                      {themeConfig?.website ||
-                        "123 Commerce St, San Francisco, CA 94102"}
+                      {userDetails["custom:office_address"]}
                     </Typography>
                   </Box>
                 </Box>
