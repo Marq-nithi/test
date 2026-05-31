@@ -153,13 +153,27 @@ export default function Login({ onLogin }) {
           .loginByEmailPassword(formData.email, formData.password)
           .then(async (data) => {
             // api context provider login
-            login(data.idToken);
+            // console.log(data)
 
-            // application login flag
-            const userDetails = await api.auth.loadUserDetails();
-            setUser(userDetails);
-            onLogin();
-            navigate("/dashboard");
+            if (data.singIn) {
+              login(data.idToken);
+              const userDetails = {};
+              setUser(userDetails);
+              onLogin();
+              navigate("/dashboard");
+            } else {
+              const newPassword = await prompt("Enter Your New Password");
+              api.auth.confirmNewPassword(newPassword).then(() => {
+                api.auth.handleLogout().then(() => {
+                  alert(
+                    "User has confirmed successfull login with new password",
+                  );
+                });
+              });
+            }
+          })
+          .catch(() => {
+            alert("Invalid Login");
           });
       }
     }
@@ -461,21 +475,6 @@ export default function Login({ onLogin }) {
                 />
               ) : (
                 <>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        sx={{
-                          color: "#cbd5e1",
-                          "&.Mui-checked": { color: "#4f46e5" },
-                        }}
-                      />
-                    }
-                    label={
-                      <Typography variant="caption" color="#475569">
-                        Remember me
-                      </Typography>
-                    }
-                  />
                   <Link
                     href="#"
                     variant="caption"
@@ -485,7 +484,7 @@ export default function Login({ onLogin }) {
                       textDecoration: "none",
                     }}
                   >
-                    Forgot Password?
+                    In case of forget password contact admin.
                   </Link>
                 </>
               )}
@@ -497,6 +496,7 @@ export default function Login({ onLogin }) {
               variant="contained"
               fullWidth
               sx={{
+                color: "white",
                 py: 1.5,
                 mt: 1,
                 bgcolor: "#4f46e5",
@@ -506,64 +506,6 @@ export default function Login({ onLogin }) {
             >
               {isSignUp ? "Register Agency" : "Sign In"}
             </Button>
-
-            {/* Social Login */}
-            {!isSignUp && (
-              <>
-                <Divider
-                  sx={{
-                    my: 2,
-                    "&::before, &::after": { borderColor: "#e2e8f0" },
-                  }}
-                >
-                  <Typography variant="caption" color="#94a3b8">
-                    Or Sign in with
-                  </Typography>
-                </Divider>
-                <Box display="flex" gap={2}>
-                  <Button
-                    fullWidth
-                    variant="outlined"
-                    onClick={() => {
-                      handleGoogleLogin();
-                    }}
-                    startIcon={<Google sx={{ color: "#DB4437" }} />}
-                    sx={{
-                      py: 1,
-                      borderColor: "#e2e8f0",
-                      color: "#475569",
-                      fontWeight: 600,
-                    }}
-                  >
-                    Google
-                  </Button>
-                </Box>
-              </>
-            )}
-
-            {/* Toggle Form Link */}
-            <Typography
-              variant="caption"
-              textAlign="center"
-              mt={3}
-              display="block"
-              color="#64748b"
-            >
-              {isSignUp ? "Already registered? " : "New to Atlas? "}
-              <Link
-                component="button"
-                type="button"
-                onClick={handleToggleForm}
-                sx={{
-                  color: "#4f46e5",
-                  fontWeight: 700,
-                  textDecoration: "none",
-                  verticalAlign: "baseline",
-                }}
-              >
-                {isSignUp ? "Sign In" : "Create an Account"}
-              </Link>
-            </Typography>
           </form>
         </Paper>
       </Box>

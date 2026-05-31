@@ -157,6 +157,31 @@ export default function Settings() {
       [field]: value,
     }));
   };
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [currentPasswod, setCurrentPassword] = useState("");
+  const handleChangeNewPassword = () => {
+    if (newPassword != confirmNewPassword) {
+      alert("New Password is not matching.");
+      return;
+    } else {
+      api.auth
+        .changePassword(currentPasswod, newPassword)
+        .then((data) => {
+          if (data.success) {
+            setNewPassword("");
+            setCurrentPassword("");
+            setConfirmNewPassword("");
+            alert("Password Has Been Updated.");
+          } else {
+            alert("Error in password update.");
+          }
+        })
+        .catch(() => {
+          alert("Error in password update.");
+        });
+    }
+  };
 
   const handleAgencyLogoUpload = async () => {
     const uploadedId = await uploadBlob("image/*");
@@ -611,6 +636,8 @@ export default function Settings() {
             <FieldLabel text="Current Password" />
             <StyledTextField
               fullWidth
+              value={currentPasswod}
+              onChange={(e) => setCurrentPassword(e.target.value)}
               type="password"
               placeholder="Enter current password"
             />
@@ -619,6 +646,8 @@ export default function Settings() {
             <FieldLabel text="New Password" />
             <StyledTextField
               fullWidth
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
               type="password"
               placeholder="Enter New current password"
             />
@@ -627,9 +656,14 @@ export default function Settings() {
             <FieldLabel text="Confirm Password" />
             <StyledTextField
               fullWidth
+              value={confirmNewPassword}
+              onChange={(e) => setConfirmNewPassword(e.target.value)}
               type="password"
               placeholder="Confirm new password"
             />
+          </Box>
+          <Box>
+            <Button onClick={handleChangeNewPassword}>Update Password</Button>
           </Box>
         </Box>
       </Paper>
