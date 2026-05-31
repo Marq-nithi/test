@@ -22,7 +22,7 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   return (
-    <ApiProvider config={{ baseURL: "http://52.66.212.83:8000" }}>
+    <ApiProvider config={{ baseURL: "http://13.232.9.87:8000" }}>
       <ItineraryProvider
         onLogin={() => {
           setIsAuthenticated(true);
@@ -66,7 +66,10 @@ export default function App() {
                           element={<ItineraryBuilder />}
                         />
                         <Route path="/settings" element={<Settings />} />
-                           <Route path="/masterentry" element={<MasterEntries />} />
+                        <Route
+                          path="/masterentry"
+                          element={<MasterEntries />}
+                        />
                       </Routes>
                     </MainLayout>
                   ) : (
