@@ -224,7 +224,7 @@ export const ItineraryProvider = ({ children, onLogin }) => {
   };
 
   // Step Handlers
-  const handleNext = () => setStep((prev) => Math.min(prev + 1, 9));
+  const handleNext = () => setStep((prev) => Math.min(prev + 1, 10));
   const handlePrev = () => setStep((prev) => Math.max(prev - 1, 1));
   const resetItineraryState = () => {
     setClientData({});

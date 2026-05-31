@@ -11,7 +11,6 @@ import {
   FormControlLabel,
   Checkbox,
   Button,
-  InputAdornment,
   Chip,
   Autocomplete,
 } from "@mui/material";
@@ -19,13 +18,14 @@ import { Add, Remove, DeleteOutline } from "@mui/icons-material";
 import { useItinerary } from "../../context/ItineraryContext";
 import { useMasterEntries } from "../../services/backendApi";
 
-// Exact Figma Field Label
+// 🚨 EXACT FIGMA FIELD LABEL
 const FieldLabel = ({ text, required }) => (
   <Typography
     variant="caption"
     sx={{
+      fontFamily: "'Inter', sans-serif",
       fontWeight: 600,
-      color: "#334155",
+      color: "#0f172a",
       mb: 1,
       display: "block",
       fontSize: "0.85rem",
@@ -35,17 +35,19 @@ const FieldLabel = ({ text, required }) => (
   </Typography>
 );
 
-// Custom Styled Input matching your Figma aesthetic
+// 🚨 CUSTOM STYLED INPUT MATCHING EXACT FIGMA SPECS (44px Height, 0.67px Border, 8px Radius)
 const StyledTextField = (props) => (
   <TextField
     {...props}
-    size="small"
     sx={{
       "& .MuiOutlinedInput-root": {
         bgcolor: "#fff",
-        borderRadius: "8px",
+        borderRadius: "8px",     // Exact border radius
+        height: "44px",          // Exact height
+        padding: props.select ? "0px" : "0px",
         "& fieldset": {
           borderColor: "#e2e8f0",
+          borderWidth: "0.67px", // Exact border width
           transition: "all 0.2s ease-in-out",
         },
         "&:hover fieldset": { borderColor: "#cbd5e1" },
@@ -55,9 +57,21 @@ const StyledTextField = (props) => (
         },
       },
       "& .MuiInputBase-input": {
-        color: "#475569",
-        fontSize: "0.875rem",
+        fontFamily: "'Inter', sans-serif",
         fontWeight: 400,
+        fontSize: "14px",
+        lineHeight: "100%",
+        letterSpacing: "0px",
+        color: "#334155",
+        height: "100%",
+        boxSizing: "border-box",
+        px: 1.5,
+        display: "flex",
+        alignItems: "center",
+      },
+      "& .MuiSelect-select": {
+        display: "flex",
+        alignItems: "center",
       },
       ...props.sx,
     }}
@@ -207,25 +221,23 @@ export default function StayDetails() {
     );
   };
 
-  // SAFE Amenities Handlers
   const handleAddAmenity = (hotelId, event) => {
     if (event.key === "Enter" && event.target.value.trim() !== "") {
       event.preventDefault();
       const newAmenity = event.target.value.trim();
       const hotel = hotels.find((h) => h.id === hotelId);
-
-      const safeAmenities = hotel.amenities || []; // Safety check
+      const safeAmenities = hotel.amenities || []; 
 
       if (!safeAmenities.includes(newAmenity)) {
         handleUpdate(hotelId, "amenities", [...safeAmenities, newAmenity]);
       }
-      event.target.value = ""; // clear input
+      event.target.value = ""; 
     }
   };
 
   const handleRemoveAmenity = (hotelId, amenityToRemove) => {
     const hotel = hotels.find((h) => h.id === hotelId);
-    const safeAmenities = hotel.amenities || []; // Safety check
+    const safeAmenities = hotel.amenities || [];
     handleUpdate(
       hotelId,
       "amenities",
@@ -237,526 +249,508 @@ export default function StayDetails() {
     <Box
       sx={{
         p: { xs: 2, md: 4 },
-        maxWidth: 1200,
-        mx: "auto",
         bgcolor: "#f8fafc",
         minHeight: "100vh",
         pb: 12,
+        fontFamily: "'Inter', sans-serif"
       }}
     >
-      {/* HEADER */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          mb: 3,
-        }}
-      >
-        <Box>
-          <Typography variant="h5" fontWeight="800" color="#0f172a" mb={0.5}>
-            Hotel Details
-          </Typography>
-          <Typography variant="body2" color="#64748b">
-            Configure hotel accommodation for your client's trip
-          </Typography>
-        </Box>
-        <Button
-          variant="outlined"
-          size="small"
-          onClick={handleClearAll}
+      <Box sx={{ maxWidth: "1136px", mx: "auto" }}>
+        {/* HEADER */}
+        <Box
           sx={{
-            borderColor: "#e2e8f0",
-            color: "#334155",
-            fontWeight: 600,
-            textTransform: "none",
-            borderRadius: "8px",
-            px: 3,
-            bgcolor: "#fff",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            mb: 3,
           }}
         >
-          Clear All
-        </Button>
-      </Box>
-
-      {/* HOTEL CARDS */}
-      {(hotels || []).map((hotel, index) => {
-        const safeAmenities = hotel.amenities || [];
-
-        return (
-          <Paper
-            key={hotel.id}
-            elevation={0}
+          <Box>
+            <Typography variant="h6" fontWeight="800" color="#0f172a" mb={0.5} sx={{ fontFamily: "'Inter', sans-serif" }}>
+              Hotel Details
+            </Typography>
+            <Typography variant="body2" color="#64748b" sx={{ fontFamily: "'Inter', sans-serif" }}>
+              Configure hotel accommodation for your client's trip
+            </Typography>
+          </Box>
+          <Button
+            variant="outlined"
+            onClick={handleClearAll}
             sx={{
-              p: 4,
-              border: "1px solid #e2e8f0",
-              borderRadius: "12px",
-              mb: 3,
+              borderColor: "#e2e8f0",
+              color: "#0f172a",
+              fontWeight: 600,
+              textTransform: "none",
+              borderRadius: "8px",
+              px: 3,
+              height: "36px",
               bgcolor: "#fff",
+              fontFamily: "'Inter', sans-serif"
             }}
           >
-            <Box
+            Clear All
+          </Button>
+        </Box>
+
+        {/* HOTEL CARDS */}
+        {(hotels || []).map((hotel, index) => {
+          const safeAmenities = hotel.amenities || [];
+
+          return (
+            <Paper
+              key={hotel.id}
+              elevation={0}
               sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
+                p: 4,
+                border: "0.6px solid #e2e8f0", // Exact border width
+                borderRadius: "12.51px",       // Exact border radius
                 mb: 3,
+                bgcolor: "#fff",
+                position: "relative",
+                width: "100%",
+                maxWidth: "1136px",            // Exact width constraint
+                minHeight: "399px",            // Exact height constraint
               }}
             >
-              <Typography
-                variant="subtitle1"
-                sx={{ fontWeight: 800, color: "#0f172a" }}
+              {/* CARD TITLE & DELETE BUTTON */}
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 4,
+                }}
               >
-                {hotel.type === "main"
-                  ? "Hotel Accommodation"
-                  : hotel.type === "split"
-                    ? "Split Stay Accommodation"
-                    : "Additional Hotel"}
-              </Typography>
-
-              {index > 0 && (
-                <IconButton
-                  size="small"
-                  onClick={() => handleRemoveHotel(hotel.id)}
-                  sx={{
-                    color: "#ef4444",
-                    border: "1px solid #fecaca",
-                    bgcolor: "#fff",
-                    borderRadius: "6px",
-                  }}
+                <Typography
+                  variant="subtitle1"
+                  sx={{ fontWeight: 800, color: "#0f172a", fontFamily: "'Inter', sans-serif" }}
                 >
-                  <DeleteOutline fontSize="small" />
-                </IconButton>
-              )}
-            </Box>
+                  {hotel.type === "main"
+                    ? "Hotel Accommodation"
+                    : hotel.type === "split"
+                      ? "Split Stay Accommodation"
+                      : "Additional Hotel"}
+                </Typography>
 
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={3}>
-                <FieldLabel text="Location" />
-                <StyledTextField
-                  fullWidth
-                  placeholder="Goa, India"
-                  value={hotel.location}
-                  onChange={(e) =>
-                    handleUpdate(hotel.id, "location", e.target.value)
-                  }
-                />
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <FieldLabel text="Hotel Name" required />
-                <Autocomplete
-                  freeSolo
-                  fullWidth
-                  options={sugg}
-                  value={
-                    sugg.find(
-                      (option) =>
-                        option.value === hotel.hotelMasterId ||
-                        option.value === hotel.hotelName ||
-                        option.label === hotel.hotelName,
-                    ) ||
-                    hotel.hotelName ||
-                    ""
-                  }
-                  onChange={(_, selectedOption) =>
-                    handleHotelSuggestionSelect(hotel.id, selectedOption)
-                  }
-                  onInputChange={(_, inputValue, reason) => {
-                    if (reason === "input") {
-                      handleUpdate(hotel.id, "hotelName", inputValue);
-                      handleUpdate(hotel.id, "hotelMasterId", null);
+                {index > 0 && (
+                  <IconButton
+                    size="small"
+                    onClick={() => handleRemoveHotel(hotel.id)}
+                    sx={{
+                      color: "#ef4444",
+                      border: "1px solid #fecaca",
+                      bgcolor: "#fff",
+                      borderRadius: "6px",
+                    }}
+                  >
+                    <DeleteOutline fontSize="small" />
+                  </IconButton>
+                )}
+              </Box>
+
+              {/* 🚨 EXPLICIT VERTICAL LAYOUT TO PREVENT GRID COLLAPSING 🚨 */}
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                
+                {/* --- ROW 1: LOCATION (Isolated, Exact 357px Width) --- */}
+                <Box sx={{ width: "100%", maxWidth: "357px" }}>
+                  <FieldLabel text="Location" />
+                  <StyledTextField
+                    fullWidth
+                    placeholder="Goa, India"
+                    value={hotel.location}
+                    onChange={(e) =>
+                      handleUpdate(hotel.id, "location", e.target.value)
                     }
-                  }}
-                  getOptionLabel={(option) =>
-                    typeof option === "string" ? option : option?.label || ""
-                  }
-                  // 🚨 BUG FIX: Safe comparison logic so it never crashes!
-                  isOptionEqualToValue={(option, val) => {
-                    if (!option || !val) return false;
-                    return option?.value === val?.value || option?.label === val?.label || option?.label === val;
-                  }}
-                  renderInput={(params) => (
-                    <StyledTextField
-                      {...params}
+                  />
+                </Box>
+
+                {/* --- ROW 2: HOTEL NAME, PREF, CATEGORY, ROOMS --- */}
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={3}>
+                    <FieldLabel text="Hotel Name" required />
+                    <Autocomplete
+                      freeSolo
                       fullWidth
-                      placeholder="e.g. SVG"
-                    />
-                  )}
-                />
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <FieldLabel text="Hotel Preference" required />
-                <StyledTextField
-                  select
-                  fullWidth
-                  value={hotel.hotelPref || "Luxury Resort"}
-                  onChange={(e) =>
-                    handleUpdate(hotel.id, "hotelPref", e.target.value)
-                  }
-                >
-                  <MenuItem value="Budget">Budget</MenuItem>
-                  <MenuItem value="3 Star">3 Star</MenuItem>
-                  <MenuItem value="4 Star">4 Star</MenuItem>
-                  <MenuItem value="5 Star">5 Star</MenuItem>
-                  <MenuItem value="Luxury Resort">Luxury Resort</MenuItem>
-                </StyledTextField>
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <FieldLabel text="Room Category" />
-                <StyledTextField
-                  fullWidth
-                  placeholder="Deluxe"
-                  value={hotel.roomCat}
-                  onChange={(e) =>
-                    handleUpdate(hotel.id, "roomCat", e.target.value)
-                  }
-                />
-              </Grid>
-
-              {/* Row 2: Check-in / Check-out */}
-              <Grid item xs={12} md={3}>
-                <FieldLabel text="Check-In Date" required />
-                <StyledTextField
-                  fullWidth
-                  type="date"
-                  value={hotel.checkInDate}
-                  onChange={(e) =>
-                    handleUpdate(hotel.id, "checkInDate", e.target.value)
-                  }
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <FieldLabel text="Check-In Time" />
-                <StyledTextField
-                  select
-                  fullWidth
-                  value={hotel.checkInTime || "3:00 PM"}
-                  onChange={(e) =>
-                    handleUpdate(hotel.id, "checkInTime", e.target.value)
-                  }
-                >
-                  <MenuItem value="12:00 PM">12:00 PM</MenuItem>
-                  <MenuItem value="2:00 PM">2:00 PM</MenuItem>
-                  <MenuItem value="3:00 PM">3:00 PM</MenuItem>
-                </StyledTextField>
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <FieldLabel text="Check-Out Date" required />
-                <StyledTextField
-                  fullWidth
-                  type="date"
-                  value={hotel.checkOutDate}
-                  onChange={(e) =>
-                    handleUpdate(hotel.id, "checkOutDate", e.target.value)
-                  }
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <FieldLabel text="Check-Out Time" />
-                <StyledTextField
-                  select
-                  fullWidth
-                  value={hotel.checkOutTime || "11:00 AM"}
-                  onChange={(e) =>
-                    handleUpdate(hotel.id, "checkOutTime", e.target.value)
-                  }
-                >
-                  <MenuItem value="10:00 AM">10:00 AM</MenuItem>
-                  <MenuItem value="11:00 AM">11:00 AM</MenuItem>
-                  <MenuItem value="12:00 PM">12:00 PM</MenuItem>
-                </StyledTextField>
-              </Grid>
-
-              {/* Row 3: Rooms, Price, Amenities Input, Selected Amenities Box */}
-              <Grid item xs={12} md={3}>
-                <FieldLabel text="Rooms" required />
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <IconButton
-                    size="small"
-                    onClick={() => handleCountUpdate(hotel.id, "rooms", -1)}
-                    sx={{
-                      border: "1px solid #e2e8f0",
-                      borderRadius: "6px",
-                      width: 36,
-                      height: 36,
-                    }}
-                  >
-                    <Remove fontSize="small" sx={{ color: "#64748b" }} />
-                  </IconButton>
-                  <Box
-                    sx={{
-                      border: "1px solid #e2e8f0",
-                      width: "100%",
-                      height: 36,
-                      borderRadius: "6px",
-                      display: "flex",
-                      alignItems: "center",
-                      px: 2,
-                    }}
-                  >
-                    <Typography
-                      variant="body2"
-                      sx={{ fontWeight: 500, color: "#334155" }}
-                    >
-                      {hotel.rooms || 1}
-                    </Typography>
-                  </Box>
-                  <IconButton
-                    size="small"
-                    onClick={() => handleCountUpdate(hotel.id, "rooms", 1)}
-                    sx={{
-                      border: "1px solid #e2e8f0",
-                      borderRadius: "6px",
-                      width: 36,
-                      height: 36,
-                    }}
-                  >
-                    <Add fontSize="small" sx={{ color: "#64748b" }} />
-                  </IconButton>
-                </Box>
-              </Grid>
-
-              <Grid item xs={12} md={3}>
-                <FieldLabel text="Price" />
-                <StyledTextField
-                  fullWidth
-                  type="number"
-                  placeholder="200"
-                  value={hotel.price || ""}
-                  onChange={(e) =>
-                    handleUpdate(hotel.id, "price", e.target.value)
-                  }
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment
-                        position="start"
-                        sx={{ color: "#475569" }}
-                      >
-                        $
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={3}>
-                <FieldLabel text="Amenities" />
-                <StyledTextField
-                  fullWidth
-                  placeholder="Free Wifi (Press Enter)"
-                  onKeyDown={(e) => handleAddAmenity(hotel.id, e)}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={3}>
-                <FieldLabel text="Selected Amenities" />
-                <Box
-                  sx={{
-                    minHeight: "40px",
-                    border: "1px solid #e2e8f0",
-                    borderRadius: "8px",
-                    bgcolor: "#fff",
-                    p: 0.5,
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: 0.5,
-                    alignItems: "center",
-                  }}
-                >
-                  {safeAmenities.map((amenity) => (
-                    <Chip
-                      key={amenity}
-                      label={amenity}
-                      onDelete={() => handleRemoveAmenity(hotel.id, amenity)}
-                      size="small"
-                      sx={{
-                        bgcolor: "#f0f9ff",
-                        color: "#0ea5e9",
-                        border: "1px solid #bae6fd",
-                        "& .MuiChip-deleteIcon": {
-                          color: "#0ea5e9",
-                          "&:hover": { color: "#0284c7" },
-                        },
+                      options={sugg}
+                      value={
+                        sugg.find(
+                          (option) =>
+                            option.value === hotel.hotelMasterId ||
+                            option.value === hotel.hotelName ||
+                            option.label === hotel.hotelName,
+                        ) ||
+                        hotel.hotelName ||
+                        ""
+                      }
+                      onChange={(_, selectedOption) =>
+                        handleHotelSuggestionSelect(hotel.id, selectedOption)
+                      }
+                      onInputChange={(_, inputValue, reason) => {
+                        if (reason === "input") {
+                          handleUpdate(hotel.id, "hotelName", inputValue);
+                          handleUpdate(hotel.id, "hotelMasterId", null);
+                        }
                       }}
+                      getOptionLabel={(option) =>
+                        typeof option === "string" ? option : option?.label || ""
+                      }
+                      isOptionEqualToValue={(option, val) => {
+                        if (!option || !val) return false;
+                        return option?.value === val?.value || option?.label === val?.label || option?.label === val;
+                      }}
+                      renderInput={(params) => (
+                        <StyledTextField
+                          {...params}
+                          fullWidth
+                          placeholder="e.g. SVG"
+                        />
+                      )}
                     />
-                  ))}
-                  {safeAmenities.length === 0 && (
-                    <Typography
-                      variant="body2"
-                      sx={{ color: "#94a3b8", ml: 1 }}
+                  </Grid>
+                  <Grid item xs={12} md={3}>
+                    <FieldLabel text="Hotel Preference" required />
+                    <StyledTextField
+                      select
+                      fullWidth
+                      value={hotel.hotelPref || "Luxury Resort"}
+                      onChange={(e) =>
+                        handleUpdate(hotel.id, "hotelPref", e.target.value)
+                      }
                     >
-                      No amenities added
-                    </Typography>
-                  )}
+                      <MenuItem value="Budget" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>Budget</MenuItem>
+                      <MenuItem value="3 Star" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>3 Star</MenuItem>
+                      <MenuItem value="4 Star" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>4 Star</MenuItem>
+                      <MenuItem value="5 Star" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>5 Star</MenuItem>
+                      <MenuItem value="Luxury Resort" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>Luxury Resort</MenuItem>
+                    </StyledTextField>
+                  </Grid>
+                  <Grid item xs={12} md={3}>
+                    <FieldLabel text="Room Category" />
+                    <StyledTextField
+                      fullWidth
+                      placeholder="Deluxe"
+                      value={hotel.roomCat}
+                      onChange={(e) =>
+                        handleUpdate(hotel.id, "roomCat", e.target.value)
+                      }
+                    />
+                  </Grid>
+
+                  {/* ROOMS COUNTER (Exact 44px Height) */}
+                  <Grid item xs={12} md={3}>
+                    <FieldLabel text="Rooms" required />
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <IconButton
+                        onClick={() => handleCountUpdate(hotel.id, "rooms", -1)}
+                        sx={{
+                          border: "0.67px solid #e2e8f0",
+                          borderRadius: "8px",
+                          width: "44px",
+                          height: "44px",
+                          bgcolor: "#f8fafc"
+                        }}
+                      >
+                        <Remove sx={{ color: "#64748b", fontSize: "1.2rem" }} />
+                      </IconButton>
+                      <Box
+                        sx={{
+                          border: "0.67px solid #e2e8f0",
+                          flexGrow: 1, 
+                          height: "44px",
+                          borderRadius: "8px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          bgcolor: "#f8fafc"
+                        }}
+                      >
+                        <Typography
+                          variant="body2"
+                          sx={{ fontWeight: 500, color: "#334155", fontFamily: "'Inter', sans-serif" }}
+                        >
+                          {hotel.rooms || 1}
+                        </Typography>
+                      </Box>
+                      <IconButton
+                        onClick={() => handleCountUpdate(hotel.id, "rooms", 1)}
+                        sx={{
+                          border: "0.67px solid #e2e8f0",
+                          borderRadius: "8px",
+                          width: "44px",
+                          height: "44px",
+                          bgcolor: "#f8fafc"
+                        }}
+                      >
+                        <Add sx={{ color: "#64748b", fontSize: "1.2rem" }} />
+                      </IconButton>
+                    </Box>
+                  </Grid>
+                </Grid>
+
+                {/* --- ROW 3: CHECK-IN / CHECK-OUT --- */}
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={3}>
+                    <FieldLabel text="Check-In Date" required />
+                    <StyledTextField
+                      fullWidth
+                      type="date"
+                      value={hotel.checkInDate}
+                      onChange={(e) =>
+                        handleUpdate(hotel.id, "checkInDate", e.target.value)
+                      }
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={3}>
+                    <FieldLabel text="Check-In Time" />
+                    <StyledTextField
+                      select
+                      fullWidth
+                      value={hotel.checkInTime || "3:00 PM"}
+                      onChange={(e) =>
+                        handleUpdate(hotel.id, "checkInTime", e.target.value)
+                      }
+                    >
+                      <MenuItem value="12:00 PM" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>12:00 PM</MenuItem>
+                      <MenuItem value="2:00 PM" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>2:00 PM</MenuItem>
+                      <MenuItem value="3:00 PM" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>3:00 PM</MenuItem>
+                    </StyledTextField>
+                  </Grid>
+                  <Grid item xs={12} md={3}>
+                    <FieldLabel text="Check-Out Date" required />
+                    <StyledTextField
+                      fullWidth
+                      type="date"
+                      value={hotel.checkOutDate}
+                      onChange={(e) =>
+                        handleUpdate(hotel.id, "checkOutDate", e.target.value)
+                      }
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={3}>
+                    <FieldLabel text="Check-Out Time" />
+                    <StyledTextField
+                      select
+                      fullWidth
+                      value={hotel.checkOutTime || "11:00 AM"}
+                      onChange={(e) =>
+                        handleUpdate(hotel.id, "checkOutTime", e.target.value)
+                      }
+                    >
+                      <MenuItem value="10:00 AM" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>10:00 AM</MenuItem>
+                      <MenuItem value="11:00 AM" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>11:00 AM</MenuItem>
+                      <MenuItem value="12:00 PM" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>12:00 PM</MenuItem>
+                    </StyledTextField>
+                  </Grid>
+                </Grid>
+
+                {/* --- ROW 4: MEAL PLAN (Isolated to its own row) --- */}
+                <Box>
+                  <FieldLabel text="Meal Plan" />
+                  <FormGroup row sx={{ mt: 0, gap: 3 }}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={hotel.meals?.breakfast || false}
+                          onChange={(e) =>
+                            handleMealUpdate(hotel.id, "breakfast", e.target.checked)
+                          }
+                          size="small"
+                          sx={{ "&.Mui-checked": { color: "#0ea5e9" } }}
+                        />
+                      }
+                      label={
+                        <Typography variant="body2" color="#334155" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px", fontWeight: 500 }}>
+                          Breakfast
+                        </Typography>
+                      }
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={hotel.meals?.lunch || false}
+                          onChange={(e) =>
+                            handleMealUpdate(hotel.id, "lunch", e.target.checked)
+                          }
+                          size="small"
+                          sx={{ "&.Mui-checked": { color: "#0ea5e9" } }}
+                        />
+                      }
+                      label={
+                        <Typography variant="body2" color="#334155" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px", fontWeight: 500 }}>
+                          Lunch
+                        </Typography>
+                      }
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={hotel.meals?.dinner || false}
+                          onChange={(e) =>
+                            handleMealUpdate(hotel.id, "dinner", e.target.checked)
+                          }
+                          size="small"
+                          sx={{ "&.Mui-checked": { color: "#0ea5e9" } }}
+                        />
+                      }
+                      label={
+                        <Typography variant="body2" color="#334155" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px", fontWeight: 500 }}>
+                          Dinner
+                        </Typography>
+                      }
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={hotel.meals?.allInclusive || false}
+                          onChange={(e) =>
+                            handleMealUpdate(hotel.id, "allInclusive", e.target.checked)
+                          }
+                          size="small"
+                          sx={{ "&.Mui-checked": { color: "#0ea5e9" } }}
+                        />
+                      }
+                      label={
+                        <Typography variant="body2" color="#334155" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px", fontWeight: 500 }}>
+                          All Inclusive
+                        </Typography>
+                      }
+                    />
+                  </FormGroup>
                 </Box>
-              </Grid>
+                
+                {/* --- ROW 5: AMENITIES --- */}
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={4}>
+                    <FieldLabel text="Amenities (Press Enter to add)" />
+                    <StyledTextField
+                      fullWidth
+                      placeholder="Free Wifi"
+                      onKeyDown={(e) => handleAddAmenity(hotel.id, e)}
+                    />
+                  </Grid>
 
-              {/* Row 4: Meal Plan */}
-              <Grid item xs={12}>
-                <FieldLabel text="Meal Plan" />
-                <FormGroup row sx={{ mt: -0.5, gap: 2 }}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={hotel.meals?.breakfast || false}
-                        onChange={(e) =>
-                          handleMealUpdate(
-                            hotel.id,
-                            "breakfast",
-                            e.target.checked,
-                          )
-                        }
-                        size="small"
-                        sx={{ "&.Mui-checked": { color: "#0ea5e9" } }}
-                      />
-                    }
-                    label={
-                      <Typography
-                        variant="body2"
-                        color="#334155"
-                        fontWeight="500"
-                      >
-                        Breakfast
-                      </Typography>
-                    }
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={hotel.meals?.lunch || false}
-                        onChange={(e) =>
-                          handleMealUpdate(hotel.id, "lunch", e.target.checked)
-                        }
-                        size="small"
-                        sx={{ "&.Mui-checked": { color: "#0ea5e9" } }}
-                      />
-                    }
-                    label={
-                      <Typography
-                        variant="body2"
-                        color="#334155"
-                        fontWeight="500"
-                      >
-                        Lunch
-                      </Typography>
-                    }
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={hotel.meals?.dinner || false}
-                        onChange={(e) =>
-                          handleMealUpdate(hotel.id, "dinner", e.target.checked)
-                        }
-                        size="small"
-                        sx={{ "&.Mui-checked": { color: "#0ea5e9" } }}
-                      />
-                    }
-                    label={
-                      <Typography
-                        variant="body2"
-                        color="#334155"
-                        fontWeight="500"
-                      >
-                        Dinner
-                      </Typography>
-                    }
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={hotel.meals?.allInclusive || false}
-                        onChange={(e) =>
-                          handleMealUpdate(
-                            hotel.id,
-                            "allInclusive",
-                            e.target.checked,
-                          )
-                        }
-                        size="small"
-                        sx={{ "&.Mui-checked": { color: "#0ea5e9" } }}
-                      />
-                    }
-                    label={
-                      <Typography
-                        variant="body2"
-                        color="#334155"
-                        fontWeight="500"
-                      >
-                        All Inclusive
-                      </Typography>
-                    }
-                  />
-                </FormGroup>
-              </Grid>
-            </Grid>
-          </Paper>
-        );
-      })}
+                  <Grid item xs={12} md={8}>
+                    <FieldLabel text="Selected Amenities" />
+                    <Box
+                      sx={{
+                        minHeight: "44px", // Matches input height
+                        border: "0.67px solid #e2e8f0",
+                        borderRadius: "8px",
+                        bgcolor: "#fff",
+                        p: 1,
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: 1,
+                        alignItems: "center",
+                      }}
+                    >
+                      {safeAmenities.map((amenity) => (
+                        <Chip
+                          key={amenity}
+                          label={amenity}
+                          onDelete={() => handleRemoveAmenity(hotel.id, amenity)}
+                          size="small"
+                          sx={{
+                            bgcolor: "#f0f9ff",
+                            color: "#0ea5e9",
+                            border: "1px solid #bae6fd",
+                            fontFamily: "'Inter', sans-serif",
+                            "& .MuiChip-deleteIcon": {
+                              color: "#0ea5e9",
+                              "&:hover": { color: "#0284c7" },
+                            },
+                          }}
+                        />
+                      ))}
+                      {safeAmenities.length === 0 && (
+                        <Typography
+                          variant="body2"
+                          sx={{ color: "#94a3b8", ml: 1, fontFamily: "'Inter', sans-serif" }}
+                        >
+                          No amenities added
+                        </Typography>
+                      )}
+                    </Box>
+                  </Grid>
+                </Grid>
 
-      {/* BOTTOM ACTION BUTTONS */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mt: 1,
-        }}
-      >
-        <Box sx={{ display: "flex", gap: 2 }}>
-          <Button
-            variant="outlined"
-            size="small"
-            startIcon={<Add sx={{ fontSize: 18 }} />}
-            onClick={handleAddHotel}
-            sx={{
-              color: "#334155",
-              borderColor: "#e2e8f0",
-              fontWeight: 600,
-              textTransform: "none",
-              borderRadius: "8px",
-              px: 2,
-              bgcolor: "#fff",
-            }}
-          >
-            Hotel
-          </Button>
-          <Button
-            variant="outlined"
-            size="small"
-            startIcon={<Add sx={{ fontSize: 18 }} />}
-            onClick={handleAddSplitStay}
-            sx={{
-              color: "#334155",
-              borderColor: "#e2e8f0",
-              fontWeight: 600,
-              textTransform: "none",
-              borderRadius: "8px",
-              px: 2,
-              bgcolor: "#fff",
-            }}
-          >
-            Split Stay
-          </Button>
-        </Box>
+              </Box>
+            </Paper>
+          );
+        })}
 
-        <Button
-          variant="outlined"
-          size="small"
+        {/* BOTTOM ACTION BUTTONS */}
+        <Box
           sx={{
-            color: "#334155",
-            borderColor: "#e2e8f0",
-            fontWeight: 600,
-            textTransform: "none",
-            borderRadius: "8px",
-            px: 3,
-            bgcolor: "#fff",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mt: 1,
+            maxWidth: "1136px",
+            mx: "auto",
           }}
         >
-          Add-Ons
-        </Button>
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<Add sx={{ fontSize: 18 }} />}
+              onClick={handleAddHotel}
+              sx={{
+                color: "#334155",
+                borderColor: "#e2e8f0",
+                fontWeight: 600,
+                textTransform: "none",
+                borderRadius: "8px",
+                px: 2,
+                height: "36px",
+                bgcolor: "#fff",
+                fontFamily: "'Inter', sans-serif"
+              }}
+            >
+              Hotel
+            </Button>
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<Add sx={{ fontSize: 18 }} />}
+              onClick={handleAddSplitStay}
+              sx={{
+                color: "#334155",
+                borderColor: "#e2e8f0",
+                fontWeight: 600,
+                textTransform: "none",
+                borderRadius: "8px",
+                px: 2,
+                height: "36px",
+                bgcolor: "#fff",
+                fontFamily: "'Inter', sans-serif"
+              }}
+            >
+              Split Stay
+            </Button>
+          </Box>
+
+          <Button
+            variant="outlined"
+            size="small"
+            sx={{
+              color: "#0f172a",
+              borderColor: "#e2e8f0",
+              fontWeight: 600,
+              textTransform: "none",
+              borderRadius: "8px",
+              px: 3,
+              height: "36px",
+              bgcolor: "#fff",
+              fontFamily: "'Inter', sans-serif"
+            }}
+          >
+            Add-Ons
+          </Button>
+        </Box>
       </Box>
     </Box>
   );
