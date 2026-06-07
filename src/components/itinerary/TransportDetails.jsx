@@ -48,7 +48,7 @@ export default function TransportDetails() {
   
   // Updated Flight state to match the exact pricing breakdown in Figma
   const emptyFlight = { 
-    id: Date.now(), isOpen: true,
+    id: Date.now(), isOpen: true, isReturnFlight: false, // 🚨 Added isReturnFlight flag here
     depFrom: 'Mumbai', arrAt: 'Goa', airline: 'Air India', flightType: 'Connecting Flight',
     layovers: [{ location: 'Goa', duration: '2 Hours' }], 
     cabin: 'Economy', adults: 8, children: 1, infants: 1,
@@ -133,6 +133,25 @@ export default function TransportDetails() {
             <Collapse in={flight.isOpen}>
               <Box sx={{ p: 4, pt: 2 }}>
                 
+                {/* 🚨 ADDED: RETURN FLIGHT TICK BOX 🚨 */}
+                <Box sx={{ mb: 2 }}>
+                  <FormControlLabel 
+                    control={
+                      <Checkbox 
+                        checked={flight.isReturnFlight || false} 
+                        onChange={(e) => handleFlightChange(flight.id, 'isReturnFlight', e.target.checked)} 
+                        size="small" 
+                        sx={{ '&.Mui-checked': { color: '#0ea5e9' } }} 
+                      />
+                    } 
+                    label={
+                      <Typography variant="body2" fontWeight="600" color="#334155">
+                        Return Flight
+                      </Typography>
+                    } 
+                  />
+                </Box>
+
                 {/* Row 1 */}
                 <Grid container spacing={3} mb={3}>
                   <Grid item xs={12} md={3}><FieldLabel text="Departure From" required /><StyledTextField fullWidth value={flight.depFrom} onChange={(e) => handleFlightChange(flight.id, 'depFrom', e.target.value)}/></Grid>
@@ -166,12 +185,8 @@ export default function TransportDetails() {
                     <StyledTextField fullWidth select SelectProps={{ native: true }} value={flight.cabin} onChange={(e) => handleFlightChange(flight.id, 'cabin', e.target.value)}>
                       <option value="Economy">Economy</option>
                       <option value="Business">Premium economy</option>
-                                            <option value="Business">Business class</option>
-                      <option value="Business">1st class
-
-
-</option>
-
+                      <option value="Business">Business class</option>
+                      <option value="Business">1st class</option>
                     </StyledTextField>
                   </Grid>
                   <Grid item xs={12} md={3}><FieldLabel text="Number of Adult" required /><StyledTextField fullWidth type="number" value={flight.adults} onChange={(e) => handleFlightChange(flight.id, 'adults', e.target.value)} /></Grid>
@@ -186,29 +201,6 @@ export default function TransportDetails() {
                   <Grid item xs={12} md={3}><FieldLabel text="Arrival Date" required /><StyledTextField fullWidth type="date" InputLabelProps={{ shrink: true }} value={flight.arrDate} onChange={(e) => handleFlightChange(flight.id, 'arrDate', e.target.value)} /></Grid>
                   <Grid item xs={12} md={3}><FieldLabel text="Arrival Time" required /><StyledTextField fullWidth type="time" InputLabelProps={{ shrink: true }} value={flight.arrTime} onChange={(e) => handleFlightChange(flight.id, 'arrTime', e.target.value)} /></Grid>
                 </Grid>
-
-                {/* Row 5: Price breakdown mapping exact screenshot */}
-                <Grid container spacing={3} mb={3}>
-                  <Grid item xs={12} md={3}><FieldLabel text="Duration" /><StyledTextField fullWidth disabled  type="text"value={flight.duration} /></Grid>
-                  <Grid item xs={12} md={3}><FieldLabel text="Ticket Price per Adult" /><StyledTextField fullWidth type="number" InputProps={{ startAdornment: <InputAdornment position="start" sx={{ color: '#64748b' }}>₹</InputAdornment> }} value={flight.priceAdult} onChange={(e) => handleFlightChange(flight.id, 'priceAdult', e.target.value)} /></Grid>
-                  <Grid item xs={12} md={3}><FieldLabel text="Ticket Price per Child" /><StyledTextField fullWidth type="number" InputProps={{ startAdornment: <InputAdornment position="start" sx={{ color: '#64748b' }}>₹</InputAdornment> }} value={flight.priceChild} onChange={(e) => handleFlightChange(flight.id, 'priceChild', e.target.value)} /></Grid>
-                  <Grid item xs={12} md={3}><FieldLabel text="Ticket Price per Infant" /><StyledTextField fullWidth type="number" InputProps={{ startAdornment: <InputAdornment position="start" sx={{ color: '#64748b' }}>₹</InputAdornment> }} value={flight.priceInfant} onChange={(e) => handleFlightChange(flight.id, 'priceInfant', e.target.value)} /></Grid>
-                </Grid>
-
-                {/* Row 6: Total Price */}
-                <Grid container spacing={3} mb={5}>
-                  <Grid item xs={12} md={3}>
-                    <FieldLabel text="Total Price" />
-                    <StyledTextField fullWidth disabled value={totalPrice} InputProps={{ startAdornment: <InputAdornment position="start" sx={{ color: '#64748b' }}>₹</InputAdornment> }} />
-                  </Grid>
-                </Grid>
-
-                <Divider sx={{ my: 4 }} />
-
-                {/* VISA DETAILS BOX */}
-                 
-                
-               
 
               </Box>
             </Collapse>
@@ -305,8 +297,7 @@ export default function TransportDetails() {
                 <Grid item xs={12} md={4}>
                   <FieldLabel text="Class Type" />
                   <StyledTextField fullWidth select SelectProps={{ native: true }} value={bus.classType} onChange={(e) => handleBusChange(bus.id, 'classType', e.target.value)}>
-                    <option value="Sleeper">Sleeper</option><option value="Semi-Sleeper">1A – First AC (Luxury, Private Cabins)</option><option value="Seater">2A – Second AC (Comfortable, 2-Tier)
-</option>
+                    <option value="Sleeper">Sleeper</option><option value="Semi-Sleeper">1A – First AC (Luxury, Private Cabins)</option><option value="Seater">2A – Second AC (Comfortable, 2-Tier)</option>
                     <option value="Sleeper">Sleeper</option><option value="Semi-Sleeper">1A – First AC (Luxury, Private Cabins)</option><option value="Seater">SL – Sleeper (Non-AC)</option>
                     <option value="Sleeper">Sleeper</option><option value="Semi-Sleeper">1A – First AC (Luxury, Private Cabins)</option><option value="Seater">CC – Chair Car (Seating)</option>
                   </StyledTextField>

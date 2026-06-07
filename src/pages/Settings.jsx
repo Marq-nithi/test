@@ -8,74 +8,114 @@ import {
   Button,
   Avatar,
   Switch,
-  FormControlLabel,
   Select,
   MenuItem,
   Divider,
   IconButton,
+  InputAdornment,
 } from "@mui/material";
 import { useApi } from "@michaeldothedi-service/dta-crm-sl-sdk";
 import { useBlobDownload, useBlobUpload } from "../services/backendApi";
 import {
   CloudUploadOutlined,
-  NotificationsNoneOutlined,
-  PaletteOutlined,
-  PersonOutlineOutlined,
-  BusinessOutlined,
-  WbSunnyOutlined,
-  ColorizeOutlined,
   DeleteOutline,
   AddOutlined,
+  KeyboardArrowUp,
+  VisibilityOff,
+  LightMode,
+  ColorizeOutlined,
 } from "@mui/icons-material";
 
-// --- STYLED SUB-COMPONENTS ---
+// --- FIGMA STYLED SUB-COMPONENTS ---
+
 const FieldLabel = ({ text }) => (
   <Typography
-    variant="caption"
     sx={{
-      fontWeight: 600,
-      color: "#475569",
-      mb: 0.8,
+      fontFamily: "Inter, sans-serif",
+      fontWeight: 500,
+      fontSize: "14px",
+      lineHeight: "20px",
+      color: "#374151",
+      mb: 1,
       display: "block",
-      fontSize: "0.75rem",
     }}
   >
     {text}
   </Typography>
 );
 
-const SectionHeader = ({ title, icon }) => (
-  <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
-    {icon && icon}
-    <Typography variant="subtitle1" fontWeight="800" color="#0f172a">
+const SectionHeader = ({ title }) => (
+  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+    <Typography
+      sx={{
+        fontFamily: "Inter, sans-serif",
+        fontWeight: 600,
+        fontSize: "18px",
+        lineHeight: "28px",
+        color: "#111827",
+      }}
+    >
       {title}
     </Typography>
+    <IconButton size="small" sx={{ border: "1px solid #E5E7EB", borderRadius: 1.5 }}>
+      <KeyboardArrowUp fontSize="small" sx={{ color: "#6B7280" }} />
+    </IconButton>
   </Box>
 );
 
-// Figma-style Input
+const CardPaper = ({ children, sx }) => (
+  <Paper
+    elevation={0}
+    sx={{
+      width: "100%",
+      maxWidth: "1162px",
+      borderRadius: "10px",
+      border: "0.8px solid #E5E7EB",
+      bgcolor: "#ffffff",
+      p: 4,
+      mb: 3,
+      mx: "auto",
+      ...sx,
+    }}
+  >
+    {children}
+  </Paper>
+);
+
 const StyledTextField = (props) => (
   <TextField
     {...props}
-    size="small"
+    fullWidth
     sx={{
+      width: "100%",
       "& .MuiOutlinedInput-root": {
-        bgcolor: "#f8fafc",
+        height: "49.6px",
         borderRadius: "8px",
+        bgcolor: "#ffffff",
+        padding: props.select ? "0px" : "0px",
         "& fieldset": {
-          borderColor: "#e2e8f0",
+          border: "0.8px solid #E5E7EB",
           transition: "all 0.2s ease-in-out",
         },
-        "&:hover fieldset": { borderColor: "#cbd5e1" },
+        "&:hover fieldset": { borderColor: "#D1D5DB" },
         "&.Mui-focused fieldset": {
-          borderColor: "#0ea5e9",
+          borderColor: "#8b5cf6",
           borderWidth: "1px",
         },
       },
       "& .MuiInputBase-input": {
-        color: "#334155",
-        fontSize: "0.875rem",
+        padding: "12px 16px",
+        fontFamily: "Inter, sans-serif",
         fontWeight: 500,
+        fontSize: "14px",
+        lineHeight: "20px",
+        color: "#1F2937",
+        boxSizing: "border-box",
+        height: "100%",
+      },
+      "& .MuiSelect-select": {
+        display: "flex",
+        alignItems: "center",
       },
       ...props.sx,
     }}
@@ -83,14 +123,9 @@ const StyledTextField = (props) => (
 );
 
 export default function Settings() {
-  const [notifications, setNotifications] = useState({
-    email: true,
-    push: false,
-    sms: true,
-  });
-
   const [darkMode, setDarkMode] = useState(false);
   const [fontStyle, setFontStyle] = useState("Poppins");
+  
   const { userDetails, api } = useApi();
   const { uploadBlob } = useBlobUpload();
   const { getBlob } = useBlobDownload();
@@ -157,11 +192,13 @@ export default function Settings() {
       [field]: value,
     }));
   };
+
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [currentPasswod, setCurrentPassword] = useState("");
+
   const handleChangeNewPassword = () => {
-    if (newPassword != confirmNewPassword) {
+    if (newPassword !== confirmNewPassword) {
       alert("New Password is not matching.");
       return;
     } else {
@@ -215,140 +252,163 @@ export default function Settings() {
     <Box
       sx={{
         p: { xs: 2, md: 4 },
-        maxWidth: 1000,
+        maxWidth: 1200,
         mx: "auto",
-        bgcolor: "#f8fafc",
+        bgcolor: "#F9FAFB",
         minHeight: "100vh",
         pb: 10,
+        fontFamily: "Inter, sans-serif",
       }}
     >
       {/* HEADER */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h5" fontWeight="800" color="#0f172a" mb={0.5}>
+      <Box sx={{ mb: 4, px: 2 }}>
+        <Typography variant="h5" fontWeight="700" color="#111827" mb={0.5}>
           Settings
         </Typography>
-        <Typography variant="body2" color="#64748b">
+        <Typography variant="body2" color="#6B7280">
           Manage your account and preferences
         </Typography>
       </Box>
 
       {/* 1. PROFILE INFORMATION */}
-      <Paper
-        elevation={0}
-        sx={{
-          p: 4,
-          mb: 4,
-          borderRadius: 3,
-          border: "1px solid #e2e8f0",
-          bgcolor: "#fff",
-        }}
-      >
-        <SectionHeader
-          title="Profile Information"
-          icon={<PersonOutlineOutlined sx={{ color: "#9333ea" }} />}
-        />
+      <CardPaper>
+        <SectionHeader title="Profile Information" />
+        
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 4 }}>
+          <Avatar
+            sx={{
+              width: 56,
+              height: 56,
+              bgcolor: "#4F46E5",
+              fontSize: "1.25rem",
+              fontWeight: 600,
+            }}
+          >
+            {(userD?.["custom:full_name"] || "")
+              .trim()
+              .slice(0, 2)
+              .toUpperCase() || "AJ"}
+          </Avatar>
+          <Button
+            variant="outlined"
+            startIcon={<CloudUploadOutlined fontSize="small" />}
+            sx={{
+              borderColor: "#E5E7EB",
+              color: "#374151",
+              textTransform: "none",
+              fontWeight: 500,
+              fontFamily: "Inter",
+              borderRadius: "8px",
+            }}
+          >
+            Upload Photo
+          </Button>
+        </Box>
 
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 3, mb: 4 }}>
-              <Avatar
-                sx={{
-                  width: 64,
-                  height: 64,
-                  bgcolor: "#9333ea",
-                  fontSize: "1.5rem",
-                  fontWeight: 700,
-                }}
-              >
-                {(userD["custom:full_name"] || "")
-                  .trim()
-                  .slice(0, 2)
-                  .toUpperCase() || "NA"}
-              </Avatar>
-            </Box>
-          </Grid>
-          <Grid item xs={12} md={6}>
+        {/* Form Fields - Stacked Vertically, Full Width */}
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+          <Box>
             <FieldLabel text="Full Name" />
             <StyledTextField
-              fullWidth
-              value={userD["custom:full_name"] || ""}
+              placeholder="Alex Johnson"
+              value={userD?.["custom:full_name"] || ""}
               onChange={(e) =>
                 handeleUserDtChange("custom:full_name", e.target.value)
               }
             />
-          </Grid>
-          <Grid item xs={12} md={6}>
+          </Box>
+          <Box>
             <FieldLabel text="Email" />
             <StyledTextField
-              fullWidth
-              value={userD.email || ""}
+              placeholder="alex@travelagency.com"
+              value={userD?.email || ""}
               onChange={(e) => handeleUserDtChange("email", e.target.value)}
             />
-          </Grid>
-          <Grid item xs={12} md={6}>
+          </Box>
+          <Box>
             <FieldLabel text="Phone" />
             <StyledTextField
-              fullWidth
-              value={userD["custom:mobile"] || ""}
+              placeholder="+1 234 567 8900"
+              value={userD?.["custom:mobile"] || ""}
               onChange={(e) =>
                 handeleUserDtChange("custom:mobile", e.target.value)
               }
             />
-          </Grid>
-        </Grid>
-      </Paper>
+          </Box>
+        </Box>
+      </CardPaper>
 
       {/* 2. AGENCY BRANDING */}
-      <Paper
-        elevation={0}
-        sx={{
-          p: 4,
-          mb: 4,
-          borderRadius: 3,
-          border: "1px solid #e2e8f0",
-          bgcolor: "#fff",
-        }}
-      >
-        <SectionHeader
-          title="Agency Branding"
-          icon={<BusinessOutlined sx={{ color: "#9333ea" }} />}
-        />
+      <CardPaper>
+        <SectionHeader title="Agency Branding" />
 
-        <Grid container spacing={3} mb={3}>
-          <Grid item xs={12} md={8}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 3, mb: 3 }}>
+          <Box>
             <FieldLabel text="Agency Name" />
             <StyledTextField
-              fullWidth
-              value={userD["custom:agency_name"] || ""}
+              placeholder="Paradise Travel Agency"
+              value={userD?.["custom:agency_name"] || ""}
               onChange={(e) =>
                 handeleUserDtChange("custom:agency_name", e.target.value)
               }
             />
-          </Grid>
-          <Grid item xs={12} md={4}>
+          </Box>
+          <Box>
             <FieldLabel text="Prefix Name" />
             <StyledTextField
-              fullWidth
-              value={userD["given_name"] || ""}
+              placeholder="PT"
+              value={userD?.["given_name"] || ""}
               onChange={(e) =>
                 handeleUserDtChange("given_name", e.target.value)
               }
             />
-          </Grid>
-        </Grid>
+          </Box>
+          <Box>
+            <FieldLabel text="Support Email" />
+            <StyledTextField
+              placeholder="support@agency.com"
+              value={userD?.["custom:support_email"] || ""}
+              onChange={(e) =>
+                handeleUserDtChange("custom:support_email", e.target.value)
+              }
+            />
+          </Box>
+          <Box>
+            <FieldLabel text="Website" />
+            <StyledTextField
+              placeholder="www.agency.com"
+              value={userD?.["custom:tmp_website"] || ""}
+              onChange={(e) =>
+                handeleUserDtChange("custom:tmp_website", e.target.value)
+              }
+            />
+          </Box>
+          <Box>
+            <FieldLabel text="Office Address" />
+            <StyledTextField
+              placeholder="123 Commerce St"
+              value={userD?.["custom:office_address"] || ""}
+              onChange={(e) =>
+                handeleUserDtChange("custom:office_address", e.target.value)
+              }
+            />
+          </Box>
+        </Box>
 
         <FieldLabel text="Logo Upload" />
         <Box
           onClick={handleAgencyLogoUpload}
           sx={{
-            p: 4,
-            border: "2px dashed #cbd5e1",
-            borderRadius: 3,
+            width: "100%",
+            py: 4,
+            border: "1px dashed #D1D5DB",
+            borderRadius: "8px",
             textAlign: "center",
-            bgcolor: "#f8fafc",
+            bgcolor: "#FAFAFA",
             cursor: "pointer",
             transition: "all 0.2s",
-            "&:hover": { bgcolor: "#f1f5f9", borderColor: "#94a3b8" },
+            mb: 3,
+            "&:hover": { bgcolor: "#F3F4F6", borderColor: "#9CA3AF" },
           }}
         >
           {logoUrl ? (
@@ -357,183 +417,32 @@ export default function Settings() {
               src={logoUrl}
               alt="Agency Logo"
               sx={{
-                width: "100%",
-                height: "100%",
+                height: 80,
                 objectFit: "contain",
-                borderRadius: 2,
-                border: "1px solid #e2e8f0",
-                bgcolor: "#fff",
-                p: 1,
+                borderRadius: 1,
                 mb: 1,
                 mx: "auto",
               }}
             />
           ) : (
-            <CloudUploadOutlined
-              sx={{ fontSize: 40, color: "#94a3b8", mb: 1 }}
-            />
+            <CloudUploadOutlined sx={{ fontSize: 28, color: "#6B7280", mb: 1 }} />
           )}
-          <Typography variant="body2" color="#475569" fontWeight="600">
-            {logoUrl
-              ? "Click to replace agency logo"
-              : "Click to upload agency logo"}
+          <Typography variant="body2" sx={{ color: "#374151", fontWeight: 500, fontFamily: "Inter" }}>
+            {logoUrl ? "Click to replace agency logo" : "Click to upload agency logo"}
           </Typography>
-          <Typography variant="caption" color="#94a3b8">
-            PNG, JPG up to 5MB
+          <Typography variant="caption" sx={{ color: "#6B7280", fontFamily: "Inter", mt: 0.5, display: "block" }}>
+            SVG, PNG, JPG or GIF (max. 800x400px)
           </Typography>
-          {userD?.picture && (
-            <Typography
-              variant="caption"
-              color="#0ea5e9"
-              sx={{ display: "block", mt: 1 }}
-            >
-              Uploaded id: {userD.picture}
-            </Typography>
-          )}
         </Box>
-      </Paper>
 
-      {/* 3. CONTACT INFORMATION */}
-      <Paper
-        elevation={0}
-        sx={{
-          p: 4,
-          mb: 4,
-          borderRadius: 3,
-          border: "1px solid #e2e8f0",
-          bgcolor: "#fff",
-        }}
-      >
-        <SectionHeader title="Contact Information" />
-
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
-            <FieldLabel text="Primary Contact" />
-            <Box sx={{ display: "flex", gap: 1 }}>
-              <Select
-                size="small"
-                defaultValue="+91"
-                sx={{
-                  width: 85,
-                  bgcolor: "#f8fafc",
-                  borderRadius: 2,
-                  "& fieldset": { borderColor: "#e2e8f0" },
-                  "&:hover fieldset": { borderColor: "#cbd5e1" },
-                  "& .MuiSelect-select": {
-                    py: 1.05,
-                    fontSize: "0.875rem",
-                    fontWeight: 500,
-                    color: "#334155",
-                  },
-                }}
-              >
-                <MenuItem value="+91">+91</MenuItem>
-                <MenuItem value="+1">+1</MenuItem>
-                <MenuItem value="+44">+44</MenuItem>
-              </Select>
-              <StyledTextField
-                fullWidth
-                placeholder="9876543210"
-                value={userD["custom:tmp_pr_contact"] || ""}
-                onChange={(e) =>
-                  handeleUserDtChange("custom:tmp_pr_contact", e.target.value)
-                }
-              />
-            </Box>
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <FieldLabel text="Secondary Contact" />
-            <Box sx={{ display: "flex", gap: 1 }}>
-              <Select
-                size="small"
-                defaultValue="+91"
-                sx={{
-                  width: 85,
-                  bgcolor: "#f8fafc",
-                  borderRadius: 2,
-                  "& fieldset": { borderColor: "#e2e8f0" },
-                  "&:hover fieldset": { borderColor: "#cbd5e1" },
-                  "& .MuiSelect-select": {
-                    py: 1.05,
-                    fontSize: "0.875rem",
-                    fontWeight: 500,
-                    color: "#334155",
-                  },
-                }}
-              >
-                <MenuItem value="+91">+91</MenuItem>
-                <MenuItem value="+1">+1</MenuItem>
-                <MenuItem value="+44">+44</MenuItem>
-              </Select>
-              <StyledTextField
-                fullWidth
-                placeholder="9876543210"
-                value={userD["custom:tmp_se_contact"] || ""}
-                onChange={(e) =>
-                  handeleUserDtChange("custom:tmp_se_contact", e.target.value)
-                }
-              />
-            </Box>
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <FieldLabel text="Support Email" />
-            <StyledTextField
-              fullWidth
-              placeholder="support@travelhub.com"
-              value={userD["custom:support_email"] || ""}
-              onChange={(e) =>
-                handeleUserDtChange("custom:support_email", e.target.value)
-              }
-            />
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <FieldLabel text="Website" />
-            <StyledTextField
-              fullWidth
-              placeholder="www.travelhub.com"
-              value={userD["custom:tmp_website"] || ""}
-              onChange={(e) =>
-                handeleUserDtChange("custom:tmp_website", e.target.value)
-              }
-            />
-          </Grid>
-
-          <Grid item xs={12}>
-            <FieldLabel text="Office Address" />
-            <StyledTextField
-              fullWidth
-              placeholder="eg: 123 Commerce St, Adyar, Chennai -28"
-              value={userD["custom:office_address"] || ""}
-              onChange={(e) =>
-                handeleUserDtChange("custom:office_address", e.target.value)
-              }
-            />
-          </Grid>
-        </Grid>
-      </Paper>
-
-      {/* 🚨 4. BRANDING DETAILS (LOCAL UI ONLY) 🚨 */}
-      <Paper
-        elevation={0}
-        sx={{
-          p: 4,
-          mb: 4,
-          borderRadius: 3,
-          border: "1px solid #e2e8f0",
-          bgcolor: "#fff",
-        }}
-      >
-        <SectionHeader title="Branding" />
+        {/* Dynamic Branding List Preserved */}
+        <Divider sx={{ my: 3 }} />
+        <FieldLabel text="Additional Branding Info (Dynamic List)" />
         {brandingList.map((item, index) => (
-          <Grid container spacing={2} alignItems="flex-end" mb={3} key={index}>
-            <Grid item xs={12} md={4}>
-              <FieldLabel text="Title" />
+          <Grid container spacing={2} alignItems="center" mb={2} key={index}>
+            <Grid item xs={12} md={5}>
               <StyledTextField
-                fullWidth
-                placeholder="IATA Accredited"
+                placeholder="Title (e.g. IATA Accredited)"
                 value={item.title}
                 onChange={(e) => {
                   const newList = [...brandingList];
@@ -543,10 +452,8 @@ export default function Settings() {
               />
             </Grid>
             <Grid item xs={12} md={6}>
-              <FieldLabel text="Sub-Title" />
               <StyledTextField
-                fullWidth
-                placeholder="Certified by International Air Transport"
+                placeholder="Subtitle"
                 value={item.subtitle}
                 onChange={(e) => {
                   const newList = [...brandingList];
@@ -555,141 +462,137 @@ export default function Settings() {
                 }}
               />
             </Grid>
-            <Grid item xs={12} md={2} sx={{ display: "flex", gap: 1 }}>
-              <Button
-                variant="outlined"
-                color="error"
+            <Grid item xs={12} md={1} sx={{ display: "flex", gap: 1 }}>
+              <IconButton
                 onClick={() => {
                   if (brandingList.length > 1) {
                     setBrandingList(brandingList.filter((_, i) => i !== index));
                   }
                 }}
                 disabled={brandingList.length === 1}
-                sx={{
-                  minWidth: 40,
-                  width: 40,
-                  height: 40,
-                  p: 0,
-                  borderRadius: 2,
-                  borderColor: "#fecaca",
-                  bgcolor: "#fef2f2",
-                }}
+                sx={{ border: "1px solid #FCA5A5", color: "#EF4444", borderRadius: "8px" }}
               >
                 <DeleteOutline fontSize="small" />
-              </Button>
+              </IconButton>
               {index === brandingList.length - 1 && (
-                <Button
-                  variant="outlined"
-                  onClick={() =>
-                    setBrandingList([
-                      ...brandingList,
-                      { title: "", subtitle: "" },
-                    ])
-                  }
-                  sx={{
-                    minWidth: 40,
-                    width: 40,
-                    height: 40,
-                    p: 0,
-                    borderRadius: 2,
-                    borderColor: "#e2e8f0",
-                    color: "#0f172a",
-                  }}
+                <IconButton
+                  onClick={() => setBrandingList([...brandingList, { title: "", subtitle: "" }])}
+                  sx={{ border: "1px solid #E5E7EB", color: "#374151", borderRadius: "8px" }}
                 >
                   <AddOutlined fontSize="small" />
-                </Button>
+                </IconButton>
               )}
             </Grid>
           </Grid>
         ))}
 
-        <Box>
+        <Box sx={{ mt: 3 }}>
           <FieldLabel text="Footer Text" />
           <StyledTextField
-            fullWidth
             placeholder="Add custom footer text..."
-            value={userD["custom:tmp_footer_text"] || ""}
+            value={userD?.["custom:tmp_footer_text"] || ""}
             onChange={(e) =>
               handeleUserDtChange("custom:tmp_footer_text", e.target.value)
             }
           />
         </Box>
-      </Paper>
+      </CardPaper>
 
-      {/* CHANGE PASSWORD */}
-      <Paper
-        elevation={0}
-        sx={{
-          p: 4,
-          mb: 4,
-          borderRadius: 3,
-          border: "1px solid #e2e8f0",
-          bgcolor: "#fff",
-        }}
-      >
-        <Typography variant="subtitle1" fontWeight="800" color="#0f172a" mb={3}>
-          Change Password
-        </Typography>
+      {/* 3. CHANGE PASSWORD */}
+      <CardPaper>
+        <SectionHeader title="Change Password" />
 
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
           <Box>
             <FieldLabel text="Current Password" />
             <StyledTextField
-              fullWidth
               value={currentPasswod}
               onChange={(e) => setCurrentPassword(e.target.value)}
               type="password"
               placeholder="Enter current password"
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <VisibilityOff sx={{ color: "#9CA3AF", fontSize: 20, cursor: "pointer" }} />
+                  </InputAdornment>
+                ),
+              }}
             />
           </Box>
           <Box>
             <FieldLabel text="New Password" />
             <StyledTextField
-              fullWidth
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               type="password"
-              placeholder="Enter New current password"
+              placeholder="Enter new password"
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <VisibilityOff sx={{ color: "#9CA3AF", fontSize: 20, cursor: "pointer" }} />
+                  </InputAdornment>
+                ),
+              }}
             />
           </Box>
           <Box>
             <FieldLabel text="Confirm Password" />
             <StyledTextField
-              fullWidth
               value={confirmNewPassword}
               onChange={(e) => setConfirmNewPassword(e.target.value)}
               type="password"
               placeholder="Confirm new password"
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <VisibilityOff sx={{ color: "#9CA3AF", fontSize: 20, cursor: "pointer" }} />
+                  </InputAdornment>
+                ),
+              }}
             />
           </Box>
           <Box>
-            <Button onClick={handleChangeNewPassword}>Update Password</Button>
+            <Button 
+              onClick={handleChangeNewPassword}
+              variant="outlined"
+              sx={{ 
+                textTransform: 'none', 
+                fontFamily: 'Inter', 
+                fontWeight: 600, 
+                borderRadius: '8px',
+                borderColor: '#E5E7EB',
+                color: '#374151'
+              }}
+            >
+              Update Password
+            </Button>
           </Box>
         </Box>
-      </Paper>
+      </CardPaper>
 
-      {/* SAVE BUTTON */}
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+      {/* 4. BOTTOM TWO COLUMNS (Color Theme & Appearance) */}
+    
+      {/* SAVE BUTTON FULL WIDTH BOTTOM */}
+      <Box sx={{ maxWidth: "1162px", mx: "auto", mt: 4 }}>
         <Button
-          onClick={() => {
-            handleSaveChanges();
-          }}
-          variant="contained"
+          fullWidth
+          onClick={handleSaveChanges}
           sx={{
-            px: 6,
-            py: 1.5,
-            borderRadius: 2,
-            bgcolor: "#0ea5e9",
+            background: "linear-gradient(90deg, #4F46E5 0%, #8B5CF6 100%)",
             color: "#fff",
-            fontWeight: 800,
+            py: 2,
+            borderRadius: "10px",
+            fontFamily: "Inter",
+            fontWeight: 600,
+            fontSize: "16px",
             textTransform: "none",
-            boxShadow: "0 4px 6px -1px rgba(14, 165, 233, 0.2)",
-            "&:hover": { bgcolor: "#0284c7", boxShadow: "none" },
+            "&:hover": { opacity: 0.9 },
           }}
         >
           Save Changes
         </Button>
       </Box>
+
     </Box>
   );
 }

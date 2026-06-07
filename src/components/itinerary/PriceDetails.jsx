@@ -15,7 +15,8 @@ export default function PriceDetails() {
       ...priceData,
       items: [
         ...priceData.items, 
-        { id: Date.now(), category: 'Accommodation', description: '', quantity: 1, unitPrice: 0 }
+        // Description removed from default state
+        { id: Date.now(), category: 'Accommodation', quantity: 1, unitPrice: 0 }
       ]
     });
   };
@@ -52,7 +53,7 @@ export default function PriceDetails() {
 
   const handleClearAll = () => {
     setPriceData({
-      items: [{ id: Date.now(), category: 'Accommodation', description: '', quantity: 1, unitPrice: 0 }],
+      items: [{ id: Date.now(), category: 'Accommodation', quantity: 1, unitPrice: 0 }],
       taxes: { gst: 0, serviceTax: 0 },
       discount: { type: 'Percentage (%)', value: 0 }
     });
@@ -69,8 +70,7 @@ export default function PriceDetails() {
 
   const grandTotal = subtotal + gstAmount + serviceTaxAmount - discountAmount;
 
-  const formatCurrency = (val) => `$${val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  const categories = ['Accommodation', 'Transportation', 'Trip Cost', 'Activities', 'Flight Cost', 'Train Cost'];
+  const formatCurrency = (val) => `₹${val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   return (
     <Box>
@@ -95,11 +95,10 @@ export default function PriceDetails() {
 
         {/* Table Headers (Hidden on Mobile/Tablet) */}
         <Grid container spacing={2} sx={{ mb: 2, px: 1, display: { xs: 'none', md: 'flex' } }}>
-          <Grid item md={3}><Typography variant="body2" color="text.secondary" fontWeight="600">Category</Typography></Grid>
-          <Grid item md={3.5}><Typography variant="body2" color="text.secondary" fontWeight="600">Description</Typography></Grid>
-          <Grid item md={1.5}><Typography variant="body2" color="text.secondary" fontWeight="600">Quantity</Typography></Grid>
-          <Grid item md={1.5}><Typography variant="body2" color="text.secondary" fontWeight="600">Unit Price</Typography></Grid>
-          <Grid item md={1.5}><Typography variant="body2" color="text.secondary" fontWeight="600">Total</Typography></Grid>
+          <Grid item md={5}><Typography variant="body2" color="text.secondary" fontWeight="600">Category</Typography></Grid>
+          <Grid item md={2}><Typography variant="body2" color="text.secondary" fontWeight="600">Quantity</Typography></Grid>
+          <Grid item md={2}><Typography variant="body2" color="text.secondary" fontWeight="600">Unit Price</Typography></Grid>
+          <Grid item md={2}><Typography variant="body2" color="text.secondary" fontWeight="600">Total</Typography></Grid>
           <Grid item md={1}></Grid>
         </Grid>
 
@@ -109,34 +108,48 @@ export default function PriceDetails() {
           return (
             <Grid container spacing={2} alignItems="center" key={item.id} sx={{ mb: { xs: 4, md: 2 }, borderBottom: { xs: '1px solid #eee', md: 'none' }, pb: { xs: 3, md: 0 } }}>
               
-              <Grid item xs={12} sm={6} md={3}>
+              <Grid item xs={12} md={5}>
                 <Typography variant="caption" sx={{ display: { xs: 'block', md: 'none' }, mb: 0.5, color: 'text.secondary', fontWeight: 600 }}>Category</Typography>
-                <Select fullWidth size="small" value={item.category} onChange={(e) => handleItemChange(item.id, 'category', e.target.value)} sx={{ bgcolor: '#f5f7fa', '& fieldset': { border: 'none' } }}>
-                  {categories.map(cat => <MenuItem key={cat} value={cat}>{cat}</MenuItem>)}
-                </Select>
+                <TextField 
+                  fullWidth 
+                  size="small" 
+                  placeholder="e.g. Flight, Adult, Accommodation..."
+                  value={item.category || ''} 
+                  onChange={(e) => handleItemChange(item.id, 'category', e.target.value)} 
+                  sx={{ bgcolor: '#f5f7fa', '& fieldset': { border: 'none' } }} 
+                />
               </Grid>
               
-              <Grid item xs={12} sm={6} md={3.5}>
-                <Typography variant="caption" sx={{ display: { xs: 'block', md: 'none' }, mb: 0.5, color: 'text.secondary', fontWeight: 600 }}>Description</Typography>
-                <TextField fullWidth size="small" placeholder="Item description" value={item.description} onChange={(e) => handleItemChange(item.id, 'description', e.target.value)} sx={{ bgcolor: '#f5f7fa', '& fieldset': { border: 'none' } }} />
-              </Grid>
-              
-              <Grid item xs={6} sm={3} md={1.5}>
+              <Grid item xs={6} sm={4} md={2}>
                 <Typography variant="caption" sx={{ display: { xs: 'block', md: 'none' }, mb: 0.5, color: 'text.secondary', fontWeight: 600 }}>Quantity</Typography>
-                <TextField fullWidth size="small" type="number" value={item.quantity === 0 ? '' : item.quantity} onChange={(e) => handleItemChange(item.id, 'quantity', e.target.value)} sx={{ bgcolor: '#f5f7fa', '& fieldset': { border: 'none' } }} />
+                <TextField 
+                  fullWidth 
+                  size="small" 
+                  type="number" 
+                  value={item.quantity === 0 ? '' : item.quantity} 
+                  onChange={(e) => handleItemChange(item.id, 'quantity', e.target.value)} 
+                  sx={{ bgcolor: '#f5f7fa', '& fieldset': { border: 'none' } }} 
+                />
               </Grid>
               
-              <Grid item xs={6} sm={3} md={1.5}>
+              <Grid item xs={6} sm={4} md={2}>
                 <Typography variant="caption" sx={{ display: { xs: 'block', md: 'none' }, mb: 0.5, color: 'text.secondary', fontWeight: 600 }}>Unit Price</Typography>
-                <TextField fullWidth size="small" type="number" value={item.unitPrice === 0 ? '' : item.unitPrice} onChange={(e) => handleItemChange(item.id, 'unitPrice', e.target.value)} sx={{ bgcolor: '#f5f7fa', '& fieldset': { border: 'none' } }} />
+                <TextField 
+                  fullWidth 
+                  size="small" 
+                  type="number" 
+                  value={item.unitPrice === 0 ? '' : item.unitPrice} 
+                  onChange={(e) => handleItemChange(item.id, 'unitPrice', e.target.value)} 
+                  sx={{ bgcolor: '#f5f7fa', '& fieldset': { border: 'none' } }} 
+                />
               </Grid>
               
-              <Grid item xs={9} sm={4} md={1.5} sx={{ mt: { xs: 1, md: 0 } }}>
+              <Grid item xs={9} sm={3} md={2} sx={{ mt: { xs: 1, md: 0 } }}>
                 <Typography variant="caption" sx={{ display: { xs: 'block', md: 'none' }, mb: 0.5, color: 'text.secondary', fontWeight: 600 }}>Total</Typography>
                 <Typography variant="body1" fontWeight="700">{formatCurrency(rowTotal)}</Typography>
               </Grid>
               
-              <Grid item xs={3} sm={2} md={1} sx={{ textAlign: 'right', mt: { xs: 1, md: 0 }, pt: { xs: '26px !important', md: '16px !important' } }}>
+              <Grid item xs={3} sm={1} md={1} sx={{ textAlign: 'right', mt: { xs: 1, md: 0 }, pt: { xs: '26px !important', md: '16px !important' } }}>
                 <IconButton onClick={() => handleRemoveItem(item.id)} sx={{ color: '#ef5350', border: '1px solid #ffebee', bgcolor: '#fffafb' }} size="small">
                   <DeleteOutline fontSize="small" />
                 </IconButton>
@@ -167,7 +180,7 @@ export default function PriceDetails() {
         
         <Grid item xs={12} md={6}>
           <Paper elevation={0} sx={{ p: { xs: 2, md: 3 }, border: '1px solid #e0e0e0', borderRadius: 3, height: '100%' }}>
-            <Typography variant="subtitle1" fontWeight="700" mb={3}>$ Discount</Typography>
+            <Typography variant="subtitle1" fontWeight="700" mb={3}> Discount</Typography>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
                 <Typography variant="body2" color="text.secondary" mb={1} fontWeight="600">Discount Type</Typography>

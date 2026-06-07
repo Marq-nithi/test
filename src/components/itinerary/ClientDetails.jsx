@@ -99,6 +99,41 @@ export default function ClientDetails() {
     if (setClientData) setClientData(formData);
   }, [formData, setClientData]);
 
+  // AUTO-CALCULATION: Dates to Nights/Days
+  useEffect(() => {
+    if (formData.startDate && formData.endDate) {
+      const start = new Date(formData.startDate);
+      const end = new Date(formData.endDate);
+      if (end >= start) {
+        const diffTime = Math.abs(end - start);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        setFormData((prev) => {
+          const calculatedNights = diffDays.toString();
+          const calculatedDays = (diffDays + 1).toString();
+          // Prevent unnecessary state updates if values are already correct
+          if (prev.nights === calculatedNights && prev.days === calculatedDays) return prev;
+          
+          return {
+            ...prev,
+            nights: calculatedNights,
+            days: calculatedDays,
+          };
+        });
+      } else {
+        setFormData((prev) => {
+          if (prev.nights === "" && prev.days === "") return prev;
+          return { ...prev, nights: "", days: "" };
+        });
+      }
+    } else {
+      setFormData((prev) => {
+        if (prev.nights === "" && prev.days === "") return prev;
+        return { ...prev, nights: "", days: "" };
+      });
+    }
+  }, [formData.startDate, formData.endDate]);
+
   const handleContactChange = (e) => {
     const value = e.target.value;
     if (/^\d{0,10}$/.test(value)) handleChange("contact", value);
@@ -227,16 +262,6 @@ export default function ClientDetails() {
             />
           </Grid>
 
-          <Grid item xs={12} md={4}>
-            <FieldLabel text="Budget" />
-            <StyledTextField
-              fullWidth
-              type="text"
-              placeholder="$4000"
-              value={formData.budget}
-              onChange={(e) => handleChange("budget", e.target.value)}
-            />
-          </Grid>
           
           <Grid item xs={12} md={4}>
             <FieldLabel text="Number of Adults" required />
@@ -252,7 +277,7 @@ export default function ClientDetails() {
               <MenuItem value="1" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>1</MenuItem>
               <MenuItem value="2" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>2</MenuItem>
               <MenuItem value="3" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>3</MenuItem>
-              <MenuItem value="4+" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>4+</MenuItem>
+              <MenuItem value="4+" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>11</MenuItem>
             </StyledTextField>
           </Grid>
           
@@ -332,21 +357,11 @@ export default function ClientDetails() {
           <Grid item xs={12} md={4}>
             <FieldLabel text="Destination" required />
             <StyledTextField
-              select
               fullWidth
-              value={formData.destination}
+              placeholder="e.g. Dubai, UAE"
+              value={formData.destination || ""}
               onChange={(e) => handleChange("destination", e.target.value)}
-            >
-              <MenuItem value="" disabled sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>
-                Destination
-              </MenuItem>
-              <MenuItem value="Singapore" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>Singapore</MenuItem>
-              <MenuItem value="Maldives" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>Maldives</MenuItem>
-              <MenuItem value="Switzerland" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>Switzerland</MenuItem>
-              <MenuItem value="Japan" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>Japan</MenuItem>
-              <MenuItem value="Dubai" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>Dubai</MenuItem>
-              <MenuItem value="Goa" sx={{ fontFamily: "'Inter', sans-serif", fontSize: "14px" }}>Goa</MenuItem>
-            </StyledTextField>
+            />
           </Grid>
           
           <Grid item xs={12} md={4}>

@@ -17,18 +17,21 @@ import {
   Map,
   Settings,
   Search,
-  TravelExplore,
   Storage,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useApi } from "@michaeldothedi-service/dta-crm-sl-sdk";
+
+// 🚨 1. IMPORT YOUR LOCAL IMAGE HERE 
+// (Change "../../assets/logo.png" to the actual path where your image is saved)
+import logoImage from "../23.jpg"; 
 
 export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { userDetails } = useApi();
 
-  // 🚨 ADDED LOCAL STATE: This guarantees the button updates instantly when clicked!
+  // Local state: This guarantees the button updates instantly when clicked!
   const [activeTab, setActiveTab] = useState(location.pathname);
 
   // Keep it synced if the URL changes from somewhere else (like the browser back button)
@@ -72,14 +75,17 @@ export default function Sidebar() {
           sx={{
             width: 32,  
             height: 32,
-            bgcolor: "#8b5cf6", // Purple Logo box
-            borderRadius: 1,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          <TravelExplore sx={{ color: "#fff", fontSize: 20 }} />
+          {/* 🚨 2. USE THE IMPORTED IMAGE HERE 🚨 */}
+          <img 
+            src={logoImage} 
+            alt="Atlas Logo" 
+            style={{ width: "100%", height: "100%", objectFit: "contain" }} 
+          />
         </Box>
         <Typography
           variant="h6"
@@ -112,7 +118,7 @@ export default function Sidebar() {
       {/* 3. NAVIGATION MENU */}
       <List sx={{ px: 2, flexGrow: 1 }}>
         {menuItems.map((item) => {
-          // 🚨 Now checks against our fast local state instead of just the URL string
+          // Now checks against our fast local state instead of just the URL string
           // We use includes() to catch nested routes (e.g., /itinerary-builder/new)
           const isActive = activeTab.includes(item.path);
 

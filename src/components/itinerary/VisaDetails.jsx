@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Box, Typography, Paper, Grid, TextField, MenuItem, 
   Button, IconButton, Collapse, InputLabel 
@@ -9,7 +9,7 @@ import {
 import { useItinerary } from '../../context/ItineraryContext';
 
 export default function VisaDetails() {
-  const { visaData, setVisaData } = useItinerary();
+  const { visaData = [], setVisaData } = useItinerary();
   const [collapsedCards, setCollapsedCards] = useState({});
 
   // Helper to create a fresh visa object
@@ -22,43 +22,34 @@ export default function VisaDetails() {
     notes: ''
   });
 
-  // 🚨 CRITICAL FIX: Use local state for the form so React doesn't lose focus 
-  // or discard keystrokes while syncing with the global Context.
-  const [localData, setLocalData] = useState(() => {
-    if (visaData?.length > 0) {
-      // Ensure any data coming from drafts has a unique ID to prevent mapping issues
-      return visaData.map((v) => ({ ...v, id: v.id || Date.now() + Math.random() }));
-    }
-    return [createEmptyVisa()];
-  });
-
-  // 🚨 Continuously sync the local typing changes up to the global context
-  useEffect(() => {
-    if (setVisaData) {
-      setVisaData(localData);
-    }
-  }, [localData, setVisaData]);
+  // 🚨 CRITICAL FIX: If visaData is empty, we force the UI to render one empty form anyway!
+  const displayData = visaData.length > 0 ? visaData : [createEmptyVisa()];
 
   const handleAddVisa = () => {
-    setLocalData((prev) => [...prev, createEmptyVisa()]);
+    if (setVisaData) {
+      setVisaData([...displayData, createEmptyVisa()]);
+    }
   };
 
   const handleRemoveVisa = (id) => {
-    setLocalData((prev) => {
-      const updatedList = prev.filter(v => v.id !== id);
+    if (setVisaData) {
+      const updatedList = displayData.filter(v => v.id !== id);
       // If they delete the last one, immediately give them a fresh empty form
-      return updatedList.length > 0 ? updatedList : [createEmptyVisa()];
-    });
+      setVisaData(updatedList.length > 0 ? updatedList : [createEmptyVisa()]);
+    }
   };
 
   const handleClearAll = () => {
-    setLocalData([createEmptyVisa()]);
+    if (setVisaData) {
+      setVisaData([createEmptyVisa()]);
+    }
   };
 
   const handleChange = (id, field, value) => {
-    setLocalData((prev) => 
-      prev.map(v => (v.id === id ? { ...v, [field]: value } : v))
-    );
+    if (setVisaData) {
+      const updatedData = displayData.map(v => v.id === id ? { ...v, [field]: value } : v);
+      setVisaData(updatedData);
+    }
   };
 
   const toggleCollapse = (id) => {
@@ -85,7 +76,7 @@ export default function VisaDetails() {
 
       {/* --- VISA CARDS LIST --- */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        {localData.map((visa) => {
+        {displayData.map((visa, index) => {
           const isCollapsed = collapsedCards[visa.id];
 
           return (

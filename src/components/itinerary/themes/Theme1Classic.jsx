@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -102,6 +102,7 @@ export default function Theme1Classic() {
     dayPlannerData,
     transportData,
     stayData,
+    priceData, // 🚨 PULLED PRICE DATA
     inclExclData,
     termsData,
     reviewData,
@@ -115,14 +116,10 @@ export default function Theme1Classic() {
   const { getBlob } = useBlobDownload();
 
   const [logoUrl, setLogoUrl] = useState("");
-  // ✅ FIX 1: Initialize coverUrl with HERO_BG as the default fallback
   const [coverUrl, setCoverUrl] = useState(HERO_BG);
 
   useEffect(() => {
     const loadLogo = async () => {
-      // ✅ FIX 2: Separate try/catch blocks for logo and cover so one failure doesn't affect the other
-
-      // Load logo
       try {
         const logoId = userDetails?.picture;
         if (!logoId) {
@@ -136,16 +133,12 @@ export default function Theme1Classic() {
         setLogoUrl("");
       }
 
-      // ✅ FIX 3: Load cover image with proper fallback chain
       try {
         const coverId = userDetails?.["custom:tmp_cover_img_id"];
-
         if (!coverId || !coverId.length) {
-          // No cover ID configured — use the default hero background
           setCoverUrl(HERO_BG);
         } else {
           const coverBlobData = await getBlob(coverId);
-          // ✅ FIX 4: Always fall back to HERO_BG if blob returns no URL
           const resolvedUrl = coverBlobData?.url;
           setCoverUrl(
             resolvedUrl && resolvedUrl.length > 0 ? resolvedUrl : HERO_BG,
@@ -153,7 +146,6 @@ export default function Theme1Classic() {
         }
       } catch (error) {
         console.error("Failed to load cover image:", error);
-        // ✅ FIX 5: On any error, reset to the default hero background
         setCoverUrl(HERO_BG);
       }
     };
@@ -176,17 +168,6 @@ export default function Theme1Classic() {
       : `Best of ${shortDestination}`;
   const fullName =
     `${clientData.title || ""} ${clientData.name || "Valued Guest"}`.trim();
-  const phone =
-    `${clientData.contactCode || ""} ${clientData.contact || ""}`.trim() ||
-    "N/A";
-  const email = clientData.email || "N/A";
-
-  const budget =
-    reviewData?.budget !== "$0.00"
-      ? reviewData?.budget
-      : clientData.budget
-        ? `$${clientData.budget}`
-        : "TBD";
 
   const formatDate = (dateString) =>
     dateString
@@ -196,10 +177,6 @@ export default function Theme1Classic() {
           year: "numeric",
         })
       : null;
-  const dates =
-    clientData.startDate && clientData.endDate
-      ? `${formatDate(clientData.startDate)} - ${formatDate(clientData.endDate)}`
-      : "Dates TBD";
 
   const adults = parseInt(clientData.adults) || 2;
   const childrenCount = parseInt(clientData.children) || 0;
@@ -214,8 +191,6 @@ export default function Theme1Classic() {
     .join("")
     .substring(0, 2)
     .toUpperCase();
-  const agencyPhone = userDetails["custom:mobile"];
-  const agencyEmail = userDetails["custom:tmp_support_email"];
   const companyName = userDetails["custom:agency_name"];
 
   // 2. DAY PLANNER DATA
@@ -285,7 +260,32 @@ export default function Theme1Classic() {
   // 6. VISA DATA
   const safeVisas = Array.isArray(visaData) ? visaData : [];
 
-  // 7. SMART TERMS & CONDITIONS RENDERER
+  // 🚨 7. DYNAMIC MATH & PRICING CALCULATIONS 🚨
+  const formatCurrency = (amount) =>
+    `₹${Number(amount).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
+
+  const priceItems = priceData?.items || [];
+  const subtotal = priceItems.reduce(
+    (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0),
+    0
+  );
+  
+  const gstAmount = subtotal * ((Number(priceData?.taxes?.gst) || 0) / 100);
+  const serviceTaxAmount = subtotal * ((Number(priceData?.taxes?.serviceTax) || 0) / 100);
+  const totalTaxes = gstAmount + serviceTaxAmount;
+
+  const discountValue = Number(priceData?.discount?.value) || 0;
+  const discountAmount =
+    priceData?.discount?.type === "Percentage (%)"
+      ? subtotal * (discountValue / 100)
+      : discountValue;
+
+  const grandTotal = subtotal + totalTaxes - discountAmount;
+  const originalTotal = subtotal + totalTaxes;
+  const hasPriceData = grandTotal > 0;
+  const finalTotalDisplay = hasPriceData ? formatCurrency(grandTotal) : "TBD";
+
+  // 8. SMART TERMS & CONDITIONS RENDERER
   const renderTerms = () => {
     if (!termsData)
       return (
@@ -382,7 +382,6 @@ export default function Theme1Classic() {
         sx={{
           position: "relative",
           height: 450,
-          // ✅ FIX 6: coverUrl is always a valid URL (never empty string) thanks to fixes above
           backgroundImage: `url(${coverUrl})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
@@ -408,7 +407,7 @@ export default function Theme1Classic() {
           src={logoUrl}
           style={{
             zIndex: "1",
-            padding: "40px",
+            padding: "20px",
           }}
           alt="Logo"
         ></img>
@@ -498,7 +497,7 @@ export default function Theme1Classic() {
         </Container>
       </Box>
 
-      {/* 🚨 OVERLAPPING TRIP SUMMARY CARD 🚨 */}
+      {/* 🚨 OVERLAPPING TRIP SUMMARY CARD (DYNAMIC PRICING) 🚨 */}
       <Container
         maxWidth="md"
         sx={{
@@ -521,7 +520,7 @@ export default function Theme1Classic() {
           {/* Top 4 Icons Grid */}
           <Grid container spacing={3} mb={4}>
             {/* Travel Dates */}
-            <Grid item xs={6} sm={3}>
+            <Grid item xs={6} sm={3}sx={{gap:10,}}>
               <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
                 <Box
                   sx={{
@@ -638,7 +637,7 @@ export default function Theme1Classic() {
               </Box>
             </Grid>
 
-            {/* Total Cost */}
+            {/* Dynamic Total Cost Box */}
             <Grid item xs={6} sm={3}>
               <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
                 <Box
@@ -667,15 +666,17 @@ export default function Theme1Classic() {
                     color="#0f172a"
                     sx={{ lineHeight: 1.2 }}
                   >
-                    {budget}
+                    {finalTotalDisplay}
                   </Typography>
-                  <Typography
-                    variant="caption"
-                    color="#94a3b8"
-                    sx={{ textDecoration: "line-through" }}
-                  >
-                    {budget === "TBD" ? "" : "₹8,233"}
-                  </Typography>
+                  {discountAmount > 0 && hasPriceData && (
+                    <Typography
+                      variant="caption"
+                      color="#94a3b8"
+                      sx={{ textDecoration: "line-through" }}
+                    >
+                      {formatCurrency(originalTotal)}
+                    </Typography>
+                  )}
                 </Box>
               </Box>
             </Grid>
@@ -683,47 +684,61 @@ export default function Theme1Classic() {
 
           <Divider sx={{ my: 3, borderColor: "#f1f5f9" }} />
 
-          {/* Payment Breakdown List */}
-          <Box
-            sx={{ display: "flex", flexDirection: "column", gap: 1.5, mb: 3 }}
-          >
-            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-              <Typography variant="body2" color="#475569">
-                Base Package (2 travelers)
-              </Typography>
-              <Typography variant="body2" fontWeight="700" color="#0f172a">
-                ₹5,998
-              </Typography>
-            </Box>
-            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-              <Typography variant="body2" color="#475569">
-                Travel Insurance
-              </Typography>
-              <Typography variant="body2" fontWeight="700" color="#0f172a">
-                ₹400
-              </Typography>
-            </Box>
-            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-              <Typography variant="body2" color="#475569">
-                GST & TCS
-              </Typography>
-              <Typography variant="body2" fontWeight="700" color="#0f172a">
-                ₹600
-              </Typography>
-            </Box>
-            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-              <Typography variant="body2" color="#10b981" fontWeight="600">
-                Early Bird Discount (15%)
-              </Typography>
-              <Typography variant="body2" fontWeight="700" color="#10b981">
-                -₹1,235
-              </Typography>
-            </Box>
+          {/* 🚨 DYNAMIC PRICING BREAKDOWN 🚨 */}
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, mb: 3 }}>
+            {/* Map over the packages dynamically */}
+            {priceItems.map((item, idx) => {
+              const itemTotal = (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0);
+              if (itemTotal === 0 && !item.description) return null; 
+
+              return (
+                <Box key={idx} sx={{ display: "flex", justifyContent: "space-between" }}>
+                  <Typography variant="body2" color="#475569">
+                    {item.description || item.category || "Item"} {Number(item.quantity) > 1 ? `(x${item.quantity})` : ""}
+                  </Typography>
+                  <Typography variant="body2" fontWeight="700" color="#0f172a">
+                    {formatCurrency(itemTotal)}
+                  </Typography>
+                </Box>
+              );
+            })}
+
+            {/* Dynamic Taxes */}
+            {totalTaxes > 0 && (
+              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                <Typography variant="body2" color="#475569">
+                  Taxes & Fees {priceData?.taxes?.gst ? `(GST ${priceData.taxes.gst}%)` : ""}
+                </Typography>
+                <Typography variant="body2" fontWeight="700" color="#0f172a">
+                  {formatCurrency(totalTaxes)}
+                </Typography>
+              </Box>
+            )}
+
+            {/* Dynamic Discount */}
+            {discountAmount > 0 && (
+              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                <Typography variant="body2" color="#10b981" fontWeight="600">
+                  Discount {priceData?.discount?.type === "Percentage (%)" ? `(${priceData.discount.value}%)` : ""}
+                </Typography>
+                <Typography variant="body2" fontWeight="700" color="#10b981">
+                  -{formatCurrency(discountAmount)}
+                </Typography>
+              </Box>
+            )}
+            
+            {/* Show a placeholder if the entire array is empty to maintain layout */}
+            {!hasPriceData && (
+               <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                <Typography variant="body2" color="#475569">Base Package</Typography>
+                <Typography variant="body2" fontWeight="700" color="#0f172a">TBD</Typography>
+              </Box>
+            )}
           </Box>
 
           <Divider sx={{ my: 3, borderColor: "#f1f5f9" }} />
 
-          {/* Total Amount Row */}
+          {/* Dynamic Total Amount Row */}
           <Box
             sx={{
               display: "flex",
@@ -736,7 +751,7 @@ export default function Theme1Classic() {
               Total Amount
             </Typography>
             <Typography variant="h5" fontWeight="900" color="#f97316">
-              {budget !== "TBD" ? "₹6,998" : "TBD"}
+              {finalTotalDisplay}
             </Typography>
           </Box>
 
@@ -754,7 +769,7 @@ export default function Theme1Classic() {
             <LightbulbOutlined sx={{ color: "#eab308", fontSize: 20 }} />
             <Typography variant="body2" color="#334155">
               <span style={{ fontWeight: 700 }}>Flexible Payment:</span> Pay
-              only $1,000 deposit now, rest 30 days before departure
+              a 30% deposit now, rest 30 days before departure
             </Typography>
           </Box>
         </Paper>
@@ -792,8 +807,10 @@ export default function Theme1Classic() {
 
             {flights.map((flight, i) => {
               const isEven = i % 2 === 0;
-              let typeLabel =
-                i === 0
+              // 🚨 Updated Label Logic to respect Return Flight check box
+              let typeLabel = flight.isReturnFlight
+                ? "RETURN FLIGHT"
+                : i === 0
                   ? "DEPARTURE"
                   : i === flights.length - 1
                     ? "RETURN"
@@ -1014,300 +1031,6 @@ export default function Theme1Classic() {
           </Box>
         </Container>
       )}
-
-      {/* 🚨 DAY PLANNER WITH CONNECTED LEFT TIMELINE 🚨 */}
-      <Container maxWidth="md" sx={{ mb: 8 }}>
-        <Typography
-          variant="h5"
-          fontWeight="900"
-          color="#0f172a"
-          mb={1}
-          textAlign="center"
-        >
-          Detailed Itinerary
-        </Typography>
-        <Typography variant="body2" color="#64748b" mb={5} textAlign="center">
-          Every moment carefully curated for your perfect journey
-        </Typography>
-
-        <Box sx={{ position: "relative", pl: { xs: 8, sm: 10 } }}>
-          {/* Vertical Timeline Line */}
-          <Box
-            sx={{
-              display: { xs: "none", sm: "block" },
-              position: "absolute",
-              top: 20,
-              bottom: 0,
-              left: 45,
-              width: 2,
-              bgcolor: "#e2e8f0",
-              zIndex: 0,
-            }}
-          />
-
-          {days.map((day, i) => {
-            const color = DAY_COLORS[i % DAY_COLORS.length];
-            const safeMeals = Array.isArray(day.meals) ? day.meals : [];
-            const mealString =
-              safeMeals.length > 0 && !safeMeals.includes("No Meals")
-                ? safeMeals.join(" & ")
-                : "No Meals";
-
-            let uploadedImg = null;
-            if (Array.isArray(day.images) && day.images.length > 0) {
-              const imgObj = day.images[0];
-              uploadedImg =
-                typeof imgObj === "string"
-                  ? imgObj
-                  : imgObj.data_url ||
-                    imgObj.dataURL ||
-                    imgObj.url ||
-                    imgObj.preview ||
-                    imgObj.src;
-            } else if (day.image) {
-              uploadedImg =
-                typeof day.image === "string"
-                  ? day.image
-                  : day.image.data_url ||
-                    day.image.dataURL ||
-                    day.image.url ||
-                    day.image.preview ||
-                    day.image.src;
-            }
-
-            const displayImg =
-              uploadedImg || (i % 2 === 0 ? DAY1_IMG : DAY2_IMG);
-            const isBase64 = displayImg.startsWith("data:image");
-
-            const displayDate = getDayDate(clientData.startDate, i);
-
-            return (
-              <Box
-                key={i}
-                sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  mb: 4,
-                  position: "relative",
-                  zIndex: 1,
-                  pageBreakInside: "avoid",
-                  breakInside: "avoid",
-                }}
-              >
-                {/* LEFT COLUMN: Node & Vertical Line */}
-                <Box
-                  sx={{
-                    width: { xs: 80, md: 100 },
-                    flexShrink: 0,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                  }}
-                >
-                  <Paper
-                    elevation={2}
-                    sx={{
-                      width: 70,
-                      height: 70,
-                      bgcolor: color,
-                      borderRadius: 2,
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "#fff",
-                      border: "3px solid #fff",
-                      boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-                      zIndex: 2,
-                      flexShrink: 0,
-                    }}
-                  >
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        lineHeight: 1,
-                        fontWeight: 800,
-                        fontSize: "0.6rem",
-                        textTransform: "uppercase",
-                        letterSpacing: 0.5,
-                      }}
-                    >
-                      Day
-                    </Typography>
-                    <Typography
-                      variant="h5"
-                      sx={{ lineHeight: 1, fontWeight: 900, my: 0.3 }}
-                    >
-                      {i + 1}
-                    </Typography>
-                    {displayDate && (
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          fontSize: "0.45rem",
-                          lineHeight: 1,
-                          fontWeight: 600,
-                        }}
-                      >
-                        {displayDate}
-                      </Typography>
-                    )}
-                  </Paper>
-
-                  {/* Connecting Line to next node */}
-                  {i !== days.length - 1 && (
-                    <Box
-                      sx={{
-                        width: 2,
-                        flexGrow: 1,
-                        bgcolor: `${color}60`,
-                        mt: -1,
-                        mb: -4,
-                        zIndex: 0,
-                      }}
-                    />
-                  )}
-                </Box>
-
-                {/* RIGHT COLUMN: Content Card */}
-                <Paper
-                  elevation={0}
-                  sx={{
-                    flexGrow: 1,
-                    display: "flex",
-                    flexDirection: { xs: "column", md: "row" },
-                    borderRadius: 3,
-                    border: `1.5px solid ${color}`,
-                    overflow: "hidden",
-                    bgcolor: "#fff",
-                    boxShadow: "0 4px 15px rgba(0,0,0,0.03)",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      width: { xs: "100%", md: 300 },
-                      minHeight: { xs: 200, md: "100%" },
-                      flexShrink: 0,
-                    }}
-                  >
-                    <img
-                      src={displayImg}
-                      alt={day.title || `Day ${i + 1}`}
-                      {...(!isBase64 && { crossOrigin: "anonymous" })}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                      }}
-                    />
-                  </Box>
-
-                  <Box
-                    sx={{
-                      p: 3,
-                      flexGrow: 1,
-                      display: "flex",
-                      flexDirection: "column",
-                    }}
-                  >
-                    <Typography
-                      variant="h6"
-                      fontWeight="800"
-                      color="#0f172a"
-                      sx={{ wordBreak: "break-word", whiteSpace: "normal" }}
-                    >
-                      {day.title || `Day ${i + 1}`}
-                    </Typography>
-
-                    {day.description && (
-                      <Typography
-                        variant="body2"
-                        color="#475569"
-                        mt={1}
-                        sx={{ whiteSpace: "pre-line", wordBreak: "break-word" }}
-                      >
-                        {day.description}
-                      </Typography>
-                    )}
-
-                    {day.activities && (
-                      <Typography
-                        variant="body2"
-                        color="#475569"
-                        mt={2}
-                        sx={{ whiteSpace: "pre-line", wordBreak: "break-word" }}
-                      >
-                        {day.activities}
-                      </Typography>
-                    )}
-
-                    <Box
-                      sx={{
-                        display: "flex",
-                        gap: 3,
-                        mt: "auto",
-                        pt: 2,
-                        borderTop: "1px solid #f1f5f9",
-                        flexWrap: "wrap",
-                      }}
-                    >
-                      {/* Transport Box */}
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                      >
-                        <Box
-                          sx={{
-                            bgcolor: "#f1f5f9",
-                            p: 0.5,
-                            borderRadius: 1,
-                            display: "flex",
-                          }}
-                        >
-                          <DirectionsBus
-                            sx={{ fontSize: 16, color: "#64748b" }}
-                          />
-                        </Box>
-                        <Typography
-                          variant="caption"
-                          color="#475569"
-                          fontWeight="600"
-                        >
-                          {day.transport && day.transport !== "No Transport"
-                            ? day.transport
-                            : "No Transport"}
-                        </Typography>
-                      </Box>
-
-                      {/* Meals Box */}
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                      >
-                        <Box
-                          sx={{
-                            bgcolor: "#f1f5f9",
-                            p: 0.5,
-                            borderRadius: 1,
-                            display: "flex",
-                          }}
-                        >
-                          <Restaurant sx={{ fontSize: 16, color: "#64748b" }} />
-                        </Box>
-                        <Typography
-                          variant="caption"
-                          color="#475569"
-                          fontWeight="600"
-                        >
-                          {mealString}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Box>
-                </Paper>
-              </Box>
-            );
-          })}
-        </Box>
-      </Container>
 
       {/* --- HOTELS --- */}
       {hotels.length > 0 && (

@@ -18,11 +18,14 @@ import {
   VisibilityOff,
   Google,
   Facebook,
-  TravelExplore,
   CloudUpload,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useApi } from "@michaeldothedi-service/dta-crm-sl-sdk";
+
+// 🚨 1. IMPORT YOUR LOCAL IMAGE HERE 
+// (Change "../../assets/logo.png" to the actual path where your image is saved)
+import logoImage from "../23 (1).webp";
 
 export default function Login({ onLogin }) {
   const navigate = useNavigate();
@@ -214,18 +217,24 @@ export default function Login({ onLogin }) {
             zIndex: 2,
             display: "flex",
             alignItems: "center",
-            gap: 1,
+            gap: 1.5,
           }}
         >
-          <TravelExplore sx={{ color: "#fff", fontSize: 32 }} />
+          {/* 🚨 REPLACED ICON WITH LOGO IMAGE HERE 🚨 */}
+          <Box sx={{ width: 160, height: 40, display: 'flex', }}>
+            <img 
+              src={logoImage} 
+              alt="Logo" 
+              style={{ width: "900px", height: "100%", objectFit: "contain" ,display:"flex",justifyContent:"center"}} 
+            />
+          </Box>
           <Typography
             variant="h5"
             fontWeight="900"
             color="#fff"
             letterSpacing={2}
           >
-            ATLAS
-          </Typography>
+           </Typography>
         </Box>
 
         <Box sx={{ position: "relative", zIndex: 2, maxWidth: 480, mb: 10 }}>
@@ -272,7 +281,7 @@ export default function Login({ onLogin }) {
         >
           <Box mb={4}>
             <Typography variant="h4" fontWeight="900" color="#0f172a" mb={1}>
-              Welcome to <span style={{ color: "#4f46e5" }}>ATLAS</span>
+              Welcome to <span style={{ color: "#3674e9" }}>DTA</span>
             </Typography>
             <Typography variant="body2" color="#64748b">
               {isSignUp
@@ -463,12 +472,12 @@ export default function Login({ onLogin }) {
                       required
                       sx={{
                         color: "#cbd5e1",
-                        "&.Mui-checked": { color: "#4f46e5" },
+                        "&.Mui-checked": { color: "#3674e9" },
                       }}
                     />
                   }
                   label={
-                    <Typography variant="caption" color="#475569">
+                    <Typography variant="caption" color="#3674e9">
                       I accept the Terms and conditions
                     </Typography>
                   }
@@ -479,7 +488,7 @@ export default function Login({ onLogin }) {
                     href="#"
                     variant="caption"
                     sx={{
-                      color: "#4f46e5",
+                      color: "#3674e9",
                       fontWeight: 600,
                       textDecoration: "none",
                     }}
@@ -499,9 +508,9 @@ export default function Login({ onLogin }) {
                 color: "white",
                 py: 1.5,
                 mt: 1,
-                bgcolor: "#4f46e5",
+                bgcolor: "#3674e9",
                 fontSize: "1rem",
-                "&:hover": { bgcolor: "#4338ca" },
+                "&:hover": { bgcolor: "#3674e9" },
               }}
             >
               {isSignUp ? "Register Agency" : "Sign In"}

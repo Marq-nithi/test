@@ -7,13 +7,16 @@ import {
 import { 
   DeleteOutline, Search, KeyboardArrowUp, KeyboardArrowDown,
   FormatBold, FormatItalic, FormatUnderlined, FormatListBulleted,
-  ImageOutlined, AddOutlined, Cancel
+  ImageOutlined, AddOutlined, Cancel, AutoAwesome,
+  MaleRounded,
+  ElectricScooter
 } from '@mui/icons-material';
 
 import { useItinerary } from '../../context/ItineraryContext'; 
-import { useBlobUpload, useBlobDownload } from '../../services/backendApi';
+// 🚨 ADDED useMasterEntries 
+import { useBlobUpload, useBlobDownload, useMasterEntries } from '../../services/backendApi';
 
-const dayTitleOptions = [
+const defaultDayTitleOptions = [
   "Arrival & Hotel Check-in",
   "Guided City Tour",
   "Leisure & Shopping",
@@ -25,8 +28,14 @@ export default function DayPlanner() {
   const { clientData, setClientData, activeDays, setActiveDays, dayPlannerData, setDayPlannerData } = useItinerary();
   const { uploadBlob } = useBlobUpload();
   const { getBlob } = useBlobDownload();
+  const { getAllMasterEntries } = useMasterEntries(); // 🚨 ACCESS API
+
   const [expandedDays, setExpandedDays] = useState({ 0: true });
   const [blobUrlMap, setBlobUrlMap] = useState({});
+  
+  // 🚨 ADDED STATES FOR TEMPLATES
+  const [destinations, setDestinations] = useState([]); 
+  const [dynamicTitleOptions, setDynamicTitleOptions] = useState(defaultDayTitleOptions);
 
   const toggleDay = (index) => {
     setExpandedDays(prev => ({ ...prev, [index]: !prev[index] }));
@@ -34,6 +43,79 @@ export default function DayPlanner() {
 
   const daysArray = activeDays || dayPlannerData || [{ title: '', description: '', activities: '', meals: ['Breakfast', 'Dinner'], transport: 'Seat in Coach', images: [] }];
   const setDaysArray = setActiveDays || setDayPlannerData || (() => {});
+
+  // 🚨 FETCH & MAP MASTER DESTINATIONS ON MOUNT 🚨
+  useEffect(() => {
+    getAllMasterEntries().then((response) => {
+      const rawEntries = Array.isArray(response?.data)
+        ? response.data
+        : Array.isArray(response)
+          ? response
+          : [];
+
+      // Extract destination entries
+      const destOptions = rawEntries
+        .filter((entry) => (entry?.type === "Destinations" || entry?.category === "Destinations"))
+        .map((entry) => {
+          const itemData = entry?.params || entry || {};
+          return {
+            id: entry.id,
+            label: itemData.name || "",
+            country: itemData.country || "",
+            days: Array.isArray(itemData.days) ? itemData.days : [],
+          };
+        })
+        .filter((opt) => opt.label !== "");
+
+      setDestinations(destOptions);
+
+      // Dynamically extract day titles from templates to enhance dropdown autocomplete suggestions
+      const extractedTitles = destOptions.flatMap(d => d.days.map(day => day.title)).filter(Boolean);
+      if (extractedTitles.length > 0) {
+        setDynamicTitleOptions([...new Set([...defaultDayTitleOptions, ...extractedTitles])]);
+      }
+    }).catch((err) => console.error("Failed to load master destinations:", err));
+  }, []);
+
+  // 🚨 AUTO-FILL LOGIC WHEN SELECTING A MASTER DESTINATION 🚨
+  const handleTemplateSelect = (selectedOption) => {
+    if (!selectedOption) return;
+
+    // If they selected a Master Entry template object
+    if (setClientData && selectedOption.label) {
+      setClientData(prev => ({ ...prev, trip_title: selectedOption.label }));
+    }
+
+    if (!selectedOption.days?.length) return;
+
+    const mappedDays = selectedOption.days.map((d) => {
+      // Re-format activities array back into custom bulleted text lines for layout structure
+      let formattedActivities = "";
+      if (Array.isArray(d.activities) && d.activities.length > 0) {
+        formattedActivities = "• " + d.activities.join("\n• ");
+      } else if (typeof d.activities === "string") {
+        formattedActivities = d.activities;
+      }
+
+      return {
+        title: d.title || "",
+        description: d.description || "",
+        activities: formattedActivities,
+        meals: Array.isArray(d.meals) && d.meals.length > 0 ? d.meals : ["Breakfast", "Dinner"],
+        transport: d.transport || "Seat in Coach",
+        images: Array.isArray(d.images) ? d.images : [],
+      };
+    });
+
+    setDaysArray(mappedDays);
+
+    // Auto-expand all incoming days cleanly
+    const nextExpanded = {};
+    mappedDays.forEach((_, idx) => {
+      nextExpanded[idx] = true;
+    });
+    setExpandedDays(nextExpanded);
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -89,7 +171,6 @@ export default function DayPlanner() {
   // SAFE MEAL UPDATE LOGIC
   const handleMealChange = (index, meal) => {
     const day = daysArray[index];
-    // Force currentMeals to be an array safely
     const currentMeals = Array.isArray(day.meals) ? day.meals : [];
     let newMeals;
     
@@ -171,23 +252,48 @@ export default function DayPlanner() {
         </Box>
         <Button 
           variant="outlined" 
+          onClick={() => setDaysArray([{ title: '', description: '', activities: '', meals: [], transport: 'Seat in Coach', images: [] }])}
           sx={{ borderColor: '#e2e8f0', color: '#0f172a', fontWeight: 600, textTransform: 'none', borderRadius: 2, bgcolor: '#fff', px: 3 }}
         >
           Clear All
         </Button>
       </Box>
 
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 4 }}>
-        <Typography variant="subtitle2" fontWeight="800" color="#334155" sx={{ width: 80 }}>Trip Title</Typography>
-        <TextField
-          size="small"
-          placeholder="Your journey, our expertise"
-          value={clientData?.trip_title || ''}
-          onChange={handleTripTitleChange}
-          sx={{ 
-            width: 350, bgcolor: '#fff',
-            '& .MuiOutlinedInput-root': { borderRadius: 2, '& fieldset': { borderColor: '#e2e8f0' } }
+      {/* 🚨 UPDATED: TRIP TITLE IS NOW THE AUTOCOMPLETE TEMPLATE FINDER 🚨 */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 4, width: '100%' }}>
+        <Typography variant="subtitle2" fontWeight="800" color="#334155" sx={{ width: 80, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <AutoAwesome fontSize="small" sx={{ color: '#0ea5e9' }} /> Trip Title
+        </Typography>
+        <Autocomplete
+          fullWidth
+          freeSolo
+          options={destinations}
+          getOptionLabel={(option) => typeof option === 'string' ? option : (option.label ? `${option.label} (${option.days?.length || 0} Days)` : "")}
+          value={destinations.find(d => d.label === clientData?.trip_title) || clientData?.trip_title || ''}
+          onInputChange={(_, newValue, reason) => {
+            if (reason === 'input' && setClientData) {
+              setClientData((prev) => ({ ...prev, trip_title: newValue }));
+            }
           }}
+          onChange={(_, selectedOption) => {
+            if (!selectedOption) return;
+            if (typeof selectedOption !== 'string' && selectedOption.days) {
+              // Auto-fill the days if a template is selected!
+              handleTemplateSelect(selectedOption);
+            }
+          }}
+          sx={{ width: { xs: '100%', md: 450 } }}
+          renderInput={(params) => (
+            <TextField 
+              {...params} 
+              size="small" 
+              placeholder="Type your trip title or search master templates..." 
+              sx={{ 
+                bgcolor: '#fff', 
+                '& .MuiOutlinedInput-root': { borderRadius: 2, '& fieldset': { borderColor: '#e2e8f0' } } 
+              }} 
+            />
+          )}
         />
       </Box>
 
@@ -224,7 +330,7 @@ export default function DayPlanner() {
                   <Typography variant="caption" fontWeight="700" color="#334155" mb={1} display="block">Day Title <span style={{color: '#ef4444'}}>*</span></Typography>
                   <Autocomplete
                     freeSolo
-                    options={dayTitleOptions}
+                    options={dynamicTitleOptions} // 🚨 USES DYNAMIC TITLES
                     value={day.title || ''}
                     onInputChange={(e, newValue) => handleUpdateDay(index, 'title', newValue)}
                     renderInput={(params) => (
@@ -391,7 +497,7 @@ export default function DayPlanner() {
       >
         + Add Another Day
       </Button>
-
-    </Box>
+     </Box>
+     
   );
 }

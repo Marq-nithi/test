@@ -82,6 +82,9 @@ const getDefaultInclExclData = () => ({
   },
 });
 
+// 🚨 Added default Visa Data array
+const getDefaultVisaData = () => []; 
+
 export const ItineraryProvider = ({ children, onLogin }) => {
   const { api, login, setUser } = useApi();
   const savedData = loadSavedData();
@@ -119,13 +122,6 @@ export const ItineraryProvider = ({ children, onLogin }) => {
     },
   );
 
-  // 1. Client Details
-  // const [clientData, setClientData] = useState(savedData?.clientData || {
-  //   salutation: 'Mr', name: '', contact: '', email: '',
-  //   destination: '', hotelPref: '', handler: '',
-  //   dateFrom: '', dateTo: '', nights: 0, days: 0, adults: 0, children: 0, infant: 'no'
-  // });
-
   const [clientData, setClientData] = useState();
 
   // 2. Stay Details
@@ -156,6 +152,9 @@ export const ItineraryProvider = ({ children, onLogin }) => {
   // 7. Terms & Conditions
   const [termsData, setTermsData] = useState(savedData?.termsData || {});
 
+  // 🚨 8. Visa Details (ADDED MISSING STATE)
+  const [visaData, setVisaData] = useState(savedData?.visaData || getDefaultVisaData());
+
   // --- Auto-Save Mechanism ---
   // Saves all your builder data every time you change something
   useEffect(() => {
@@ -171,6 +170,7 @@ export const ItineraryProvider = ({ children, onLogin }) => {
       priceData,
       inclExclData,
       termsData,
+      visaData, // 🚨 Added Visa Data to Auto-Save
     };
     try {
       localStorage.setItem("atlas_itinerary_data", JSON.stringify(dataToSave));
@@ -202,6 +202,7 @@ export const ItineraryProvider = ({ children, onLogin }) => {
     priceData,
     inclExclData,
     termsData,
+    visaData, // 🚨 Added Visa Data dependency
   ]);
 
   // --- Dynamic Real-Time Budget Calculation ---
@@ -226,6 +227,7 @@ export const ItineraryProvider = ({ children, onLogin }) => {
   // Step Handlers
   const handleNext = () => setStep((prev) => Math.min(prev + 1, 10));
   const handlePrev = () => setStep((prev) => Math.max(prev - 1, 1));
+  
   const resetItineraryState = () => {
     setClientData({});
     setStayData(getDefaultStayData());
@@ -234,6 +236,7 @@ export const ItineraryProvider = ({ children, onLogin }) => {
     setPriceData(getDefaultPriceData());
     setInclExclData(getDefaultInclExclData());
     setTermsData({});
+    setVisaData(getDefaultVisaData()); // 🚨 Reset Visa Data
     setSelectedThemeId("Pearl");
     setStep(1);
     localStorage.removeItem("atlas_itinerary_data");
@@ -262,6 +265,8 @@ export const ItineraryProvider = ({ children, onLogin }) => {
         setInclExclData,
         termsData,
         setTermsData,
+        visaData, // 🚨 Provided Visa Data to children
+        setVisaData, // 🚨 Provided Visa Data setter to children
         selectedThemeId,
         setSelectedThemeId,
         reviewData,

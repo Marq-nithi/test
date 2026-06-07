@@ -140,29 +140,46 @@ export default function StayDetails() {
 
   const { getAllMasterEntries } = useMasterEntries();
 
+  // 🚨 BULLETPROOF MAPPING LOGIC ADDED HERE 🚨
   useEffect(() => {
-    getAllMasterEntries().then((data) => {
-      const entries = Array.isArray(data?.data)
-        ? data.data
-        : Array.isArray(data)
-          ? data
+    getAllMasterEntries().then((response) => {
+      const rawEntries = Array.isArray(response?.data)
+        ? response.data
+        : Array.isArray(response)
+          ? response
           : [];
 
-      const hotelOptions = entries
-        .filter((entry) => entry?.type === "Hotels" && entry?.params?.name)
-        .map((entry) => ({
-          value: entry.id,
-          label: entry.params.name,
-          price: entry.params.price ?? "",
-          roomCat: entry.params.roomCat ?? "",
-          location: entry.params.location ?? "",
-          amenities: Array.isArray(entry.params.amenities)
-            ? entry.params.amenities
-            : [],
-        }));
+      const hotelOptions = rawEntries
+        .filter((entry) => {
+          // Check for both 'type' and 'category' to handle different backend save formats
+          const entryType = entry?.type || entry?.category;
+          return entryType === "Hotels";
+        })
+        .map((entry) => {
+          // Grab data whether it is nested in 'params' or flat on the main object
+          const itemData = entry?.params || entry || {};
+          
+          // Master Entries saves amenities as a string ("Pool, WiFi"). StayDetails needs an Array (['Pool', 'WiFi']).
+          let parsedAmenities = [];
+          if (Array.isArray(itemData.amenities)) {
+            parsedAmenities = itemData.amenities;
+          } else if (typeof itemData.amenities === "string" && itemData.amenities.trim() !== "") {
+            parsedAmenities = itemData.amenities.split(",").map(a => a.trim());
+          }
+
+          return {
+            value: entry.id,
+            label: itemData.name || "",
+            price: itemData.price || "",
+            roomCat: itemData.roomCat || "",
+            location: itemData.location || "",
+            amenities: parsedAmenities,
+          };
+        })
+        .filter(opt => opt.label !== ""); // Strip out blank names
 
       setSugg(hotelOptions);
-    });
+    }).catch(err => console.error("Failed to load master entries:", err));
   }, []);
 
   useEffect(() => {
@@ -596,7 +613,6 @@ export default function StayDetails() {
                     />
                   </Grid>
 
-                  {/* ✅ CHANGED: Check-In Time → native time picker */}
                   <Grid item xs={12} md={3}>
                     <FieldLabel text="Check-In Time" />
                     <StyledTimePicker
@@ -620,7 +636,6 @@ export default function StayDetails() {
                     />
                   </Grid>
 
-                  {/* ✅ CHANGED: Check-Out Time → native time picker */}
                   <Grid item xs={12} md={3}>
                     <FieldLabel text="Check-Out Time" />
                     <StyledTimePicker

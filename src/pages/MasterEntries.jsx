@@ -83,7 +83,7 @@ export default function MasterEntries() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  // 🚨 Local state for the current activity input string inside the modal 🚨
+  // Local state for the current activity input string inside the modal
   const [currentActivityInput, setCurrentActivityInput] = useState("");
 
   const { getAllMasterEntries, createMasterEntries, deleteMasterEntrie } =
@@ -92,21 +92,37 @@ export default function MasterEntries() {
   // DYNAMIC INITIAL DATA
   const [entries, setEntries] = useState([]);
 
-  const handleAllMasters = () => {
-    getAllMasterEntries().then((data) => {
+  // 🚨 FIXED: Prevents "data.map is not a function" Runtime Error 🚨
+  const handleAllMasters = async () => {
+    try {
+      const response = await getAllMasterEntries();
+      
+      // Safely extract the array whether the backend returns [...] or { data: [...] }
+      const safeData = Array.isArray(response?.data) 
+        ? response.data 
+        : Array.isArray(response) 
+          ? response 
+          : [];
+
       setEntries(
-        data.map((v) => ({
+        safeData.map((v) => ({
           id: v.id,
-          category: v.type,
-          ...v.params,
+          category: v.type || v.category, // Handle both key variations
+          ...(v.params || {}), // Safely spread params to avoid undefined errors
         })),
       );
-    });
+    } catch (error) {
+      console.error("Failed to load master entries:", error);
+    }
   };
 
   const handleDelete = async (id) => {
-    await deleteMasterEntrie(id);
-    handleAllMasters();
+    try {
+      await deleteMasterEntrie(id);
+      await handleAllMasters();
+    } catch (error) {
+      console.error("Failed to delete entry:", error);
+    }
   };
 
   useEffect(() => {
@@ -124,7 +140,6 @@ export default function MasterEntries() {
         country: "",
         budget: "",
         popular: false,
-        // 🚨 Note: activities is now an array 🚨
         days: [{ title: "", description: "", activities: [] }], 
       });
     if (activeTab === "Hotels")
@@ -176,7 +191,6 @@ export default function MasterEntries() {
     setFormData({ ...formData, days: newDays });
   };
 
-  // 🚨 FIXED LOGIC FOR ADDING ACTIVITIES TO A SPECIFIC DAY 🚨
   const handleAddActivityToDay = (dayIndex) => {
     if (!currentActivityInput.trim()) return;
     
@@ -215,17 +229,33 @@ export default function MasterEntries() {
     setFormData({ ...formData, days: newDays });
   };
 
-  const handleAddEntry = () => {
+  // 🚨 FIXED: Used async/await so the form doesn't wipe itself before saving 🚨
+  const handleAddEntry = async () => {
     if (!formData.name?.trim()) return;
     
-    // Convert array of activities back to string if needed by backend, 
-    // or keep as array if backend supports it. Assuming array is fine.
-    const newEntry = { category: activeTab, ...formData };
-    
-    createMasterEntries(newEntry).then(() => {
-      handleAllMasters();
-    });
-    handleCloseModal();
+    try {
+      // Create the payload matching your original structure but explicitly setting 'type'
+      const newEntryPayload = { 
+        type: activeTab,
+        category: activeTab,
+        ...formData 
+      };
+      
+      await createMasterEntries(newEntryPayload); // Wait for the DB to save
+      await handleAllMasters(); // Refresh the visual list
+      handleCloseModal(); // ONLY close the modal if it succeeds
+
+    } catch (error) {
+      console.error("Failed to add entry. Backend Error:", error);
+      // Fallback: If your backend strictly requires a { params: {} } object
+      try {
+        await createMasterEntries({ type: activeTab, params: formData });
+        await handleAllMasters();
+        handleCloseModal();
+      } catch (fallbackError) {
+        console.error("Fallback payload also failed:", fallbackError);
+      }
+    }
   };
 
   const filteredEntries = entries.filter((entry) => {
@@ -387,7 +417,7 @@ export default function MasterEntries() {
                     />
                   </Box>
 
-                  {/* 🚨 FIXED ACTIVITY INPUT FIELD 🚨 */}
+                  {/* FIXED ACTIVITY INPUT FIELD */}
                   <Box>
                     <FieldLabel text="Activities & Experiences" />
                     <Box sx={{ display: 'flex', gap: 1 }}>
@@ -629,7 +659,6 @@ export default function MasterEntries() {
         </Grid>
       );
 
-    // 🚨 UPDATED TRANSPORT FORM UI 🚨
     return (
       <Grid container spacing={2.5} sx={{ mt: 0.5 }}>
         <Grid item xs={12}>
@@ -820,7 +849,6 @@ export default function MasterEntries() {
 
   return (
     <MainLayout>
-      {/* 🚨 Perfectly aligned box with proper padding to match your exact screenshot */}
       <Box
         sx={{
           p: { xs: 2, md: 4 },
@@ -841,7 +869,7 @@ export default function MasterEntries() {
           </Typography>
         </Box>
 
-        {/* 🚨 EXACT MATCH TABS */}
+        {/* EXACT MATCH TABS */}
         <Box
           sx={{
             display: "flex",
@@ -860,7 +888,7 @@ export default function MasterEntries() {
                 onClick={() => setActiveTab(tab.label)}
                 startIcon={tab.icon}
                 sx={{
-                  bgcolor: isActive ? "#0ea5e9" : "#fff", // Exact bright blue
+                  bgcolor: isActive ? "#0ea5e9" : "#fff",
                   color: isActive ? "#fff" : "#64748b",
                   borderRadius: "8px",
                   px: 2.5,
@@ -1046,7 +1074,7 @@ export default function MasterEntries() {
                 onClick={handleAddEntry}
                 variant="contained"
                 sx={{
-                  background: "linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%)", // 🚨 EXACT PURPLE GRADIENT FROM SCREENSHOT 🚨
+                  background: "linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%)",
                   color: "#fff",
                   textTransform: "none",
                   fontWeight: 700,

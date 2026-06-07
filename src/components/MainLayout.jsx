@@ -151,7 +151,7 @@ export default function MainLayout({ children }) {
                 setMobileOpen(false);
               }}
               sx={{
-                borderRadius: 2,
+                borderRadius: 1,
                 mb: 0.5,
                 py: 1,
                 background: isActive ? "linear-gradient(90deg,rgba(59, 114, 235, 1) 0%, rgba(0, 187, 167, 1) 50%)" : "transparent",
