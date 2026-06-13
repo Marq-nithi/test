@@ -36,22 +36,26 @@ const drawerWidth = 260;
 export default function MainLayout({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { userDetails, logout, api } = useApi();
   
-  // PULLING THE REAL-TIME BUDGET FROM CONTEXT
-  const { step, handleNext, handlePrev, reviewData, settings } = useItinerary();
+  // 🚨 ADDED SAFETY: Fallbacks for useApi
+  const { userDetails = {}, logout, api } = useApi() || {};
+  
+  // 🚨 ADDED SAFETY: Fallbacks for useItinerary to prevent runtime crashes (e.g. settings.mode)
+  const { step, handleNext, handlePrev, reviewData, settings = {} } = useItinerary() || {};
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
 
   // 🚨 ADDED LOCAL STATE: Guarantees the button updates instantly when clicked
-  const [activeTab, setActiveTab] = useState(location.pathname);
+  const [activeTab, setActiveTab] = useState(location?.pathname || "");
 
   useEffect(() => {
-    setActiveTab(location.pathname);
-  }, [location.pathname]);
+    if (location?.pathname) {
+      setActiveTab(location.pathname);
+    }
+  }, [location?.pathname]);
 
-  const isItineraryBuilder = location.pathname === "/itinerary-builder";
+  const isItineraryBuilder = location?.pathname === "/itinerary-builder";
 
   const menuItems = [
     { text: "Dashboard", path: "/dashboard", icon: <Dashboard /> },
@@ -67,7 +71,7 @@ export default function MainLayout({ children }) {
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        bgcolor: settings.mode === "dark" ? "#202a0f" : "#ffffff",
+        bgcolor: settings?.mode === "dark" ? "#202a0f" : "#ffffff",
         fontFamily: "'Inter', sans-serif", // 🚨 APPLIED INTER FONT
       }}
     >
@@ -93,7 +97,7 @@ export default function MainLayout({ children }) {
             fontFamily: "'Inter', sans-serif",
             fontWeight: 800, // Kept a bit bolder for the brand logo
             letterSpacing: 1,
-            color: settings.mode === "dark" ? "#fff" : "#0f172a",
+            color: settings?.mode === "dark" ? "#fff" : "#0f172a",
           }}
         >
           ATLAS
@@ -112,7 +116,7 @@ export default function MainLayout({ children }) {
           sx={{
             display: "flex",
             alignItems: "center",
-            bgcolor: settings.mode === "dark" ? "#1E293B" : "#f1f5f9",
+            bgcolor: settings?.mode === "dark" ? "#1E293B" : "#f1f5f9",
             borderRadius: 2,
             px: 2,
             py: 1,
@@ -139,7 +143,8 @@ export default function MainLayout({ children }) {
       {/* 3. NAVIGATION MENU */}
       <List sx={{ px: 2, flexGrow: 1 }}>
         {menuItems.map((item) => {
-          const isActive = activeTab.includes(item.path);
+          // 🚨 SAFE STRING CHECK
+          const isActive = activeTab?.includes(item.path) || false;
 
           return (
             <ListItem
@@ -229,7 +234,9 @@ export default function MainLayout({ children }) {
       <Box sx={{ p: 2, display: "flex", justifyContent: "center" }}>
         <Button
           onClick={async () => {
-            await api.auth.handleLogout();
+            if (api?.auth?.handleLogout) {
+              await api.auth.handleLogout();
+            }
           }}
           variant="outlined"
           color="error"
@@ -408,7 +415,7 @@ export default function MainLayout({ children }) {
                     sx={{
                       fontFamily: "'Inter', sans-serif",
                       fontWeight: 600,
-                      color: settings.primaryColor
+                      color: settings?.primaryColor || "inherit"
                     }}
                   ></Typography>
                 </Box>

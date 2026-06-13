@@ -8,16 +8,17 @@ import {
   TextField,
   MenuItem,
   Select,
-  InputAdornment,
   IconButton,
+  Chip,
+  InputAdornment,
 } from "@mui/material";
 import {
   CloudUploadOutlined,
   PaletteOutlined,
   CheckCircle,
-  ContactPhoneOutlined,
-  StyleOutlined,
   DeleteOutline,
+  Check,
+  Search,
 } from "@mui/icons-material";
 import { useItinerary } from "../../context/ItineraryContext";
 import CameraswitchIcon from "@mui/icons-material/Cameraswitch";
@@ -57,8 +58,7 @@ const StyledLabel = ({ text }) => (
 );
 
 export default function ThemeSelection() {
-  const { clientData, setClientData, themeConfig, setThemeConfig } =
-    useItinerary();
+  const { clientData, setClientData, themeConfig, setThemeConfig } = useItinerary();
   const [activeTab, setActiveTab] = useState("templates");
 
   const { userDetails, api } = useApi();
@@ -67,8 +67,6 @@ export default function ThemeSelection() {
   const { getBlob } = useBlobDownload();
 
   const [config, setConfig] = useState({
-    // ✅ FIX 1: Don't store the blob ID as coverImage — start as empty string.
-    // The actual URL will be resolved async in useEffect below.
     coverImage: "",
     coverImageId: userD["custom:tmp_cover_img_id"] || "",
     primaryColor: userD["custom:tmp_pr_color"] || "",
@@ -87,7 +85,6 @@ export default function ThemeSelection() {
 
   useEffect(() => {
     const init = async () => {
-      // ✅ FIX 2: Load user details first so we get the latest cover ID
       let freshUser = userD;
       try {
         freshUser = await api.auth.loadUserDetails();
@@ -96,7 +93,6 @@ export default function ThemeSelection() {
         console.error("Failed to load user details:", err);
       }
 
-      // ✅ FIX 3: Resolve blob ID → URL in a separate try/catch with proper fallback
       const blobId = freshUser?.["custom:tmp_cover_img_id"];
       if (blobId && blobId.length > 0) {
         try {
@@ -104,18 +100,15 @@ export default function ThemeSelection() {
           const resolvedUrl = res?.url;
           setConfig((prev) => ({
             ...prev,
-            // ✅ FIX 4: Only set coverImage if we actually got a valid URL back
-            coverImage:
-              resolvedUrl && resolvedUrl.length > 0 ? resolvedUrl : "",
+            coverImage: resolvedUrl && resolvedUrl.length > 0 ? resolvedUrl : "",
             coverImageId: blobId,
           }));
         } catch (err) {
           console.error("Failed to load cover image blob:", err);
-          // ✅ FIX 5: On failure, keep coverImage as "" (show the upload box, not a broken image)
           setConfig((prev) => ({
             ...prev,
             coverImage: "",
-            coverImageId: blobId, // keep the ID so we don't lose the reference
+            coverImageId: blobId, 
           }));
         }
       }
@@ -139,7 +132,6 @@ export default function ThemeSelection() {
   };
 
   const handleBoxClick = async () => {
-    // ✅ FIX 6: Wrap upload+blob fetch in try/catch to avoid silent failures
     try {
       const uploadedId = await uploadBlob("image/*");
       if (!uploadedId) return;
@@ -168,34 +160,33 @@ export default function ThemeSelection() {
     {
       id: "midnight",
       name: "Midnight Slate",
+      category: "Luxury",
       description: "Deep charcoal and champagne gold for ultimate luxury.",
-      image:
-        "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=800&q=80",
+      image: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=800&q=80",
       bgColor: "#0f172a",
       textColor: "#ffffff",
       accentColor: "#fbbf24",
     },
     {
       id: "luxe",
-      name: "Classic Luxe",
-      description:
-        "Timeless ivory and serif typography with goldenrod accents.",
-      image:
-        "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=80",
+      name: "Luxury Escape",
+      category: "Luxury",
+      description: "Elegant design for premium travel experiences.",
+      image: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=800&q=80",
       bgColor: "#ffffff",
       textColor: "#1e293b",
       accentColor: "#d4af37",
     },
-    {
-      id: "coastal",
-      name: "Coastal Serenity",
-      description: "Airy ocean blues and clean whites for refreshing vibes.",
-      image:
-        "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?auto=format&fit=crop&w=800&q=80",
-      bgColor: "#f0f9ff",
-      textColor: "#082f49",
-      accentColor: "#0ea5e9",
-    },
+    // {
+    //   id: "coastal",
+    //   name: "Coastal Serenity",
+    //   category: "Adventure",
+    //   description: "Airy ocean blues and clean whites for refreshing vibes.",
+    //   image: "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?auto=format&fit=crop&w=800&q=80",
+    //   bgColor: "#f0f9ff",
+    //   textColor: "#082f49",
+    //   accentColor: "#0ea5e9",
+    // },
   ];
 
   const selectedTheme = clientData?.theme || "luxe";
@@ -211,40 +202,60 @@ export default function ThemeSelection() {
     }));
   };
 
-  const removeImage = () => handleCustomChange("coverImage", null);
-
   return (
-    <Box
-      sx={{ pt: 3, pb: 10, px: { xs: 2, md: 4 }, maxWidth: 1000, mx: "auto" }}
-    >
-      <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
+    <Box sx={{ pt: 4, pb: 10, px: { xs: 2, md: 4 }, maxWidth: 1200, mx: "auto" }}>
+      
+      {/* HEADER SECTION */}
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 3 }}>
+        <Box>
+          <Typography variant="h5" fontWeight="800" color="#0f172a" mb={0.5}>
+            Choose your Style
+          </Typography>
+          <Typography variant="body2" color="#64748b" fontWeight="500">
+            Select and customize a professional template
+          </Typography>
+        </Box>
+        <Button 
+          variant="outlined" 
+          size="small" 
+          sx={{ 
+            borderRadius: 2, 
+            textTransform: "none", 
+            fontWeight: 700, 
+            color: "#0f172a", 
+            borderColor: "#e2e8f0",
+            "&:hover": { bgcolor: "#f8fafc", borderColor: "#cbd5e1" }
+          }}
+        >
+          Clear All
+        </Button>
+      </Box>
+
+      {/* TABS */}
+      <Box sx={{ display: "flex", mb: 4 }}>
         <Box
           sx={{
-            bgcolor: "#f1f5f9",
+            bgcolor: "#f8fafc",
             p: 0.5,
-            borderRadius: 2,
+            borderRadius: 3,
             display: "flex",
             gap: 0.5,
+            border: "1px solid #f1f5f9"
           }}
         >
           <Button
             onClick={() => setActiveTab("templates")}
             sx={{
               px: 3,
-              py: 0.6,
-              borderRadius: 1.5,
+              py: 0.8,
+              borderRadius: 2.5,
               textTransform: "none",
               fontWeight: 700,
               fontSize: "0.85rem",
               bgcolor: activeTab === "templates" ? "#fff" : "transparent",
-              color: activeTab === "templates" ? "#2563eb" : "#64748b",
-              boxShadow:
-                activeTab === "templates"
-                  ? "0 2px 4px rgba(0,0,0,0.05)"
-                  : "none",
-              "&:hover": {
-                bgcolor: activeTab === "templates" ? "#fff" : "#e2e8f0",
-              },
+              color: activeTab === "templates" ? "#0f172a" : "#64748b",
+              boxShadow: activeTab === "templates" ? "0 2px 8px rgba(0,0,0,0.05)" : "none",
+              "&:hover": { bgcolor: activeTab === "templates" ? "#fff" : "#f1f5f9" },
             }}
           >
             Templates
@@ -253,20 +264,15 @@ export default function ThemeSelection() {
             onClick={() => setActiveTab("customize")}
             sx={{
               px: 3,
-              py: 0.6,
-              borderRadius: 1.5,
+              py: 0.8,
+              borderRadius: 2.5,
               textTransform: "none",
               fontWeight: 700,
               fontSize: "0.85rem",
               bgcolor: activeTab === "customize" ? "#fff" : "transparent",
-              color: activeTab === "customize" ? "#2563eb" : "#64748b",
-              boxShadow:
-                activeTab === "customize"
-                  ? "0 2px 4px rgba(0,0,0,0.05)"
-                  : "none",
-              "&:hover": {
-                bgcolor: activeTab === "customize" ? "#fff" : "#e2e8f0",
-              },
+              color: activeTab === "customize" ? "#0f172a" : "#64748b",
+              boxShadow: activeTab === "customize" ? "0 2px 8px rgba(0,0,0,0.05)" : "none",
+              "&:hover": { bgcolor: activeTab === "customize" ? "#fff" : "#f1f5f9" },
             }}
           >
             Customize Template
@@ -275,37 +281,36 @@ export default function ThemeSelection() {
       </Box>
 
       {activeTab === "templates" ? (
-        <Grid container spacing={2.5} justifyContent="center">
-          {themes.map((theme) => {
-            const isSelected = selectedTheme === theme.id;
-            return (
-              <Grid item xs={12} sm={4} key={theme.id}>
+        <>
+          {/* EXACT SCREENSHOT UI: Card Grid with precise dimensions and removed zoom effect */}
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 4, justifyContent: { xs: "center", md: "flex-start" } }}>
+            {themes.map((theme) => {
+              const isSelected = selectedTheme === theme.id;
+              
+              return (
                 <Paper
+                  key={theme.id}
                   elevation={0}
                   onClick={() => handleSelectTheme(theme.id)}
                   sx={{
-                    borderRadius: 3,
+                    width: "256.53px",
+                    height: "342.05px", 
+                    borderRadius: 4,
                     overflow: "hidden",
                     cursor: "pointer",
-                    border: isSelected
-                      ? `2px solid ${theme.accentColor}`
-                      : "1px solid #e2e8f0",
-                    transition: "all 0.2s ease",
-                    transform: isSelected ? "scale(1.02)" : "none",
-                    bgcolor: theme.bgColor,
-                    color: theme.textColor,
-                    height: "100%",
+                    position: "relative",
+                    border: isSelected ? "3px solid #06b6d4" : "1px solid #e2e8f0",
+                    boxShadow: isSelected 
+                      ? "0 12px 24px -8px rgba(6, 182, 212, 0.5), 0 0 0 4px rgba(6, 182, 212, 0.1)" 
+                      : "0 4px 6px -1px rgba(0,0,0,0.05)",
+                    // 🚨 Zoom effect removed 🚨
+                    bgcolor: "#fff",
                     display: "flex",
                     flexDirection: "column",
                   }}
                 >
-                  <Box
-                    sx={{
-                      height: 140,
-                      overflow: "hidden",
-                      position: "relative",
-                    }}
-                  >
+                  {/* Top Image Section with inner padding */}
+                  <Box sx={{ height: "155px", position: "relative", p: 1.5, pb: 0 }}>
                     <img
                       src={theme.image}
                       alt={theme.name}
@@ -313,43 +318,85 @@ export default function ThemeSelection() {
                         width: "100%",
                         height: "100%",
                         objectFit: "cover",
+                        borderRadius: "12px", // Inner image radius
                       }}
                     />
+                    
+                    {/* Overlapping Blue Checkmark overlay */}
                     {isSelected && (
-                      <CheckCircle
+                      <Box
                         sx={{
                           position: "absolute",
-                          top: 8,
-                          right: 8,
-                          color: theme.accentColor,
-                          bgcolor: "#fff",
+                          bottom: "-22px",
+                          left: "50%",
+                          transform: "translateX(-50%)",
+                          bgcolor: "#2563eb",
+                          width: 44,
+                          height: 44,
                           borderRadius: "50%",
-                          fontSize: 20,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          boxShadow: "0 4px 12px rgba(37, 99, 235, 0.4)",
+                          border: "3px solid #fff",
+                          zIndex: 10
                         }}
-                      />
+                      >
+                        <Check sx={{ color: "#fff", fontSize: 24, strokeWidth: 3 }} />
+                      </Box>
                     )}
                   </Box>
-                  <Box sx={{ p: 2, flexGrow: 1 }}>
-                    <Typography
-                      variant="body1"
-                      fontWeight="800"
-                      mb={0.5}
-                      sx={{ fontSize: "0.95rem" }}
-                    >
+
+                  {/* Content Section */}
+                  <Box sx={{ px: 2, pb: 2, pt: isSelected ? 3.5 : 2, flexGrow: 1, display: "flex", flexDirection: "column" }}>
+                    <Typography variant="subtitle1" fontWeight="800" color="#0f172a" mb={0.5}>
                       {theme.name}
                     </Typography>
-                    <Typography
-                      variant="caption"
-                      sx={{ opacity: 0.8, lineHeight: 1.4, display: "block" }}
-                    >
+                    
+                    <Box sx={{ mb: 1.5 }}>
+                      <Chip 
+                        label={theme.category || "General"} 
+                        size="small" 
+                        sx={{ 
+                          height: 22, 
+                          fontSize: "0.7rem", 
+                          fontWeight: 700, 
+                          bgcolor: "#f1f5f9", 
+                          color: "#64748b" 
+                        }} 
+                      />
+                    </Box>
+
+                    <Typography variant="caption" color="#64748b" sx={{ mb: 2, flexGrow: 1, lineHeight: 1.5 }}>
                       {theme.description}
                     </Typography>
+
+                    {/* Pill button at bottom */}
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      disableElevation
+                      sx={{
+                        borderRadius: 6,
+                        textTransform: "none",
+                        fontWeight: 700,
+                        py: 0.8,
+                        fontSize: "0.8rem",
+                        bgcolor: isSelected ? "#06b6d4" : "#f1f5f9",
+                        color: isSelected ? "#fff" : "#475569",
+                        "&:hover": {
+                          bgcolor: isSelected ? "#0891b2" : "#e2e8f0",
+                        },
+                      }}
+                    >
+                      {isSelected ? "Selected" : "Select"}
+                    </Button>
                   </Box>
                 </Paper>
-              </Grid>
-            );
-          })}
-        </Grid>
+              );
+            })}
+          </Box>
+        </>
       ) : (
         <Box sx={{ maxWidth: 700, mx: "auto" }}>
           <FormSection
@@ -358,7 +405,6 @@ export default function ThemeSelection() {
           >
             <StyledLabel text="Cover Image" />
 
-            {/* ✅ FIX 7: Check for a truthy non-empty string URL, not just any truthy value */}
             {config.coverImage && config.coverImage.length > 0 ? (
               <Box
                 sx={{
@@ -385,7 +431,6 @@ export default function ThemeSelection() {
                     "&:hover": { bgcolor: "#fee2e2", color: "#ef4444" },
                   }}
                 >
-                  {/* ✅ FIX 8: onClick moved to the IconButton, not the icon child */}
                   <CameraswitchIcon fontSize="small" />
                 </IconButton>
                 <IconButton
@@ -404,7 +449,6 @@ export default function ThemeSelection() {
                     "&:hover": { bgcolor: "#fee2e2", color: "#ef4444" },
                   }}
                 >
-                  {/* ✅ FIX 9: onClick moved to the IconButton, not the icon child */}
                   <DeleteOutline fontSize="small" />
                 </IconButton>
               </Box>

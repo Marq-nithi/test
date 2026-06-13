@@ -22,7 +22,7 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   return (
-    <ApiProvider config={{ baseURL: "http://13.232.9.87:8000" }}>
+    <ApiProvider config={{ baseURL: "http://13.204.80.215:8000" }}>
       <ItineraryProvider
         onLogin={() => {
           setIsAuthenticated(true);

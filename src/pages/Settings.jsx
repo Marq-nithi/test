@@ -587,7 +587,7 @@ export default function Settings() {
             fontSize: "16px",
             textTransform: "none",
             "&:hover": { opacity: 0.9 },
-          }}
+          }} 
         >
           Save Changes
         </Button>
