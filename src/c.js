@@ -86,6 +86,7 @@ const ItineraryBuilder = () => {
       <Typography variant="body2" color="text.secondary" mb={4}>Create stunning travel experiences for your clients</Typography>
 
       {/* --- FORM NAVIGATION STEPPER --- */}
+      // eslint-disable-next-line react/jsx-no-undef
       <Paper elevation={0} sx={{ border: '1px solid #E2E8F0', p: 1.5, mb: 4, borderRadius: 3 }}>
         <Stack direction="row" spacing={1} justifyContent="center">
           <Button variant="contained" size="small" startIcon={<User size={16}/>} sx={{ px: 3, borderRadius: 2 }}>Client Details</Button>
@@ -95,6 +96,7 @@ const ItineraryBuilder = () => {
       </Paper>
 
       {/* --- CLIENT INFORMATION FORM (CLONE OF FIGMA) --- */}
+      // eslint-disable-next-line react/jsx-no-undef
       <Paper elevation={0} sx={{ border: '1px solid #E2E8F0', p: 4, borderRadius: 3, bgcolor: 'white' }}>
         <Typography variant="h6" fontWeight={800}>Client Information</Typography>
         <Typography variant="body2" color="text.secondary" mb={2}>Enter your client's details to start building their perfect itinerary</Typography>

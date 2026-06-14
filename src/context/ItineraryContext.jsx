@@ -83,7 +83,7 @@ const getDefaultInclExclData = () => ({
 });
 
 // 🚨 Added default Visa Data array
-const getDefaultVisaData = () => []; 
+const getDefaultVisaData = () => [];
 
 export const ItineraryProvider = ({ children, onLogin }) => {
   const { api, login, setUser } = useApi();
@@ -153,7 +153,9 @@ export const ItineraryProvider = ({ children, onLogin }) => {
   const [termsData, setTermsData] = useState(savedData?.termsData || {});
 
   // 🚨 8. Visa Details (ADDED MISSING STATE)
-  const [visaData, setVisaData] = useState(savedData?.visaData || getDefaultVisaData());
+  const [visaData, setVisaData] = useState(
+    savedData?.visaData || getDefaultVisaData(),
+  );
 
   // --- Auto-Save Mechanism ---
   // Saves all your builder data every time you change something
@@ -227,7 +229,7 @@ export const ItineraryProvider = ({ children, onLogin }) => {
   // Step Handlers
   const handleNext = () => setStep((prev) => Math.min(prev + 1, 10));
   const handlePrev = () => setStep((prev) => Math.max(prev - 1, 1));
-  
+
   const resetItineraryState = () => {
     setClientData({});
     setStayData(getDefaultStayData());
@@ -241,7 +243,7 @@ export const ItineraryProvider = ({ children, onLogin }) => {
     setStep(1);
     localStorage.removeItem("atlas_itinerary_data");
   };
-
+  const [showAllItinerary, setShowAllItinerary] = useState(true);
   return (
     <ItineraryContext.Provider
       value={{
@@ -271,6 +273,8 @@ export const ItineraryProvider = ({ children, onLogin }) => {
         setSelectedThemeId,
         reviewData,
         resetItineraryState,
+        showAllItinerary,
+        setShowAllItinerary,
       }}
     >
       {children}

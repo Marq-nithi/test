@@ -48,9 +48,22 @@ export function useItineraryBuilderApi() {
     return response;
   };
 
+  const getAllItinerary = async () => {
+    const response = await api.client.get("/dta.itinerary-management/get-all");
+    return response;
+  };
+  const deleteItinerary = async (id) => {
+    const response = await api.client.delete(
+      `/dta.itinerary-management/delete-itinerary/${id}`,
+    );
+    return response;
+  };
+
   return {
     getItineraryDataById,
     getAllItineraryDraft,
+    getAllItinerary,
+    deleteItinerary
   };
 }
 

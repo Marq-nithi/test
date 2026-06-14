@@ -5,9 +5,10 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@michaeldothedi-service/dta-crm-sl-sdk": "^1.0.90",
+    "@michaeldothedi-service/dta-crm-sl-sdk": "^1.0.91",
     "@mui/icons-material": "^7.3.8",
     "@mui/material": "^7.3.8",
+    "@mui/x-data-grid": "^9.5.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",

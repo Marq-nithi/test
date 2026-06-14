@@ -34,7 +34,7 @@ import {
   CardTravel,
   AutoAwesome,
   Save,
-  Add
+  Add,
 } from "@mui/icons-material";
 import { useItinerary } from "../context/ItineraryContext";
 import {
@@ -50,11 +50,12 @@ import DayPlanner from "../components/itinerary/DayPlanner";
 import PriceDetails from "../components/itinerary/PriceDetails";
 import InclExcl from "../components/itinerary/InclExcl";
 import TermsConditions from "../components/itinerary/TermsConditions";
-import VisaDetails from "../components/itinerary/VisaDetails"; 
+import VisaDetails from "../components/itinerary/VisaDetails";
 import ThemeSelection from "../components/itinerary/ThemeSelection";
 import FinalItinerary from "../components/itinerary/FinalItinerary";
 import { useApi } from "@michaeldothedi-service/dta-crm-sl-sdk";
 import { useNavigate } from "react-router-dom";
+import { ItineraryLineItems } from "../components/ItineraryLineItems";
 
 export default function ItineraryBuilder() {
   const navigate = useNavigate();
@@ -72,11 +73,14 @@ export default function ItineraryBuilder() {
     selectedThemeId,
     bankDetails,
     resetItineraryState,
+    showAllItinerary,
+    setShowAllItinerary,
   } = itineraryContext;
 
   const { api } = useApi();
   const { getBlob } = useBlobDownload();
-  const { getAllItineraryDraft, getItineraryDataById } = useItineraryBuilderApi();
+  const { getAllItineraryDraft, getItineraryDataById } =
+    useItineraryBuilderApi();
   const { getAllMasterEntries } = useMasterEntries();
 
   const [savedDrafts, setSavedDrafts] = useState([]);
@@ -104,14 +108,12 @@ export default function ItineraryBuilder() {
   };
 
   useEffect(() => {
-    loadDrafts();
     getAllMasterEntries();
   }, []);
 
-  const handleSaveDraft = async () => {
-    console.log(clientData);
+  const handleSaveDraft = async (is_draft = true) => {
     const lead_id = clientData.lead_id;
-    console.log(lead_id);
+
     const contact_payload = clientData;
     const transformStayPayload = (payload) => {
       const hotels = payload.hotels.map((v) => ({
@@ -237,8 +239,11 @@ export default function ItineraryBuilder() {
       itinerary_terms: termsData === "" ? {} : termsData,
       itinerary_theme: selectedThemeId,
     };
-
-    await api.itinerary.createDraftItinerary(lead_id, itinerary_payload);
+    if (is_draft) {
+      await api.itinerary.createDraftItinerary(lead_id, itinerary_payload);
+    } else {
+      await api.itinerary.createItinerary(lead_id, itinerary_payload);
+    }
 
     const draftIdToUse =
       currentDraftId || `DRF-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -415,9 +420,9 @@ export default function ItineraryBuilder() {
     { label: "Price Details", id: 5, icon: <AttachMoney fontSize="small" /> },
     { label: "Incl & Excl", id: 6, icon: <ListAlt fontSize="small" /> },
     { label: "Terms & Con", id: 7, icon: <Gavel fontSize="small" /> },
-    { label: "Visa Details", id: 8, icon: <CardTravel fontSize="small" /> }, 
-    { label: "Template", id: 9, icon: <Style fontSize="small" /> }, 
-    { label: "Review", id: 10, icon: <Visibility fontSize="small" /> }, 
+    { label: "Visa Details", id: 8, icon: <CardTravel fontSize="small" /> },
+    { label: "Template", id: 9, icon: <Style fontSize="small" /> },
+    { label: "Review", id: 10, icon: <Visibility fontSize="small" /> },
   ];
 
   const componentRef = useRef(null);
@@ -437,7 +442,7 @@ export default function ItineraryBuilder() {
         return <InclExcl />;
       case 7:
         return <TermsConditions />;
-      case 8: 
+      case 8:
         return <VisaDetails />;
       case 9:
         return <ThemeSelection />;
@@ -459,15 +464,17 @@ export default function ItineraryBuilder() {
       await new Promise((resolve) => setTimeout(resolve, 300));
       const canvas = await html2canvas(componentRef.current, {
         scale: 2,
-        useCORS: true, 
+        useCORS: true,
         logging: false,
         backgroundColor: "#fafaf9",
-        windowWidth: 1200, 
+        windowWidth: 1200,
       });
 
       const imgData = canvas.toDataURL("image/jpeg", 0.98);
-      const pdfWidth = 210; 
+      const pdfWidth = 210;
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      handleSaveDraft(false);
 
       const pdf = new jsPDF({
         orientation: "portrait",
@@ -475,15 +482,27 @@ export default function ItineraryBuilder() {
         format: [pdfWidth, pdfHeight],
       });
 
-      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight, undefined, "FAST");
-      
-      const fileName = clientData?.name 
-        ? `Itinerary_${clientData.name.trim().replace(/\s+/g, '_')}.pdf` 
+      pdf.addImage(
+        imgData,
+        "JPEG",
+        0,
+        0,
+        pdfWidth,
+        pdfHeight,
+        undefined,
+        "FAST",
+      );
+
+      const fileName = clientData?.name
+        ? `Itinerary_${clientData.name.trim().replace(/\s+/g, "_")}.pdf`
         : "Itinerary.pdf";
-        
+
       pdf.save(fileName);
     } catch (error) {
-      console.error("Single page execution thread faulted capturing current input state context:", error);
+      console.error(
+        "Single page execution thread faulted capturing current input state context:",
+        error,
+      );
     }
   };
 
@@ -494,7 +513,7 @@ export default function ItineraryBuilder() {
         flexDirection: "column",
         height: "100%",
         position: "relative",
-        fontFamily: "'Inter', sans-serif" // Applied Inter Font Globally
+        fontFamily: "'Inter', sans-serif", // Applied Inter Font Globally
       }}
     >
       {/* 🚨 EXACT UI REPLICATION: STICKY HEADER 🚨 */}
@@ -505,7 +524,7 @@ export default function ItineraryBuilder() {
           zIndex: 100,
           bgcolor: "#fff",
           borderBottom: "1px solid #e2e8f0",
-          fontFamily: "'Inter', sans-serif"
+          fontFamily: "'Inter', sans-serif",
         }}
       >
         <Box
@@ -515,156 +534,236 @@ export default function ItineraryBuilder() {
             justifyContent: "space-between",
             alignItems: "center",
             flexWrap: "wrap",
-            gap: 2
+            gap: 2,
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <AutoAwesome sx={{ color: '#0ea5e9', fontSize: 28 }} />
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+            <AutoAwesome sx={{ color: "#0ea5e9", fontSize: 28 }} />
             <Box>
-              <Typography variant="h5" sx={{ fontWeight: 800, color: '#0f172a', fontFamily: "'Inter', sans-serif" }}>
+              <Typography
+                variant="h5"
+                sx={{
+                  fontWeight: 800,
+                  color: "#0f172a",
+                  fontFamily: "'Inter', sans-serif",
+                }}
+              >
                 Itinerary Builder
               </Typography>
-              <Typography variant="body2" sx={{ color: '#64748b', fontFamily: "'Inter', sans-serif" }}>
+              <Typography
+                variant="body2"
+                sx={{ color: "#64748b", fontFamily: "'Inter', sans-serif" }}
+              >
                 Create stunning travel experiences for your clients
               </Typography>
             </Box>
           </Box>
-          
-          <Box sx={{ display: "flex", gap: 1.5, alignItems: 'center' }}>
-            <Badge badgeContent={savedDrafts.length} color="primary">
-              <Button
-                variant="outlined"
-                onClick={async () => {
-                  await loadDrafts();
-                  setOpenDraftModal(true);
-                }}
-                sx={{ 
-                  textTransform: "none", 
-                  fontWeight: 600,
-                  fontFamily: "'Inter', sans-serif",
-                  color: '#475569',
-                  borderColor: '#e2e8f0',
-                  borderRadius: '8px',
-                  height: '33px', 
-                }}
-              >
-                Drafts
-              </Button>
-            </Badge>
+          {!showAllItinerary && (
+            <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
+              {/* <Badge badgeContent={savedDrafts.length} color="primary">
+                <Button
+                  variant="outlined"
+                  onClick={async () => {
+                    await loadDrafts();
+                    setOpenDraftModal(true);
+                  }}
+                  sx={{
+                    textTransform: "none",
+                    fontWeight: 600,
+                    fontFamily: "'Inter', sans-serif",
+                    color: "#475569",
+                    borderColor: "#e2e8f0",
+                    borderRadius: "8px",
+                    height: "33px",
+                  }}
+                >
+                  Drafts
+                </Button>
+              </Badge> */}
 
-            {step < 9 && (
+              {step < 9 && (
+                <Button
+                  variant="contained"
+                  onClick={handleSaveDraft}
+                  startIcon={<Save sx={{ fontSize: "18px" }} />}
+                  sx={{
+                    background:
+                      "linear-gradient(90deg,rgba(59, 114, 235, 1) 0%, rgba(0, 187, 167, 1) 50%)", // 🚨 Exact Gradient Background
+                    color: "#fff",
+                    textTransform: "none",
+                    fontWeight: 600,
+                    fontFamily: "'Inter', sans-serif",
+                    width: "130px", // 🚨 Exact Width
+                    height: "33px", // 🚨 Exact Height
+                    borderRadius: "9.23px", // 🚨 Exact Border Radius
+                    paddingLeft: "14.76px", // 🚨 Exact Padding Left
+                    paddingRight: "14.76px", // 🚨 Exact Padding Right
+                    gap: "11.07px", // 🚨 Exact Gap
+                    boxShadow: "none",
+                    opacity: 1,
+                    "& .MuiButton-startIcon": {
+                      marginRight: 0, // MUI uses margin by default, overriding to let gap handle it
+                    },
+                  }}
+                >
+                  Save Draft
+                </Button>
+              )}
+
+              {step === 10 && (
+                <Button
+                  variant="contained"
+                  onClick={() => handleSharePdf()}
+                  sx={{
+                    bgcolor: "#00ff0d",
+                    color: "#fff",
+                    textTransform: "none",
+                    fontWeight: 700,
+                    fontFamily: "'Inter', sans-serif",
+                  }}
+                >
+                  Share PDF
+                </Button>
+              )}
               <Button
                 variant="contained"
-                onClick={handleSaveDraft}
-                startIcon={<Save sx={{ fontSize: '18px' }} />}
+                onClick={() => {
+                  setShowAllItinerary(true);
+                }}
                 sx={{
-                  background: "linear-gradient(90deg,rgba(59, 114, 235, 1) 0%, rgba(0, 187, 167, 1) 50%)", // 🚨 Exact Gradient Background
+                  background:
+                    "linear-gradient(90deg,rgba(59, 114, 235, 1) 0%, rgba(0, 187, 167, 1) 50%)", // 🚨 Exact Gradient Background
                   color: "#fff",
                   textTransform: "none",
                   fontWeight: 600,
-                  fontFamily: "'Inter', sans-serif", 
-                  width: '130px',      // 🚨 Exact Width
-                  height: '33px',      // 🚨 Exact Height
-                  borderRadius: '9.23px', // 🚨 Exact Border Radius
-                  paddingLeft: '14.76px', // 🚨 Exact Padding Left
-                  paddingRight: '14.76px',// 🚨 Exact Padding Right
-                  gap: '11.07px',      // 🚨 Exact Gap
-                  boxShadow: 'none',
+                  fontFamily: "'Inter', sans-serif",
+                  borderRadius: "9.23px", // 🚨 Exact Border Radius
+                  paddingLeft: "14.76px", // 🚨 Exact Padding Left
+                  paddingRight: "14.76px", // 🚨 Exact Padding Right
+                  gap: "11.07px", // 🚨 Exact Gap
+                  boxShadow: "none",
                   opacity: 1,
                   "& .MuiButton-startIcon": {
-                    marginRight: 0 // MUI uses margin by default, overriding to let gap handle it
-                  }
+                    marginRight: 0, // MUI uses margin by default, overriding to let gap handle it
+                  },
                 }}
               >
-                Save Draft
+                Back To All Itinerary
               </Button>
-            )}
-
-            {step === 10 && (
-              <Button
-                variant="contained"
-                onClick={() => handleSharePdf()}
-                sx={{
-                  bgcolor: "#00ff0d",
-                  color: "#fff",
-                  textTransform: "none",
-                  fontWeight: 700,
-                  fontFamily: "'Inter', sans-serif",
-                }}
-              >
-                Share PDF
-              </Button>
-            )}
-          </Box>
+            </Box>
+          )}
+          {showAllItinerary && (
+            <Button
+              variant="contained"
+              onClick={() => {
+                setShowAllItinerary(false);
+              }}
+              sx={{
+                background:
+                  "linear-gradient(90deg,rgba(59, 114, 235, 1) 0%, rgba(0, 187, 167, 1) 50%)", // 🚨 Exact Gradient Background
+                color: "#fff",
+                textTransform: "none",
+                fontWeight: 600,
+                fontFamily: "'Inter', sans-serif",
+                borderRadius: "9.23px", // 🚨 Exact Border Radius
+                paddingLeft: "14.76px", // 🚨 Exact Padding Left
+                paddingRight: "14.76px", // 🚨 Exact Padding Right
+                gap: "11.07px", // 🚨 Exact Gap
+                boxShadow: "none",
+                opacity: 1,
+                "& .MuiButton-startIcon": {
+                  marginRight: 0, // MUI uses margin by default, overriding to let gap handle it
+                },
+              }}
+            >
+              Create New Itinerary
+            </Button>
+          )}
         </Box>
+        {!showAllItinerary && (
+          <Box
+            sx={{
+              px: { xs: 2, md: 3 },
+              display: "flex",
+              flexWrap: "wrap", // 🚨 Allows steps to wrap cleanly to the next line
+              alignItems: "center",
+              pb: 2,
+              gap: 1.5,
+            }}
+          >
+            {steps.map((s, idx) => (
+              <React.Fragment key={s.id}>
+                <Chip
+                  label={s.label}
+                  icon={s.icon}
+                  onClick={() => setStep && setStep(s.id)}
+                  sx={{
+                    bgcolor: step === s.id ? "transparent" : "#f8fafc",
+                    background:
+                      step === s.id
+                        ? "linear-gradient(90deg,rgba(59, 114, 235, 1) 0%, rgba(0, 187, 167, 1) 50%)"
+                        : "none",
+                    color: step === s.id ? "#fff" : "#64748b",
+                    fontWeight: step === s.id ? 600 : 500,
+                    borderRadius: "8px",
+                    fontFamily: "'Inter', sans-serif",
+                    border: step === s.id ? "none" : "1px solid #f1f5f9",
+                    cursor: "pointer",
+                    height: "32px",
+                    "& .MuiChip-icon": {
+                      color: step === s.id ? "#fff" : "#94a3b8",
+                    },
+                  }}
+                />
+                {idx < steps.length - 1 && (
+                  <ChevronRight sx={{ color: "#cbd5e1", fontSize: 18 }} />
+                )}
+              </React.Fragment>
+            ))}
 
-        {/* 🚨 EXACT UI REPLICATION: WRAPPING STEPS 🚨 */}
+            <ChevronRight sx={{ color: "#cbd5e1", fontSize: 18 }} />
+            <Chip
+              label="Add New"
+              icon={<Add sx={{ fontSize: 16 }} />}
+              sx={{
+                bgcolor: "#f8fafc",
+                color: "#64748b",
+                fontWeight: 500,
+                borderRadius: "8px",
+                fontFamily: "'Inter', sans-serif",
+                border: "1px solid #f1f5f9",
+                height: "32px",
+                "& .MuiChip-icon": { color: "#94a3b8" },
+              }}
+            />
+          </Box>
+        )}
+      </Box>
+
+      {!showAllItinerary && (
         <Box
           sx={{
-            px: { xs: 2, md: 3 },
-            display: "flex",
-            flexWrap: "wrap", // 🚨 Allows steps to wrap cleanly to the next line
-            alignItems: 'center',
-            pb: 2,
-            gap: 1.5,
+            flexGrow: 1,
+            overflowY: "auto",
+            p: step === 10 ? 0 : 5,
+            pb: "160px",
           }}
         >
-          {steps.map((s, idx) => (
-            <React.Fragment key={s.id}>
-              <Chip
-                label={s.label}
-                icon={s.icon}
-                onClick={() => setStep && setStep(s.id)}
-                sx={{
-                  bgcolor: step === s.id ? "transparent" : "#f8fafc",
-                  background: step === s.id ? "linear-gradient(90deg,rgba(59, 114, 235, 1) 0%, rgba(0, 187, 167, 1) 50%)" : "none",
-                  color: step === s.id ? "#fff" : "#64748b",
-                  fontWeight: step === s.id ? 600 : 500,
-                  borderRadius: "8px",
-                  fontFamily: "'Inter', sans-serif",
-                  border: step === s.id ? 'none' : '1px solid #f1f5f9',
-                  cursor: "pointer",
-                  height: '32px',
-                  "& .MuiChip-icon": {
-                    color: step === s.id ? "#fff" : "#94a3b8",
-                  }
-                }}
-              />
-              {idx < steps.length - 1 && (
-                <ChevronRight sx={{ color: "#cbd5e1", fontSize: 18 }} />
-              )}
-            </React.Fragment>
-          ))}
-          
-          <ChevronRight sx={{ color: "#cbd5e1", fontSize: 18 }} />
-          <Chip
-            label="Add New"
-            icon={<Add sx={{ fontSize: 16 }} />}
-            sx={{
-               bgcolor: "#f8fafc",
-               color: "#64748b",
-               fontWeight: 500,
-               borderRadius: "8px",
-               fontFamily: "'Inter', sans-serif",
-               border: '1px solid #f1f5f9',
-               height: '32px',
-               "& .MuiChip-icon": { color: "#94a3b8" }
-            }}
-          />
+          {renderStepContent()}
         </Box>
-      </Box>
-
-      {/* CONTENT AREA */}
-      <Box
-        sx={{
-          flexGrow: 1,
-          overflowY: "auto",
-          p: step === 10 ? 0 : 5, 
-          pb: "160px",
-        }}
-      >
-        {renderStepContent()}
-      </Box>
+      )}
+      {showAllItinerary && (
+        <Box
+          sx={{
+            flexGrow: 1,
+            overflowY: "auto",
+            p: step === 10 ? 0 : 5,
+            pb: "160px",
+          }}
+        >
+          <ItineraryLineItems />
+        </Box>
+      )}
 
       {/* DRAFTS MODAL (Untouched Original User Logic) */}
       <Dialog
@@ -682,7 +781,11 @@ export default function ItineraryBuilder() {
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <FolderOpen color="primary" />
-            <Typography variant="h6" fontWeight="900" fontFamily="'Inter', sans-serif">
+            <Typography
+              variant="h6"
+              fontWeight="900"
+              fontFamily="'Inter', sans-serif"
+            >
               Saved Drafts
             </Typography>
           </Box>
@@ -691,10 +794,17 @@ export default function ItineraryBuilder() {
           </IconButton>
         </DialogTitle>
 
-        <DialogContent dividers sx={{ bgcolor: "#f8fafc", fontFamily: "'Inter', sans-serif" }}>
+        <DialogContent
+          dividers
+          sx={{ bgcolor: "#f8fafc", fontFamily: "'Inter', sans-serif" }}
+        >
           {savedDrafts.length === 0 ? (
             <Typography
-              sx={{ py: 4, textAlign: "center", fontFamily: "'Inter', sans-serif" }}
+              sx={{
+                py: 4,
+                textAlign: "center",
+                fontFamily: "'Inter', sans-serif",
+              }}
               color="text.secondary"
             >
               No drafts found.
