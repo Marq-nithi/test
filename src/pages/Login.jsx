@@ -192,7 +192,7 @@ export default function Login({ onLogin }) {
   };
 
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "#fff", p: { xs: 2, md: 3 } }}>
+    <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "#F1F5F9", p: { xs: 2, md: 3 } }}>
       
       {/* 🚨 LEFT SIDE IMAGE 🚨 */}
       <Box
@@ -217,7 +217,7 @@ export default function Login({ onLogin }) {
           },
         }}
       >
-        <Box sx={{ position: "relative", zIndex: 2 }}>
+        <Box sx={{ position: "relative", zIndex: 2  }}>
           <Box sx={{ width: 120, height: 40, display: 'flex', alignItems: 'center' }}>
             <Typography variant="h5" fontWeight="900" color="#fff" letterSpacing={1}>
               LOGO
@@ -249,8 +249,8 @@ export default function Login({ onLogin }) {
           flexDirection: "column",
           px: { xs: 2, sm: 6, md: 10 },
           maxWidth: { xs: "100%", md: "600px" },
-          mx: "auto"
-        }}
+          mx: "auto",
+         }}
       >
         <Paper
           elevation={0}
@@ -258,7 +258,7 @@ export default function Login({ onLogin }) {
             p: { xs: 4, sm: 5 },
             width: "100%",
             borderRadius: 5,
-            border: "1px solid #f1f5f9",
+            border: "3px solid #f1f5f9",
             boxShadow: "0 10px 40px -10px rgba(0,0,0,0.08)",
             mb: 3
           }}
@@ -500,7 +500,7 @@ export default function Login({ onLogin }) {
                     "&:hover": { textDecoration: "underline" }
                   }}
                 >
-                  Forgot Password?
+                   
                 </Link>
               )}
             </Box>
@@ -524,7 +524,7 @@ export default function Login({ onLogin }) {
               {isSignUp ? "Register Agency" : "Sign in"}
             </Button>
             
-            <Box sx={{ mt: 3, textAlign: "center", position: 'relative' }}>
+            {/* <Box sx={{ mt: 3, textAlign: "center", position: 'relative' }}>
               <Divider sx={{ mb: 3 }}>
                 <Typography variant="caption" color="#94a3b8" sx={{ px: 1 }}>or</Typography>
               </Divider>
@@ -545,7 +545,7 @@ export default function Login({ onLogin }) {
                   {isSignUp ? "Sign In" : "Sign Up"}
                 </Link>
               </Typography>
-            </Box>
+            </Box> */}
           </form>
         </Paper>
 

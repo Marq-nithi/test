@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Box, Typography, Paper, Grid, Divider, Avatar, Button, Container, Chip
 } from '@mui/material';
@@ -14,9 +14,10 @@ import {
 import { WhatsApp } from '@mui/icons-material';
 
 import { useItinerary } from '../../../context/ItineraryContext'; 
+import { useApi } from "@michaeldothedi-service/dta-crm-sl-sdk";
+import { useBlobDownload } from "../../../services/backendApi";
 
 // --- Placeholder Images for Coastal Theme ---
-// Updated to a dark, moody night background to match your design
 const HERO_BG = "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&q=80&w=2000"; 
 const DAY1_IMG = "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?auto=format&fit=crop&q=80&w=800"; 
 const DAY2_IMG = "https://images.unsplash.com/photo-1544550581-5f7ceaf7f992?auto=format&fit=crop&q=80&w=800"; 
@@ -33,7 +34,16 @@ const BG_LIGHT = '#fafaf9';
 
 const formatCamelCase = (text) => text.replace(/([A-Z])/g, " $1").replace(/^./, str => str.toUpperCase());
 
+// 🚨 SAFE RENDERER
+const safeRender = (val, fallback = "") => {
+  if (val === null || val === undefined || val === "") return fallback;
+  if (typeof val === "string" || typeof val === "number") return String(val);
+  if (Array.isArray(val)) return val.map((v) => safeRender(v, fallback)).join(", ");
+  return fallback;
+};
+
 export default function Theme3Coastal() {
+  const itineraryContext = useItinerary() || {};
   const { 
     clientData = {}, 
     activeDays, 
@@ -44,7 +54,54 @@ export default function Theme3Coastal() {
     termsData,
     reviewData,
     visaData,
-  } = useItinerary();
+    themeConfig = {}, 
+  } = itineraryContext;
+
+  const { userDetails: ud = {}, api } = useApi() || {};
+  const [userDetails, setUserDetails] = useState(ud);
+  const { getBlob } = useBlobDownload() || {};
+
+  const [logoUrl, setLogoUrl] = useState("");
+  const [coverUrl, setCoverUrl] = useState(HERO_BG);
+
+  // --- LOGO & COVER INTEGRATION ---
+  useEffect(() => {
+    if (api?.auth?.loadUserDetails) {
+      api.auth.loadUserDetails().then((data) => {
+        setUserDetails(data || {});
+      });
+    }
+  }, [api]);
+
+  useEffect(() => {
+    const loadImages = async () => {
+      try {
+        const logoId = userDetails?.picture;
+        if (!logoId) {
+          setLogoUrl("");
+        } else if (getBlob) {
+          const logoBlobData = await getBlob(logoId);
+          setLogoUrl(logoBlobData?.url || "");
+        }
+      } catch (error) {
+        setLogoUrl("");
+      }
+
+      try {
+        const coverId = userDetails?.["custom:tmp_cover_img_id"];
+        if (!coverId || !coverId.length) {
+          setCoverUrl(HERO_BG);
+        } else if (getBlob) {
+          const coverBlobData = await getBlob(coverId);
+          const resolvedUrl = coverBlobData?.url;
+          setCoverUrl(resolvedUrl && resolvedUrl.length > 0 ? resolvedUrl : HERO_BG);
+        }
+      } catch (error) {
+        setCoverUrl(HERO_BG);
+      }
+    };
+    if (userDetails) loadImages();
+  }, [userDetails, getBlob]);
 
   // --- 1. CLIENT & TRIP DATA ---
   const rawDestination = clientData?.destination || clientData?.dist_location || "Destination";
@@ -53,8 +110,8 @@ export default function Theme3Coastal() {
   const clientName = `${clientData.title || ''} ${clientData.name || 'Valued Guest'}`.trim();
   const phone = `${clientData.contactCode || ''} ${clientData.contact || ''}`.trim() || '+1 (234) 567-890';
   const email = clientData.email || 'guest@example.com';
-  const agentName = clientData.queryHandledBy && clientData.queryHandledBy !== '0' ? clientData.queryHandledBy : 'Your Travel Expert';
-  
+  const companyName = userDetails?.["custom:agency_name"] || "Travel Agency";
+
   const formatDate = (dateString) => dateString ? new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Dates TBD';
   const dates = (clientData.startDate && clientData.endDate) ? `${formatDate(clientData.startDate)} - ${formatDate(clientData.endDate)}` : "Dates TBD";
   
@@ -138,32 +195,35 @@ export default function Theme3Coastal() {
   return (
     <Box id="itinerary-pdf-content" sx={{ bgcolor: BG_LIGHT, minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
       
-      {/* 🚨 1. HERO SECTION (UPDATED TO EXACT DESIGN) 🚨 */}
+      {/* 🚨 1. HERO SECTION 🚨 */}
       <Box sx={{ 
         position: 'relative', height: { xs: 500, md: 700 }, 
-        backgroundImage: `url(${HERO_BG})`, backgroundSize: 'cover', backgroundPosition: 'center',
+        backgroundImage: `url(${coverUrl})`, backgroundSize: 'cover', backgroundPosition: 'center',
         display: 'flex', flexDirection: 'column', justifyContent: 'center',
         pageBreakInside: 'avoid', breakInside: 'avoid',
         '&::before': { 
           content: '""', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, 
-          // Left-to-right gradient so the text pops, but the right side shows the beautiful image
           background: 'linear-gradient(to right, rgba(2, 6, 23, 0.95) 0%, rgba(2, 6, 23, 0.5) 60%, rgba(2, 6, 23, 0.1) 100%)' 
         }
       }}>
         <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1, color: '#fff', pt: 6 }}>
           
-          {/* Logo Button */}
-          <Chip 
-            icon={<Explore sx={{ color: '#cbd5e1 !important', fontSize: '18px !important' }} />} 
-            label="LOGO" 
-            sx={{ 
-              bgcolor: 'rgba(255,255,255,0.15)', color: '#fff', mb: 5, 
-              backdropFilter: 'blur(8px)', fontWeight: 700, letterSpacing: 1,
-              border: '1px solid rgba(255,255,255,0.1)'
-            }} 
-          />
+          {logoUrl ? (
+            <Box sx={{ bgcolor: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)', p: 1, px: 2, borderRadius: 1, mb: 5, display: 'inline-block', border: '1px solid rgba(255,255,255,0.1)' }}>
+               <img height={"40px"} width={"auto"} src={logoUrl} alt="Agency Logo" style={{ display: 'block' }} />
+            </Box>
+          ) : (
+            <Chip 
+              icon={<Explore sx={{ color: '#cbd5e1 !important', fontSize: '18px !important' }} />} 
+              label="LOGO" 
+              sx={{ 
+                bgcolor: 'rgba(255,255,255,0.15)', color: '#fff', mb: 5, 
+                backdropFilter: 'blur(8px)', fontWeight: 700, letterSpacing: 1,
+                border: '1px solid rgba(255,255,255,0.1)'
+              }} 
+            />
+          )}
 
-          {/* Main Title */}
           <Typography variant="h1" mb={3} sx={{ 
             fontFamily: "'Playfair Display', serif", fontWeight: 700, 
             maxWidth: 800, fontSize: { xs: '3.5rem', md: '5.5rem' }, lineHeight: 1.1 
@@ -171,7 +231,6 @@ export default function Theme3Coastal() {
             {title}
           </Typography>
 
-          {/* Metadata Row */}
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: { xs: 3, md: 5 }, mb: 4, alignItems: 'center' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <CalendarMonth fontSize="small" sx={{ color: '#d1d5db' }} />
@@ -189,7 +248,6 @@ export default function Theme3Coastal() {
             </Box>
           </Box>
 
-          {/* Prepared For (Gold) */}
           <Typography variant="subtitle2" sx={{ 
             color: '#d97706', fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase' 
           }}>
@@ -198,7 +256,6 @@ export default function Theme3Coastal() {
 
         </Container>
 
-        {/* Watermark Logo Bottom Right */}
         <Box sx={{ 
           position: 'absolute', bottom: 40, right: 60, textAlign: 'right', zIndex: 1, 
           display: { xs: 'none', md: 'block' } 
@@ -209,14 +266,11 @@ export default function Theme3Coastal() {
           <Typography variant="h4" sx={{ fontFamily: "'Playfair Display', serif", fontStyle: 'italic', color: '#e2e8f0', mt: 0.5 }}>
             NIGHTS
           </Typography>
-          {/* Decorative wave below the watermark */}
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
             <Typography sx={{ color: '#fff', fontSize: '2rem', lineHeight: 0.5 }}>≈</Typography>
           </Box>
         </Box>
       </Box>
-
-      {/* -------------------- REST OF THE THEME IS UNCHANGED -------------------- */}
 
       <Container maxWidth="md" sx={{ mt: 6, mb: 10 }}>
         
@@ -451,43 +505,38 @@ export default function Theme3Coastal() {
           </Box>
         )}
 
-        {/* 6. INCLUSIONS & EXCLUSIONS */}
-        <Box sx={{ mb: 10, pageBreakInside: 'avoid', breakInside: 'avoid' }}>
-          <Grid container spacing={3} alignItems="stretch">
-            <Grid item xs={12} md={6}>
-              <Paper elevation={0} sx={{ p: 4, borderRadius: 2, bgcolor: '#f0fdf4', height: '100%', border: '1px solid #dcfce7', display: 'flex', flexDirection: 'column' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                  <Box sx={{ width: 40, height: 40, borderRadius: 1.5, bgcolor: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Check sx={{ color: '#fff' }} /></Box>
-                  <Typography variant="h5" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, color: NAVY_DARK }}>What's Included</Typography>
+        {/* 🚨 6. INCLUSIONS & EXCLUSIONS (FIXED ROW & EXACT WIDTH) 🚨 */}
+        <Box sx={{ mb: 10, display: 'flex', flexDirection: 'row', gap: 3, alignItems: 'stretch', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+          
+          <Paper elevation={0} sx={{ width: '50%', p: 4, borderRadius: 2, bgcolor: '#f0fdf4', border: '1px solid #dcfce7', display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+              <Box sx={{ width: 40, height: 40, borderRadius: 1.5, bgcolor: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Check sx={{ color: '#fff' }} /></Box>
+              <Typography variant="h5" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, color: NAVY_DARK }}>What's Included</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+              {displayInclusions.map((item, i) => (
+                <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                  <Check sx={{ fontSize: 18, color: '#22c55e', mt: 0.2 }} />
+                  <Typography variant="body2" color={TEXT_MUTED} sx={{ wordBreak: 'break-word' }}>{item}</Typography>
                 </Box>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                  {displayInclusions.map((item, i) => (
-                    <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
-                      <Check sx={{ fontSize: 18, color: '#22c55e', mt: 0.2 }} />
-                      <Typography variant="body2" color={TEXT_MUTED} sx={{ wordBreak: 'break-word' }}>{item}</Typography>
-                    </Box>
-                  ))}
-                </Box>
-              </Paper>
-            </Grid>
+              ))}
+            </Box>
+          </Paper>
 
-            <Grid item xs={12} md={6}>
-              <Paper elevation={0} sx={{ p: 4, borderRadius: 2, bgcolor: '#fff1f2', height: '100%', border: '1px solid #ffe4e6', display: 'flex', flexDirection: 'column' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                  <Box sx={{ width: 40, height: 40, borderRadius: 1.5, bgcolor: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Close sx={{ color: '#fff' }} /></Box>
-                  <Typography variant="h5" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, color: NAVY_DARK }}>Not Included</Typography>
+          <Paper elevation={0} sx={{ width: '50%', p: 4, borderRadius: 2, bgcolor: '#fff1f2', border: '1px solid #ffe4e6', display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+              <Box sx={{ width: 40, height: 40, borderRadius: 1.5, bgcolor: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Close sx={{ color: '#fff' }} /></Box>
+              <Typography variant="h5" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, color: NAVY_DARK }}>Not Included</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+              {displayExclusions.map((item, i) => (
+                <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                  <Close sx={{ fontSize: 18, color: '#ef4444', mt: 0.2 }} />
+                  <Typography variant="body2" color={TEXT_MUTED} sx={{ wordBreak: 'break-word' }}>{item}</Typography>
                 </Box>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                  {displayExclusions.map((item, i) => (
-                    <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
-                      <Close sx={{ fontSize: 18, color: '#ef4444', mt: 0.2 }} />
-                      <Typography variant="body2" color={TEXT_MUTED} sx={{ wordBreak: 'break-word' }}>{item}</Typography>
-                    </Box>
-                  ))}
-                </Box>
-              </Paper>
-            </Grid>
-          </Grid>
+              ))}
+            </Box>
+          </Paper>
         </Box>
 
         {/* 7. VISA DETAILS */}
@@ -535,7 +584,7 @@ export default function Theme3Coastal() {
           {renderTerms()}
         </Box>
 
-        {/* 🚨 PREMIUM BEAUTIFIED BANK DETAILS PANEL */}
+        {/* BANK DETAILS PANEL */}
         <Paper 
           elevation={0} 
           sx={{ 
@@ -549,7 +598,6 @@ export default function Theme3Coastal() {
             breakInside: 'avoid' 
           }}
         >
-          {/* Header Bar */}
           <Box sx={{ bgcolor: TEAL_MAIN, color: '#fff', py: 2.5, px: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
             <AccountBalance sx={{ fontSize: '1.6rem', opacity: 0.9 }} />
             <Box>
@@ -558,11 +606,9 @@ export default function Theme3Coastal() {
             </Box>
           </Box>
 
-          {/* Main Grid Content */}
           <Box sx={{ p: 4, bgcolor: '#fbfdfd' }}>
             <Grid container spacing={3.5}>
               
-              {/* Account Name */}
               <Grid item xs={12} sm={6}>
                 <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
                   <Avatar sx={{ bgcolor: '#f0fdfa', color: TEAL_MAIN, width: 38, height: 38, border: '1px solid #b2f5ea' }}>
@@ -575,7 +621,6 @@ export default function Theme3Coastal() {
                 </Box>
               </Grid>
 
-              {/* Account Number */}
               <Grid item xs={12} sm={6}>
                 <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
                   <Avatar sx={{ bgcolor: '#f0fdfa', color: TEAL_MAIN, width: 38, height: 38, border: '1px solid #b2f5ea' }}>
@@ -588,7 +633,6 @@ export default function Theme3Coastal() {
                 </Box>
               </Grid>
 
-              {/* Bank Name */}
               <Grid item xs={12} sm={6} md={4}>
                 <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
                   <Box sx={{ color: TEAL_MAIN, mt: 0.3 }}><HomeWork sx={{ fontSize: '1.2rem' }} /></Box>
@@ -599,7 +643,6 @@ export default function Theme3Coastal() {
                 </Box>
               </Grid>
 
-              {/* IFSC Code */}
               <Grid item xs={12} sm={6} md={4}>
                 <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
                   <Box sx={{ color: TEAL_MAIN, mt: 0.3 }}><Pin sx={{ fontSize: '1.2rem' }} /></Box>
@@ -610,7 +653,6 @@ export default function Theme3Coastal() {
                 </Box>
               </Grid>
 
-              {/* Account Type */}
               <Grid item xs={12} sm={6} md={4}>
                 <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
                   <Box sx={{ color: TEAL_MAIN, mt: 0.3 }}><Description sx={{ fontSize: '1.2rem' }} /></Box>
@@ -621,7 +663,6 @@ export default function Theme3Coastal() {
                 </Box>
               </Grid>
 
-              {/* Branch Name */}
               <Grid item xs={12} sm={6} md={4}>
                 <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
                   <Box sx={{ color: TEAL_MAIN, mt: 0.3 }}><LocationOn sx={{ fontSize: '1.2rem' }} /></Box>
@@ -632,7 +673,6 @@ export default function Theme3Coastal() {
                 </Box>
               </Grid>
 
-              {/* Routing / SWIFT (Conditional) */}
               {termsData?.bankDetails?.routing && (
                 <Grid item xs={12} sm={6} md={4}>
                   <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
@@ -645,7 +685,6 @@ export default function Theme3Coastal() {
                 </Grid>
               )}
 
-              {/* Bank Notes Block */}
               {termsData?.bankDetails?.bankNotes && (
                 <Grid item xs={12}>
                   <Box sx={{ mt: 1, p: 2.5, bgcolor: '#f0fdfa', borderRadius: 2, borderLeft: `3px solid ${TEAL_MAIN}` }}>
@@ -660,39 +699,23 @@ export default function Theme3Coastal() {
             </Grid>
           </Box>
         </Paper>
-
       </Container>
 
-      {/* 9. FOOTER */}
-      <Box sx={{ bgcolor: NAVY_DARK, pt: 8, pageBreakInside: 'avoid', breakInside: 'avoid' }}>
-        <Container maxWidth="md">
-          <Paper elevation={0} sx={{ p: { xs: 4, md: 6 }, borderRadius: 4, bgcolor: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', color: '#fff', mb: 6 }}>
-            <Typography variant="h4" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, mb: 1 }}>Your Travel Consultant</Typography>
-            <Typography variant="body2" sx={{ color: '#cbd5e1', mb: 5 }}>Dedicated to making your journey extraordinary</Typography>
-            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: 'center', gap: { xs: 3, md: 5 } }}>
-              <Avatar sx={{ width: 100, height: 100, border: '4px solid #f59e0b', bgcolor: '#fff', color: '#cbd5e1' }} src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200" />
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: { xs: 'center', md: 'flex-start' } }}>
-                <Typography variant="h5" sx={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, mb: 0.5 }}>{agentName}</Typography>
-                <Typography variant="body2" sx={{ color: '#cbd5e1', mb: 3 }}>Senior Luxury Travel Specialist</Typography>
-                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: { xs: 'center', md: 'flex-start' } }}>
-                  <Button variant="outlined" startIcon={<Phone fontSize="small"/>} sx={{ color: '#fff', borderColor: 'rgba(255,255,255,0.3)' }}>{phone}</Button>
-                  <Button variant="outlined" startIcon={<Email fontSize="small"/>} sx={{ color: '#fff', borderColor: 'rgba(255,255,255,0.3)' }}>{email}</Button>
-                </Box>
-              </Box>
-            </Box>
-          </Paper>
-
-          <Box sx={{ bgcolor: '#fff', py: 4, px: 2, textAlign: 'center', borderTop: '1px solid #e2e8f0' }}>
-            <Typography variant="body2" color="#64748b" mb={2}>
-              This itinerary is subject to availability and confirmation.<br/>
-              All times are local. Please arrive at airports 3 hours prior to international flights.
-            </Typography>
-            <Divider sx={{ maxWidth: 200, mx: 'auto', mb: 2, borderColor: '#e2e8f0' }} />
-            <Typography variant="caption" color="#475569" fontWeight="600">
-              Triumph Holidays - Creating Unforgettable Memories Since 2005
-            </Typography>
-          </Box>
-        </Container>
+      {/* 🚨 9. EXACT CLASSIC FOOTER REPLACED 🚨 */}
+      <Box sx={{ mt: 4, pt: 4, borderTop: '2px solid #e2e8f0', textAlign: 'center', pageBreakInside: "avoid", breakInside: "avoid", color: NAVY_DARK, pb: 6, bgcolor: '#fff' }}>
+        <Typography variant="h6" fontWeight="800" sx={{ fontFamily: "'Playfair Display', serif !important", mb: 1 }}>
+          {safeRender(themeConfig?.footerText || companyName)}
+        </Typography>
+        <Typography variant="body2" color={TEXT_MUTED} sx={{ mb: 2, maxWidth: 600, mx: 'auto' }}>
+          {safeRender(userDetails?.["custom:tmp_footer_text"], "Thank you for choosing us for your travel needs. We look forward to creating more unforgettable memories with you.")}
+        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 3, mb: 3 }}>
+           <Typography variant="caption" fontWeight="600" color={TEAL_MAIN}><Phone sx={{fontSize: 14, verticalAlign: 'middle', mr: 0.5}}/>{safeRender(userDetails?.["custom:tmp_pr_contact"], "Contact Us")}</Typography>
+           <Typography variant="caption" fontWeight="600" color={TEAL_MAIN}><Email sx={{fontSize: 14, verticalAlign: 'middle', mr: 0.5}}/>{safeRender(userDetails?.email, "info@travel.com")}</Typography>
+        </Box>
+        <Typography variant="caption" sx={{ opacity: 0.6, fontWeight: 600, display: 'block' }}>
+          © {new Date().getFullYear()} {safeRender(companyName)}. All rights reserved.
+        </Typography>
       </Box>
 
     </Box>

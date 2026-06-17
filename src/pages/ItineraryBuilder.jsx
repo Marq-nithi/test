@@ -113,22 +113,23 @@ export default function ItineraryBuilder() {
 
   const handleSaveDraft = async (is_draft = true) => {
     const lead_id = clientData.lead_id;
-
     const contact_payload = clientData;
+
     const transformStayPayload = (payload) => {
+      if (!payload || !payload.hotels) return [];
       const hotels = payload.hotels.map((v) => ({
         hotel_type: v.type || "main",
-        location: v.location,
-        hotel_name: v.hotelName,
-        hotel_preference: v.hotelPref,
-        room_category: v.roomCat,
-        check_in_date: v.checkInDate,
-        check_in_time: v.checkInTime,
-        check_out_date: v.checkOutDate,
-        check_out_time: v.checkOutTime,
-        rooms: v.rooms,
-        price: v.price,
-        amenities: v.amenities,
+        location: v.location || "",
+        hotel_name: v.hotelName || "",
+        hotel_preference: v.hotelPref || "",
+        room_category: v.roomCat || "",
+        check_in_date: v.checkInDate || "",
+        check_in_time: v.checkInTime || "",
+        check_out_date: v.checkOutDate || "",
+        check_out_time: v.checkOutTime || "",
+        rooms: v.rooms || 1,
+        price: v.price || "",
+        amenities: v.amenities || [],
         meal_plan_breakfast: v.meals?.breakfast || false,
         meal_plan_lunch: v.meals?.lunch || false,
         meal_plan_dinner: v.meals?.dinner || false,
@@ -138,273 +139,284 @@ export default function ItineraryBuilder() {
     };
 
     const transformTransportPayload = (payload) => {
-      const trains = payload.trains.map((v) => ({
-        depFrom: v.depFrom,
-        arrAt: v.arrAt,
-        passengers: v.passengers,
-        depDate: v.depDate,
-        depTime: v.depTime,
-        arrDate: v.arrDate,
-        arrTime: v.arrTime,
-        trainName: v.trainName,
-        trainNo: v.trainNo,
-        coach: v.coach,
-        notes: v.notes,
+      if (!payload) return { trains: [], buses: [], grounds: [], flights: [] };
+      
+      const trains = (payload.trains || []).map((v) => ({
+        depFrom: v.depFrom || "",
+        arrAt: v.arrAt || "",
+        passengers: v.passengers || "",
+        depDate: v.depDate || "",
+        depTime: v.depTime || "",
+        arrDate: v.arrDate || "",
+        arrTime: v.arrTime || "",
+        trainName: v.trainName || "",
+        trainNo: v.trainNo || "",
+        coach: v.coach || "",
+        notes: v.notes || "",
       }));
 
-      const buses = payload.buses.map((v) => ({
-        depFrom: v.pickup,
-        arrAt: v.dropoff,
-        passengers: v.passengers,
-        depDate: v.depDate,
-        depTime: v.depTime,
-        arrDate: v.arrDate,
-        arrTime: v.arrTime,
-        busName: v.busName,
-        classType: v.classType,
-        notes: v.notes,
+      const buses = (payload.buses || []).map((v) => ({
+        depFrom: v.pickup || "",
+        arrAt: v.dropoff || "",
+        passengers: v.passengers || "",
+        depDate: v.depDate || "",
+        depTime: v.depTime || "",
+        arrDate: v.arrDate || "",
+        arrTime: v.arrTime || "",
+        busName: v.busName || "",
+        classType: v.classType || "",
+        notes: v.notes || "",
       }));
 
-      const grounds = payload.grounds.map((v) => ({
-        pickup: v.pickup,
-        dropoff: v.dropoff,
-        passengers: v.passengers,
-        depDate: v.depDate,
-        depTime: v.depTime,
-        arrDate: v.arrDate,
-        arrTime: v.arrTime,
-        vehicleType: v.vehicleType,
-        notes: v.notes,
+      const grounds = (payload.grounds || []).map((v) => ({
+        pickup: v.pickup || "",
+        dropoff: v.dropoff || "",
+        passengers: v.passengers || "",
+        depDate: v.depDate || "",
+        depTime: v.depTime || "",
+        arrDate: v.arrDate || "",
+        arrTime: v.arrTime || "",
+        vehicleType: v.vehicleType || "",
+        notes: v.notes || "",
       }));
 
-      const flights = payload.flights.map((v) => ({
-        depFrom: v.depFrom,
-        arrAt: v.arrAt,
-        airline: v.airline,
-        flightType: v.flightType,
-        layovers: v.layovers,
-        cabin: v.cabin,
-        adults: v.adults,
-        children: v.children,
-        infants: v.infants,
-        depDate: v.depDate,
-        depTime: v.depTime,
-        arrDate: v.arrDate,
-        arrTime: v.arrTime,
-        duration: v.duration,
-        pricePerPerson: v.pricePerPerson,
-        visaCountry: v.visaCountry,
-        visaType: v.visaType,
-        entryType: v.entryType,
-        validity: v.validity,
-        visaDuration: v.visaDuration,
-        notes: v.notes,
+      const flights = (payload.flights || []).map((v) => ({
+        depFrom: v.depFrom || "",
+        arrAt: v.arrAt || "",
+        airline: v.airline || "",
+        flightType: v.flightType || "",
+        layovers: v.layovers || [],
+        cabin: v.cabin || "",
+        adults: v.adults || "",
+        children: v.children || "",
+        infants: v.infants || "",
+        depDate: v.depDate || "",
+        depTime: v.depTime || "",
+        arrDate: v.arrDate || "",
+        arrTime: v.arrTime || "",
+        duration: v.duration || "",
+        pricePerPerson: v.pricePerPerson || "",
+        visaCountry: v.visaCountry || "",
+        visaType: v.visaType || "",
+        entryType: v.entryType || "",
+        validity: v.validity || "",
+        visaDuration: v.visaDuration || "",
+        notes: v.notes || "",
       }));
 
-      return {
-        trains,
-        buses,
-        grounds,
-        flights,
-      };
+      return { trains, buses, grounds, flights };
     };
 
-    const iternerary_dayplanner = dayPlannerData.map((v) => ({
-      day: v.day,
-      title: v.title,
-      description: v.description,
-      dayNumber: v.dayNumber,
+    const iternerary_dayplanner = (dayPlannerData || []).map((v) => ({
+      day: v.day || "",
+      title: v.title || "",
+      description: v.description || "",
+      dayNumber: v.dayNumber || "",
       images: (v.images || []).map((iv) => iv.id),
-      meals: v.meals,
+      meals: v.meals || [],
     }));
 
     const iternerary_price = {
-      items: priceData.items.map((v) => ({
-        category: v.category,
-        description: v.description,
-        quantity: v.quantity,
-        unitPrice: v.unitPrice,
+      items: (priceData?.items || []).map((v) => ({
+        category: v.category || "",
+        description: v.description || "",
+        quantity: v.quantity || 1,
+        unitPrice: v.unitPrice || 0,
       })),
-      taxes: priceData.taxes,
-      discount: priceData.discount,
+      taxes: priceData?.taxes || { gst: 0, serviceTax: 0 },
+      discount: priceData?.discount || { type: "Percentage (%)", value: 0 },
     };
 
     const itinerary_payload = {
-      itinerary_contact: contact_payload,
+      itinerary_contact: contact_payload || {},
       itinerary_hotels: transformStayPayload(stayData),
       iternerary_transports: transformTransportPayload(transportData),
       iternerary_dayplanner,
       iternerary_price,
-      itinerary_inclexcl: inclExclData,
+      itinerary_inclexcl: inclExclData || { inclusions: [], exclusions: [] },
       itinerary_terms: termsData === "" ? {} : termsData,
-      itinerary_theme: selectedThemeId,
-    };
-    if (is_draft) {
-      await api.itinerary.createDraftItinerary(lead_id, itinerary_payload);
-    } else {
-      await api.itinerary.createItinerary(lead_id, itinerary_payload);
-    }
-
-    const draftIdToUse =
-      currentDraftId || `DRF-${Math.floor(1000 + Math.random() * 9000)}`;
-    const currentDraft = {
-      id: draftIdToUse,
-      dateSaved: new Date().toLocaleTimeString("en-US", {
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      clientName: clientData?.name || "Unnamed Client",
-      destination:
-        clientData?.destination || clientData?.dist_location || "TBD",
-      dates:
-        clientData?.startDate && clientData?.endDate
-          ? `${clientData.startDate} to ${clientData.endDate}`
-          : "Dates TBD",
-      totalDays: Array.isArray(dayPlannerData) ? dayPlannerData.length : 0,
-      rawData: {
-        clientData,
-        stayData,
-        transportData,
-        dayPlannerData,
-        priceData,
-        inclExclData,
-        termsData,
-        selectedThemeId,
-      },
+      itinerary_theme: selectedThemeId || "Pearl", 
     };
 
-    if (currentDraftId) {
-      setSavedDrafts(
-        savedDrafts.map((d) => (d.id === currentDraftId ? currentDraft : d)),
-      );
-    } else {
-      setCurrentDraftId(draftIdToUse);
-      setSavedDrafts([currentDraft, ...savedDrafts]);
-    }
+    try {
+      if (is_draft) {
+        await api.itinerary.createDraftItinerary(lead_id, itinerary_payload);
+      } else {
+        await api.itinerary.createItinerary(lead_id, itinerary_payload);
+      }
 
-    setOpenDraftModal(true);
-    if (resetItineraryState) resetItineraryState();
-    setCurrentDraftId(null);
-    navigate("/lead-management");
+      const draftIdToUse =
+        currentDraftId || `DRF-${Math.floor(1000 + Math.random() * 9000)}`;
+      const currentDraft = {
+        id: draftIdToUse,
+        dateSaved: new Date().toLocaleTimeString("en-US", {
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        clientName: clientData?.name || "Unnamed Client",
+        destination:
+          clientData?.destination || clientData?.dist_location || "TBD",
+        dates:
+          clientData?.startDate && clientData?.endDate
+            ? `${clientData.startDate} to ${clientData.endDate}`
+            : "Dates TBD",
+        totalDays: Array.isArray(dayPlannerData) ? dayPlannerData.length : 0,
+        rawData: {
+          clientData,
+          stayData,
+          transportData,
+          dayPlannerData,
+          priceData,
+          inclExclData,
+          termsData,
+          selectedThemeId,
+        },
+      };
+
+      if (currentDraftId) {
+        setSavedDrafts(
+          savedDrafts.map((d) => (d.id === currentDraftId ? currentDraft : d)),
+        );
+      } else {
+        setCurrentDraftId(draftIdToUse);
+        setSavedDrafts([currentDraft, ...savedDrafts]);
+      }
+
+      setOpenDraftModal(true);
+      if (resetItineraryState) resetItineraryState();
+      setCurrentDraftId(null);
+      navigate("/lead-management");
+    } catch (error) {
+      console.error("Save failed:", error);
+      alert("Failed to save draft. Please check console.");
+    }
   };
 
+  // 🚨 THIS IS THE FULLY FIXED TRANSLATOR FUNCTION FOR LOADING DRAFTS 🚨
   const handleLoadDraft = async (draft) => {
     const itineraryId = draft?.itinerary_id || draft?.id;
     if (!itineraryId) return;
 
-    const response = await getItineraryDataById(itineraryId);
-    const fullData = response?.data ?? response ?? {};
+    try {
+      const response = await getItineraryDataById(itineraryId);
+      const fullData = response?.data ?? response ?? {};
 
-    const contact = fullData?.itinerary_contact || {};
-    const mappedClientData = {
-      ...contact,
-      title: contact.title || "",
-      name: contact.name || "",
-      contact: contact.phone ? String(contact.phone) : "",
-      email: contact.email || "",
-      budget: contact.budget ?? "",
-      adults: contact.no_of_adults != null ? String(contact.no_of_adults) : "",
-      children:
-        contact.no_of_children != null ? String(contact.no_of_children) : "0",
-      infants:
-        contact.no_of_infants != null ? String(contact.no_of_infants) : "",
-      destination: contact.dist_location || "",
-      startDate: contact.start_date || "",
-      endDate: contact.end_date || "",
-      nights: contact.nights != null ? String(contact.nights) : "",
-      days: contact.days != null ? String(contact.days) : "",
-      queryHandledBy: contact.handled_by || "",
-      status: contact.status || "",
-      source: contact.source || "",
-      trip_title: contact.trip_title || "",
-    };
+      console.log(" ITHU THAAN BACKEND DATA 🔥🔥", fullData);
 
-    const mappedStayData = {
-      hotels: (fullData?.itinerary_hotels || []).map((hotel) => ({
-        type: hotel.hotel_type || "main",
-        location: hotel.location || "",
-        hotelName: hotel.hotel_name || "",
-        hotelPref: hotel.hotel_preference || "",
-        roomCat: hotel.room_category || "",
-        checkInDate: hotel.check_in_date || "",
-        checkInTime: hotel.check_in_time || "",
-        checkOutDate: hotel.check_out_date || "",
-        checkOutTime: hotel.check_out_time || "",
-        rooms: hotel.rooms ?? 1,
-        price: hotel.price ?? "",
-        amenities: hotel.amenities || [],
-        meals: {
-          breakfast: Boolean(hotel.meal_plan_breakfast),
-          lunch: Boolean(hotel.meal_plan_lunch),
-          dinner: Boolean(hotel.meal_plan_dinner),
-          allInclusive: Boolean(hotel.meal_plan_all_inc),
-        },
-      })),
-    };
+      // 1. CLIENT DETAILS FIX
+      const contact = fullData?.itinerary_contact || {};
+      const mappedClientData = {
+        ...contact,
+        title: contact.title || "Mr",
+        name: contact.name || "",
+        contact: contact.contact || contact.phone ? String(contact.contact || contact.phone) : "",
+        email: contact.email || "",
+        budget: contact.budget ?? "",
+        adults: contact.adults || contact.no_of_adults != null ? String(contact.adults || contact.no_of_adults) : "",
+        children: contact.children || contact.no_of_children != null ? String(contact.children || contact.no_of_children) : "0",
+        infants: contact.infants || contact.no_of_infants != null ? String(contact.infants || contact.no_of_infants) : "",
+        childAges: Array.isArray(contact.childAges) ? contact.childAges : [],
+        destination: contact.destination || contact.dist_location || "",
+        startDate: contact.startDate || contact.start_date || "",
+        endDate: contact.endDate || contact.end_date || "",
+        nights: contact.nights != null ? String(contact.nights) : "",
+        days: contact.days != null ? String(contact.days) : "",
+        queryHandledBy: contact.queryHandledBy || contact.handled_by || "0",
+        status: contact.status || "New",
+        source: contact.source || "Website",
+        trip_title: contact.trip_title || "",
+      };
 
-    const transportParams = fullData?.itinerary_transport?.[0]?.params || {};
-    const mappedTransportData = {
-      trains: transportParams.trains || [],
-      buses: transportParams.buses || [],
-      grounds: transportParams.grounds || [],
-      flights: transportParams.flights || [],
-    };
+      // 2. STAY DETAILS FIX 
+      const hotelsArray = fullData?.itinerary_hotels || [];
+      const mappedStayData = {
+        hotels: hotelsArray.map((hotel) => ({
+          type: hotel.hotel_type || hotel.type || "main",
+          location: hotel.location || "",
+          hotelName: hotel.hotel_name || hotel.hotelName || "",
+          hotelPref: hotel.hotel_preference || hotel.hotelPref || "",
+          roomCat: hotel.room_category || hotel.roomCat || "",
+          checkInDate: hotel.check_in_date || hotel.checkInDate || "",
+          checkInTime: hotel.check_in_time || hotel.checkInTime || "",
+          checkOutDate: hotel.check_out_date || hotel.checkOutDate || "",
+          checkOutTime: hotel.check_out_time || hotel.checkOutTime || "",
+          rooms: hotel.rooms ?? 1,
+          price: hotel.price ?? "",
+          amenities: Array.isArray(hotel.amenities) ? hotel.amenities : [],
+          meals: {
+            breakfast: Boolean(hotel.meal_plan_breakfast || hotel.meals?.breakfast),
+            lunch: Boolean(hotel.meal_plan_lunch || hotel.meals?.lunch),
+            dinner: Boolean(hotel.meal_plan_dinner || hotel.meals?.dinner),
+            allInclusive: Boolean(hotel.meal_plan_all_inc || hotel.meals?.allInclusive),
+          },
+        })),
+      };
 
-    const mappedDayPlannerData = await Promise.all(
-      (fullData?.itinerary_dayplanner || []).map(async (entry) => {
-        const params = entry?.params || {};
-        const imageIds = Array.isArray(params.images) ? params.images : [];
-        const resolvedImages = await Promise.all(
-          imageIds.map(async (imgId) => {
-            if (!imgId) return null;
-            const blob = await getBlob(imgId);
-            return { id: imgId, url: blob?.url || "" };
-          }),
-        );
-        return {
-          day: params.day || 1,
-          title: params.title || "",
-          description: params.description || "",
-          dayNumber: params.dayNumber || params.day || 1,
-          images: resolvedImages.filter(Boolean),
-          meals: Array.isArray(params.meals) ? params.meals : [],
-          activities: params.activities || "",
-          transport: params.transport || "Seat in Coach",
-        };
-      }),
-    );
+      // 3. TRANSPORT & VISA FIX
+      const transportRaw = fullData?.iternerary_transports || fullData?.itinerary_transport?.[0]?.params || fullData?.itinerary_transport || {};
+      const mappedTransportData = {
+        trains: transportRaw.trains || [],
+        buses: transportRaw.buses || [],
+        grounds: transportRaw.grounds || [],
+        flights: transportRaw.flights || [], 
+      };
 
-    const mappedPriceData = fullData?.itinerary_price || {
-      items: [],
-      taxes: { gst: 18, serviceTax: 5 },
-      discount: { type: "Percentage (%)", value: 0 },
-    };
-
-    if (itineraryContext.setClientData)
-      itineraryContext.setClientData(mappedClientData);
-    if (itineraryContext.setStayData)
-      itineraryContext.setStayData(mappedStayData);
-    if (itineraryContext.setTransportData)
-      itineraryContext.setTransportData(mappedTransportData);
-    if (itineraryContext.setDayPlannerData)
-      itineraryContext.setDayPlannerData(mappedDayPlannerData);
-    if (itineraryContext.setPriceData)
-      itineraryContext.setPriceData(mappedPriceData);
-    if (itineraryContext.setInclExclData)
-      itineraryContext.setInclExclData(
-        fullData?.itinerary_inclexcl || { inclusions: {}, exclusions: {} },
+      // 4. DAY PLANNER FIX
+      const plannerRaw = fullData?.iternerary_dayplanner || fullData?.itinerary_dayplanner || [];
+      const mappedDayPlannerData = await Promise.all(
+        plannerRaw.map(async (entry) => {
+          const data = entry?.params || entry || {};
+          const imageIds = Array.isArray(data.images) ? data.images : [];
+          const resolvedImages = await Promise.all(
+            imageIds.map(async (imgId) => {
+              if (!imgId) return null;
+              try {
+                const blob = await getBlob(imgId);
+                return { id: imgId, url: blob?.url || "" };
+              } catch {
+                return { id: imgId, url: "" };
+              }
+            })
+          );
+          return {
+            day: data.day || 1,
+            title: data.title || "",
+            description: data.description || "",
+            dayNumber: data.dayNumber || data.day || 1,
+            images: resolvedImages.filter(Boolean),
+            meals: Array.isArray(data.meals) ? data.meals : [],
+            activities: data.activities || "",
+            transport: data.transport || "Seat in Coach",
+          };
+        })
       );
-    if (itineraryContext.setTermsData)
-      itineraryContext.setTermsData(fullData?.itinerary_terms || "");
-    if (itineraryContext.setSelectedThemeId)
-      itineraryContext.setSelectedThemeId(
-        fullData?.itinerary_themes?.[0]?.theme_id || "Pearl",
-      );
-    setCurrentDraftId(draft.id);
-    setOpenDraftModal(false);
-    if (itineraryContext.setStep) itineraryContext.setStep(1);
+
+      // 5. PRICE FIX
+      const mappedPriceData = fullData?.iternerary_price || fullData?.itinerary_price || {
+        items: [],
+        taxes: { gst: 18, serviceTax: 5 },
+        discount: { type: "Percentage (%)", value: 0 },
+      };
+
+      if (itineraryContext.setClientData) itineraryContext.setClientData(mappedClientData);
+      if (itineraryContext.setStayData) itineraryContext.setStayData(mappedStayData);
+      if (itineraryContext.setTransportData) itineraryContext.setTransportData(mappedTransportData);
+      if (itineraryContext.setDayPlannerData) itineraryContext.setDayPlannerData(mappedDayPlannerData);
+      if (itineraryContext.setPriceData) itineraryContext.setPriceData(mappedPriceData);
+      if (itineraryContext.setInclExclData) itineraryContext.setInclExclData(fullData?.itinerary_inclexcl || { inclusions: {}, exclusions: {} });
+      if (itineraryContext.setTermsData) itineraryContext.setTermsData(fullData?.itinerary_terms || "");
+      if (itineraryContext.setSelectedThemeId) itineraryContext.setSelectedThemeId(fullData?.itinerary_themes?.[0]?.theme_id || fullData?.itinerary_theme || "Pearl");
+      
+      setCurrentDraftId(draft.id);
+      setOpenDraftModal(false);
+      if (itineraryContext.setStep) itineraryContext.setStep(1);
+
+    } catch (error) {
+      console.error("Failed to load draft:", error);
+      alert("Failed to pull data from database.");
+    }
   };
 
   const handleDeleteDraft = (id) => {
@@ -513,10 +525,9 @@ export default function ItineraryBuilder() {
         flexDirection: "column",
         height: "100%",
         position: "relative",
-        fontFamily: "'Inter', sans-serif", // Applied Inter Font Globally
+        fontFamily: "'Inter', sans-serif",
       }}
     >
-      {/* 🚨 EXACT UI REPLICATION: STICKY HEADER 🚨 */}
       <Box
         sx={{
           position: "sticky",
@@ -560,27 +571,6 @@ export default function ItineraryBuilder() {
           </Box>
           {!showAllItinerary && (
             <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
-              {/* <Badge badgeContent={savedDrafts.length} color="primary">
-                <Button
-                  variant="outlined"
-                  onClick={async () => {
-                    await loadDrafts();
-                    setOpenDraftModal(true);
-                  }}
-                  sx={{
-                    textTransform: "none",
-                    fontWeight: 600,
-                    fontFamily: "'Inter', sans-serif",
-                    color: "#475569",
-                    borderColor: "#e2e8f0",
-                    borderRadius: "8px",
-                    height: "33px",
-                  }}
-                >
-                  Drafts
-                </Button>
-              </Badge> */}
-
               {step < 9 && (
                 <Button
                   variant="contained"
@@ -588,21 +578,21 @@ export default function ItineraryBuilder() {
                   startIcon={<Save sx={{ fontSize: "18px" }} />}
                   sx={{
                     background:
-                      "linear-gradient(90deg,rgba(59, 114, 235, 1) 0%, rgba(0, 187, 167, 1) 50%)", // 🚨 Exact Gradient Background
+                      "linear-gradient(90deg,rgba(59, 114, 235, 1) 0%, rgba(0, 187, 167, 1) 50%)", 
                     color: "#fff",
                     textTransform: "none",
                     fontWeight: 600,
                     fontFamily: "'Inter', sans-serif",
-                    width: "130px", // 🚨 Exact Width
-                    height: "33px", // 🚨 Exact Height
-                    borderRadius: "9.23px", // 🚨 Exact Border Radius
-                    paddingLeft: "14.76px", // 🚨 Exact Padding Left
-                    paddingRight: "14.76px", // 🚨 Exact Padding Right
-                    gap: "11.07px", // 🚨 Exact Gap
+                    width: "130px", 
+                    height: "33px", 
+                    borderRadius: "9.23px", 
+                    paddingLeft: "14.76px", 
+                    paddingRight: "14.76px", 
+                    gap: "11.07px", 
                     boxShadow: "none",
                     opacity: 1,
                     "& .MuiButton-startIcon": {
-                      marginRight: 0, // MUI uses margin by default, overriding to let gap handle it
+                      marginRight: 0, 
                     },
                   }}
                 >
@@ -632,19 +622,19 @@ export default function ItineraryBuilder() {
                 }}
                 sx={{
                   background:
-                    "linear-gradient(90deg,rgba(59, 114, 235, 1) 0%, rgba(0, 187, 167, 1) 50%)", // 🚨 Exact Gradient Background
+                    "linear-gradient(90deg,rgba(59, 114, 235, 1) 0%, rgba(0, 187, 167, 1) 50%)", 
                   color: "#fff",
                   textTransform: "none",
                   fontWeight: 600,
                   fontFamily: "'Inter', sans-serif",
-                  borderRadius: "9.23px", // 🚨 Exact Border Radius
-                  paddingLeft: "14.76px", // 🚨 Exact Padding Left
-                  paddingRight: "14.76px", // 🚨 Exact Padding Right
-                  gap: "11.07px", // 🚨 Exact Gap
+                  borderRadius: "9.23px", 
+                  paddingLeft: "14.76px", 
+                  paddingRight: "14.76px", 
+                  gap: "11.07px", 
                   boxShadow: "none",
                   opacity: 1,
                   "& .MuiButton-startIcon": {
-                    marginRight: 0, // MUI uses margin by default, overriding to let gap handle it
+                    marginRight: 0, 
                   },
                 }}
               >
@@ -660,19 +650,19 @@ export default function ItineraryBuilder() {
               }}
               sx={{
                 background:
-                  "linear-gradient(90deg,rgba(59, 114, 235, 1) 0%, rgba(0, 187, 167, 1) 50%)", // 🚨 Exact Gradient Background
+                  "linear-gradient(90deg,rgba(59, 114, 235, 1) 0%, rgba(0, 187, 167, 1) 50%)", 
                 color: "#fff",
                 textTransform: "none",
                 fontWeight: 600,
                 fontFamily: "'Inter', sans-serif",
-                borderRadius: "9.23px", // 🚨 Exact Border Radius
-                paddingLeft: "14.76px", // 🚨 Exact Padding Left
-                paddingRight: "14.76px", // 🚨 Exact Padding Right
-                gap: "11.07px", // 🚨 Exact Gap
+                borderRadius: "9.23px", 
+                paddingLeft: "14.76px", 
+                paddingRight: "14.76px", 
+                gap: "11.07px", 
                 boxShadow: "none",
                 opacity: 1,
                 "& .MuiButton-startIcon": {
-                  marginRight: 0, // MUI uses margin by default, overriding to let gap handle it
+                  marginRight: 0, 
                 },
               }}
             >
@@ -685,7 +675,7 @@ export default function ItineraryBuilder() {
             sx={{
               px: { xs: 2, md: 3 },
               display: "flex",
-              flexWrap: "wrap", // 🚨 Allows steps to wrap cleanly to the next line
+              flexWrap: "wrap", 
               alignItems: "center",
               pb: 2,
               gap: 1.5,
@@ -722,20 +712,7 @@ export default function ItineraryBuilder() {
             ))}
 
             <ChevronRight sx={{ color: "#cbd5e1", fontSize: 18 }} />
-            <Chip
-              label="Add New"
-              icon={<Add sx={{ fontSize: 16 }} />}
-              sx={{
-                bgcolor: "#f8fafc",
-                color: "#64748b",
-                fontWeight: 500,
-                borderRadius: "8px",
-                fontFamily: "'Inter', sans-serif",
-                border: "1px solid #f1f5f9",
-                height: "32px",
-                "& .MuiChip-icon": { color: "#94a3b8" },
-              }}
-            />
+            
           </Box>
         )}
       </Box>
@@ -765,7 +742,7 @@ export default function ItineraryBuilder() {
         </Box>
       )}
 
-      {/* DRAFTS MODAL (Untouched Original User Logic) */}
+      {/* DRAFTS MODAL */}
       <Dialog
         open={openDraftModal}
         onClose={() => setOpenDraftModal(false)}

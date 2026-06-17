@@ -12,12 +12,14 @@ import {
   TableHead,
   TableRow,
   Chip,
+  Button,
 } from "@mui/material";
 import {
   PeopleOutline,
   AccessTime,
   CheckCircleOutline,
   CallMade,
+  FolderOpen,
 } from "@mui/icons-material";
 import {
   Tooltip,
@@ -29,7 +31,8 @@ import {
 } from "recharts";
 
 import { useApi } from "@michaeldothedi-service/dta-crm-sl-sdk";
-import { useDashboardMetrics } from "../services/backendApi.js";
+import { useDashboardMetrics, useItineraryBuilderApi } from "../services/backendApi.js"; 
+import { useNavigate } from "react-router-dom";
 
 const RADIAN = Math.PI / 180;
 const renderCustomizedLabel = ({
@@ -65,15 +68,61 @@ const renderCustomizedLabel = ({
 
 export default function Dashboard() {
   const { api } = useApi();
+  const navigate = useNavigate();
   const { kpiMetrics, popularDist } = useDashboardMetrics();
-  const [recentLeads, setRecentLeads] = useState([]);
+  const { getAllItineraryDraft } = useItineraryBuilderApi(); 
 
+  const [recentLeads, setRecentLeads] = useState([]);
+  const [recentDrafts, setRecentDrafts] = useState([]); 
+
+  // Fetch Leads
   useEffect(() => {
     api.leads.getAllLeadUsers().then((res) => {
       const rows = Array.isArray(res) ? res : [];
       setRecentLeads([...rows].reverse().slice(0, 6));
     });
   }, [api]);
+
+  // FETCH DRAFTS LOGIC (SMART JSON EXTRACTION FOR NULL COLUMNS)
+  useEffect(() => {
+    const fetchDrafts = async () => {
+      try {
+        const response = await getAllItineraryDraft();
+        const payload = response?.data ?? response ?? [];
+        
+        const mappedDrafts = (Array.isArray(payload) ? payload : [])
+          .map((draft, index) => {
+            // Crack open the itinerary_contact JSON to get data since DB columns are null
+            let contact = {};
+            if (typeof draft.itinerary_contact === 'string') {
+              try { contact = JSON.parse(draft.itinerary_contact); } catch (e) {}
+            } else if (draft.itinerary_contact) {
+              contact = draft.itinerary_contact;
+            }
+
+            const startDate = contact.startDate || contact.start_date;
+            const endDate = contact.endDate || contact.end_date;
+            const formattedDates = startDate && endDate ? `${startDate} to ${endDate}` : "TBD";
+
+            return {
+              keyId: draft.itinerary_id || `DRF-${index}`,
+              clientName: draft.clientName || contact.name || contact.client_name || "Unnamed Client",
+              email: draft.email || contact.email || contact.email_id || "--",
+              destination: draft.destination || contact.destination || contact.dist_location || "TBD",
+              budget: draft.budget || contact.budget || contact.estimated_budget || "--",
+              dates: draft.dates || formattedDates,
+              totalDays: draft.totalDays || contact.days || contact.no_of_days || "--",
+            };
+          })
+          .reverse(); 
+
+        setRecentDrafts(mappedDrafts);
+      } catch (error) {
+        console.error("Failed to load drafts for dashboard:", error);
+      }
+    };
+    fetchDrafts();
+  }, []);
 
   const kpiStyles = [
     {
@@ -100,9 +149,8 @@ export default function Dashboard() {
       val: item?.val ?? 0,
       desc: item?.desc || "",
       title: item?.title || "--",
-    }),
+    })
   );
-  const kpiGridMd = kpiData.length === 3 ? 4 : 3;
 
   return (
     <Box
@@ -126,9 +174,7 @@ export default function Dashboard() {
       {/* KPI CARDS */}
       <Grid container spacing={2} mb={3} alignItems="stretch">
         {kpiData.map((kpi, index) => (
-          <Grid item  key={index} sx={{ 
-            width : '300px'
-           }}>
+          <Grid item key={index} sx={{ width : '300px' }}>
             <Paper
               elevation={0}
               sx={{
@@ -209,8 +255,72 @@ export default function Dashboard() {
         ))}
       </Grid>
 
+      {/* Row 2: Recent Leads (Left 70%) & Pie Chart (Right 30%) */}
       <Grid container spacing={2} mb={3} alignItems="stretch">
-        <Grid item xs={12} md={5} sx={{ display: "flex" }}>
+        
+        {/* 🚨 RECENT LEADS (LEFT SIDE - 70%) 🚨 */}
+        <Grid item xs={12} md={8} sx={{ display: "flex" }}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 3,
+              borderRadius: 2,
+              border: "1px solid #e2e8f0",
+              bgcolor: "#fff",
+              width: "100%",
+              height: "100%",
+            }}
+          >
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: "#0f172a" }}>
+              Recent Leads
+            </Typography>
+            <Typography variant="body2" color="#64748b" sx={{ mb: 2 }}>
+              Latest lead entries from your pipeline
+            </Typography>
+
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 700 }}>Client</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Destination</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Travel Date</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Travellers</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {recentLeads.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} align="center" sx={{ py: 3, color: "#64748b" }}>
+                        No recent leads found.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    recentLeads.map((lead) => (
+                      <TableRow key={lead.lead_id}>
+                        <TableCell>{`${lead.title || "Mr"}. ${lead.name || "--"}`}</TableCell>
+                        <TableCell>{lead.dist_location || "TBD"}</TableCell>
+                        <TableCell>{lead.start_date && lead.end_date ? `${lead.start_date} - ${lead.end_date}` : "TBD"}</TableCell>
+                        <TableCell>{`${lead.no_of_adults || 0}A${lead.no_of_children ? `, ${lead.no_of_children}C` : ""}`}</TableCell>
+                        <TableCell>
+                          <Chip
+                            label={lead.status || "New"}
+                            size="small"
+                            sx={{ fontWeight: 700, bgcolor: "#f1f5f9", color: "#334155" }}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+        </Grid>
+
+        {/* 🚨 PIE CHART (RIGHT SIDE - 30%) 🚨 */}
+        <Grid item xs={12} md={4} sx={{ display: "flex" }}>
           <Paper
             elevation={0}
             sx={{
@@ -219,7 +329,7 @@ export default function Dashboard() {
               border: "1px solid #e2e8f0",
               bgcolor: "#fff",
               height: "100%",
-              width: "100%",
+              width: "296px",
               display: "flex",
               flexDirection: "column",
             }}
@@ -282,7 +392,11 @@ export default function Dashboard() {
             </Box>
           </Paper>
         </Grid>
-        <Grid item xs={12} md={7} sx={{ display: "flex" }}>
+      </Grid>
+
+      {/* Row 3: RECENT DRAFTS TABLE (100% WIDTH) */}
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
           <Paper
             elevation={0}
             sx={{
@@ -290,49 +404,48 @@ export default function Dashboard() {
               borderRadius: 2,
               border: "1px solid #e2e8f0",
               bgcolor: "#fff",
-              width: "100%",
-              height: "100%",
+              width: "900px",
             }}
           >
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: "#0f172a" }}>
-              Recent Leads
-            </Typography>
-            <Typography variant="body2" color="#64748b" sx={{ mb: 2 }}>
-              Latest lead entries from your pipeline
-            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+              <Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 800, color: "#0f172a", display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <FolderOpen sx={{ color: '#0ea5e9' }} /> Saved Drafts
+                </Typography>
+                <Typography variant="body2" color="#64748b">
+                  Unfinished itineraries saved as drafts
+                </Typography>
+              </Box>
+            </Box>
 
-            <TableContainer>
-              <Table size="small">
+            <TableContainer sx={{ maxHeight: 300, overflowY: 'auto' }}>
+              <Table size="small" stickyHeader>
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 700 }}>Client</TableCell>
-                    <TableCell sx={{ fontWeight: 700 }}>Destination</TableCell>
-                    <TableCell sx={{ fontWeight: 700 }}>Travel Date</TableCell>
-                    <TableCell sx={{ fontWeight: 700 }}>Travellers</TableCell>
-                    <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
+                    <TableCell sx={{ fontWeight: 700, color: '#334155', bgcolor: '#f8fafc' }}>Client Name</TableCell>
+                    <TableCell sx={{ fontWeight: 700, color: '#334155', bgcolor: '#f8fafc' }}>G-Mail id</TableCell>
+                    <TableCell sx={{ fontWeight: 700, color: '#334155', bgcolor: '#f8fafc' }}>Destination</TableCell>
+                    <TableCell sx={{ fontWeight: 700, color: '#334155', bgcolor: '#f8fafc' }}>Budget</TableCell>
+                    <TableCell sx={{ fontWeight: 700, color: '#334155', bgcolor: '#f8fafc' }}>Dates</TableCell>
+                    <TableCell sx={{ fontWeight: 700, color: '#334155', bgcolor: '#f8fafc' }}>Duration</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {recentLeads.length === 0 ? (
+                  {recentDrafts.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} align="center" sx={{ py: 3, color: "#64748b" }}>
-                        No recent leads found.
+                      <TableCell colSpan={6} align="center" sx={{ py: 4, color: "#64748b" }}>
+                        No saved drafts found.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    recentLeads.map((lead) => (
-                      <TableRow key={lead.lead_id}>
-                        <TableCell>{`${lead.title || "Mr"}. ${lead.name || "--"}`}</TableCell>
-                        <TableCell>{lead.dist_location || "TBD"}</TableCell>
-                        <TableCell>{lead.start_date && lead.end_date ? `${lead.start_date} - ${lead.end_date}` : "TBD"}</TableCell>
-                        <TableCell>{`${lead.no_of_adults || 0}A${lead.no_of_children ? `, ${lead.no_of_children}C` : ""}`}</TableCell>
-                        <TableCell>
-                          <Chip
-                            label={lead.status || "New"}
-                            size="small"
-                            sx={{ fontWeight: 700, bgcolor: "#f1f5f9", color: "#334155" }}
-                          />
-                        </TableCell>
+                    recentDrafts.map((draft) => (
+                      <TableRow key={draft.keyId} hover>
+                        <TableCell sx={{ fontWeight: 600, color: '#0f172a' }}>{draft.clientName}</TableCell>
+                        <TableCell sx={{ color: '#475569' }}>{draft.email}</TableCell>
+                        <TableCell sx={{ color: '#475569' }}>{draft.destination}</TableCell>
+                        <TableCell sx={{ color: '#475569' }}>{draft.budget}</TableCell>
+                        <TableCell sx={{ color: '#475569' }}>{draft.dates}</TableCell>
+                        <TableCell sx={{ color: '#475569' }}>{draft.totalDays} Days</TableCell>
                       </TableRow>
                     ))
                   )}
@@ -342,6 +455,7 @@ export default function Dashboard() {
           </Paper>
         </Grid>
       </Grid>
+
     </Box>
   );
 }

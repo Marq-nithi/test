@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Box, Typography, Paper, Button, Checkbox, FormControlLabel, 
-  TextField, IconButton, Divider, Grid, MenuItem
+  TextField, IconButton, Divider, Grid, MenuItem, Autocomplete
 } from '@mui/material';
 import { 
   FormatBold, FormatItalic, FormatUnderlined, 
@@ -10,6 +10,8 @@ import {
 } from '@mui/icons-material';
 
 import { useItinerary } from '../../context/ItineraryContext'; 
+// 🚨 IMPORT MASTER ENTRIES API
+import { useMasterEntries } from '../../services/backendApi';
 
 // ==========================================
 // 🎨 FIGMA-STYLE UI COMPONENTS
@@ -69,33 +71,124 @@ const DEFAULT_PROTECTIONS = [
   "The agency is not liable for costs incurred due to travel disruptions if insurance is declined."
 ];
 
+// ==========================================
+// 🛠️ UNIVERSAL HANDLERS
+// ==========================================
+const handleToggle = (item, selectedList, setSelectedList) => {
+  setSelectedList(prev => prev.includes(item) ? prev.filter(t => t !== item) : [...prev, item]);
+};
+
+const handleSelectAll = (e, defaultList, customList, setSelectedList) => {
+  if (e.target.checked) {
+    setSelectedList([...defaultList, ...customList]);
+  } else {
+    setSelectedList([]);
+  }
+};
+
+const handleAddCustom = (input, setInput, customList, setCustomList, selectedList, setSelectedList) => {
+  if (input.trim()) {
+    setCustomList([...customList, input.trim()]);
+    setSelectedList([...selectedList, input.trim()]); 
+    setInput('');
+  }
+};
+
+// ==========================================
+// 🧩 REUSABLE UI COMPONENTS
+// ==========================================
+const RichTextToolbar = () => (
+  <Box sx={{ display: 'flex', gap: 1, p: 1, borderBottom: '1px solid #e2e8f0', bgcolor: '#f8fafc', alignItems: 'center' }}>
+    <IconButton size="small" sx={{ borderRadius: 1 }}><FormatBold fontSize="small" sx={{ color: '#475569' }} /></IconButton>
+    <IconButton size="small" sx={{ borderRadius: 1 }}><FormatItalic fontSize="small" sx={{ color: '#475569' }} /></IconButton>
+    <IconButton size="small" sx={{ borderRadius: 1 }}><FormatUnderlined fontSize="small" sx={{ color: '#475569' }} /></IconButton>
+    <Divider orientation="vertical" flexItem sx={{ mx: 0.5, my: 0.5 }} />
+    <IconButton size="small" sx={{ borderRadius: 1 }}><FormatAlignLeft fontSize="small" sx={{ color: '#475569' }} /></IconButton>
+    <IconButton size="small" sx={{ borderRadius: 1 }}><FormatAlignCenter fontSize="small" sx={{ color: '#475569' }} /></IconButton>
+    <IconButton size="small" sx={{ borderRadius: 1 }}><FormatAlignRight fontSize="small" sx={{ color: '#475569' }} /></IconButton>
+    <Divider orientation="vertical" flexItem sx={{ mx: 0.5, my: 0.5 }} />
+    <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer', px: 0.5 }}>
+      <Box sx={{ width: 14, height: 14, bgcolor: '#0f172a', borderRadius: 0.5, mr: 0.5 }} />
+      <FormatColorText fontSize="small" sx={{ color: '#94a3b8' }} />
+    </Box>
+  </Box>
+);
+
+const SectionBlock = ({ 
+  title, defaultList, customList, selectedList, setSelectedList, 
+  inputValue, setInputValue, setCustomList, buttonText 
+}) => {
+  const isAllSelected = selectedList.length === (defaultList.length + customList.length) && (defaultList.length > 0);
+
+  return (
+    <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: 3, border: '1px solid #e2e8f0', bgcolor: '#fff' }}>
+      <Typography variant="subtitle1" fontWeight="800" color="#0f172a" mb={2}>
+        {title}
+      </Typography>
+
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 3 }}>
+        <FormControlLabel 
+          control={<Checkbox checked={isAllSelected} onChange={(e) => handleSelectAll(e, defaultList, customList, setSelectedList)} sx={{ '&.Mui-checked': { color: '#0ea5e9' } }} />} 
+          label={<Typography variant="body2" fontWeight="700" color="#0f172a">Select All</Typography>} 
+        />
+        
+        {[...defaultList, ...customList].map((item, index) => (
+          <FormControlLabel 
+            key={`${title}-item-${index}`}
+            control={<Checkbox checked={selectedList.includes(item)} onChange={() => handleToggle(item, selectedList, setSelectedList)} sx={{ '&.Mui-checked': { color: '#0ea5e9' } }} />} 
+            label={<Typography variant="body2" color="#334155">{item}</Typography>} 
+          />
+        ))}
+      </Box>
+
+      <Box sx={{ border: '1px solid #e2e8f0', borderRadius: 2, overflow: 'hidden', bgcolor: '#fff', mb: 2 }}>
+        <RichTextToolbar />
+        <TextField 
+          fullWidth multiline rows={3} placeholder="Type custom terms here..." 
+          value={inputValue} onChange={(e) => setInputValue(e.target.value)}
+          sx={{ '& fieldset': { border: 'none' }, p: 1 }}
+        />
+      </Box>
+
+      <Button 
+        variant="contained" size="small" 
+        onClick={() => handleAddCustom(inputValue, setInputValue, customList, setCustomList, selectedList, setSelectedList)}
+        disabled={!inputValue.trim()}
+        sx={{ bgcolor: '#0ea5e9', color: '#fff', fontWeight: 600, textTransform: 'none', borderRadius: 2, px: 3, '&:hover': { bgcolor: '#0284c7' } }}
+      >
+        {buttonText}
+      </Button>
+    </Paper>
+  );
+};
 
 export default function TermsAndConditions() {
   const { termsData, setTermsData } = useItinerary();
+  // 🚨 GET THE API FUNCTION TO FETCH MASTER DATA
+  const { getAllMasterEntries } = useMasterEntries();
 
   // ==========================================
   // 💾 STATE MANAGEMENT
   // ==========================================
-  
-  // Selected Items (Checked boxes)
   const [selectedTerms, setSelectedTerms] = useState(termsData?.terms || []);
   const [selectedPolicies, setSelectedPolicies] = useState(termsData?.policies || []);
   const [selectedPayments, setSelectedPayments] = useState(termsData?.payments || []);
   const [selectedProtections, setSelectedProtections] = useState(termsData?.protections || []);
   
-  // Custom Added Items (From the text boxes)
   const [customTermsList, setCustomTermsList] = useState(termsData?.customTerms || []);
   const [customPoliciesList, setCustomPoliciesList] = useState(termsData?.customPolicies || []);
   const [customPaymentsList, setCustomPaymentsList] = useState(termsData?.customPayments || []);
   const [customProtectionsList, setCustomProtectionsList] = useState(termsData?.customProtections || []);
 
-  // Text Box Inputs
   const [customTermInput, setCustomTermInput] = useState('');
   const [customPolicyInput, setCustomPolicyInput] = useState('');
   const [customPaymentInput, setCustomPaymentInput] = useState('');
   const [customProtectionInput, setCustomProtectionInput] = useState('');
 
-  // 🚨 NEW: Bank Details State
+  // 🚨 BANK LIST STATE FOR AUTOCOMPLETE
+  const [bankList, setBankList] = useState([]);
+
+  // Bank Details State
   const [bankDetails, setBankDetails] = useState(termsData?.bankDetails || {
     bankName: '',
     accountHolderName: '',
@@ -105,6 +198,37 @@ export default function TermsAndConditions() {
     accountType: '',
     additionalInstructions: ''
   });
+
+  // 🚨 FETCH & MAP MASTER BANK ENTRIES ON MOUNT (SMART SCAN FIX) 🚨
+  useEffect(() => {
+    getAllMasterEntries().then((response) => {
+      const rawEntries = Array.isArray(response?.data) 
+        ? response.data 
+        : Array.isArray(response) ? response : [];
+
+      // 🔥 MEGA-FIX: Instead of guessing the category name, we scan all entries for bank details!
+      const bankOptions = rawEntries
+        .filter((entry) => {
+          const itemData = entry?.params || entry || {};
+          // Check if this entry has ANY bank-related fields
+          return itemData.bankName || itemData.bank_name || itemData.accountNumber || itemData.account_number;
+        })
+        .map((entry) => {
+          const itemData = entry?.params || entry || {};
+          return {
+            bankName: itemData.bankName || itemData.bank_name || itemData.name || "",
+            accountHolderName: itemData.accountHolderName || itemData.account_holder_name || itemData.account_name || "",
+            accountNumber: itemData.accountNumber || itemData.account_number || "",
+            ifscCode: itemData.ifscCode || itemData.ifsc_code || itemData.swiftCode || "",
+            branchName: itemData.branchName || itemData.branch_name || "",
+            accountType: itemData.accountType || itemData.account_type || "",
+          };
+        })
+        .filter((opt) => opt.bankName !== "");
+
+      setBankList(bankOptions);
+    }).catch((err) => console.error("Failed to load master banks:", err));
+  }, []);
 
   // Sync Everything to Global Context
   useEffect(() => {
@@ -118,7 +242,7 @@ export default function TermsAndConditions() {
         customPolicies: customPoliciesList, 
         customPayments: customPaymentsList, 
         customProtections: customProtectionsList,
-        bankDetails: bankDetails // Added Bank Details to auto-save!
+        bankDetails: bankDetails
       });
     }
   }, [
@@ -126,30 +250,6 @@ export default function TermsAndConditions() {
     customTermsList, customPoliciesList, customPaymentsList, customProtectionsList, 
     bankDetails, setTermsData
   ]);
-
-  // ==========================================
-  // 🛠️ UNIVERSAL HANDLERS
-  // ==========================================
-  
-  const handleToggle = (item, selectedList, setSelectedList) => {
-    setSelectedList(prev => prev.includes(item) ? prev.filter(t => t !== item) : [...prev, item]);
-  };
-
-  const handleSelectAll = (e, defaultList, customList, setSelectedList) => {
-    if (e.target.checked) {
-      setSelectedList([...defaultList, ...customList]);
-    } else {
-      setSelectedList([]);
-    }
-  };
-
-  const handleAddCustom = (input, setInput, customList, setCustomList, selectedList, setSelectedList) => {
-    if (input.trim()) {
-      setCustomList([...customList, input.trim()]);
-      setSelectedList([...selectedList, input.trim()]); 
-      setInput('');
-    }
-  };
 
   const handleBankDetailChange = (field, value) => {
     setBankDetails(prev => ({ ...prev, [field]: value }));
@@ -163,75 +263,6 @@ export default function TermsAndConditions() {
       bankName: '', accountHolderName: '', accountNumber: '', 
       ifscCode: '', branchName: '', accountType: '', additionalInstructions: ''
     });
-  };
-
-  // ==========================================
-  // 🧩 REUSABLE UI COMPONENTS
-  // ==========================================
-  
-  const RichTextToolbar = () => (
-    <Box sx={{ display: 'flex', gap: 1, p: 1, borderBottom: '1px solid #e2e8f0', bgcolor: '#f8fafc', alignItems: 'center' }}>
-      <IconButton size="small" sx={{ borderRadius: 1 }}><FormatBold fontSize="small" sx={{ color: '#475569' }} /></IconButton>
-      <IconButton size="small" sx={{ borderRadius: 1 }}><FormatItalic fontSize="small" sx={{ color: '#475569' }} /></IconButton>
-      <IconButton size="small" sx={{ borderRadius: 1 }}><FormatUnderlined fontSize="small" sx={{ color: '#475569' }} /></IconButton>
-      <Divider orientation="vertical" flexItem sx={{ mx: 0.5, my: 0.5 }} />
-      <IconButton size="small" sx={{ borderRadius: 1 }}><FormatAlignLeft fontSize="small" sx={{ color: '#475569' }} /></IconButton>
-      <IconButton size="small" sx={{ borderRadius: 1 }}><FormatAlignCenter fontSize="small" sx={{ color: '#475569' }} /></IconButton>
-      <IconButton size="small" sx={{ borderRadius: 1 }}><FormatAlignRight fontSize="small" sx={{ color: '#475569' }} /></IconButton>
-      <Divider orientation="vertical" flexItem sx={{ mx: 0.5, my: 0.5 }} />
-      <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer', px: 0.5 }}>
-        <Box sx={{ width: 14, height: 14, bgcolor: '#0f172a', borderRadius: 0.5, mr: 0.5 }} />
-        <FormatColorText fontSize="small" sx={{ color: '#94a3b8' }} />
-      </Box>
-    </Box>
-  );
-
-  const SectionBlock = ({ 
-    title, defaultList, customList, selectedList, setSelectedList, 
-    inputValue, setInputValue, setCustomList, buttonText 
-  }) => {
-    const isAllSelected = selectedList.length === (defaultList.length + customList.length) && (defaultList.length > 0);
-
-    return (
-      <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: 3, border: '1px solid #e2e8f0', bgcolor: '#fff' }}>
-        <Typography variant="subtitle1" fontWeight="800" color="#0f172a" mb={2}>
-          {title}
-        </Typography>
-
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 3 }}>
-          <FormControlLabel 
-            control={<Checkbox checked={isAllSelected} onChange={(e) => handleSelectAll(e, defaultList, customList, setSelectedList)} sx={{ '&.Mui-checked': { color: '#0ea5e9' } }} />} 
-            label={<Typography variant="body2" fontWeight="700" color="#0f172a">Select All</Typography>} 
-          />
-          
-          {[...defaultList, ...customList].map((item, index) => (
-            <FormControlLabel 
-              key={`${title}-item-${index}`}
-              control={<Checkbox checked={selectedList.includes(item)} onChange={() => handleToggle(item, selectedList, setSelectedList)} sx={{ '&.Mui-checked': { color: '#0ea5e9' } }} />} 
-              label={<Typography variant="body2" color="#334155">{item}</Typography>} 
-            />
-          ))}
-        </Box>
-
-        <Box sx={{ border: '1px solid #e2e8f0', borderRadius: 2, overflow: 'hidden', bgcolor: '#fff', mb: 2 }}>
-          <RichTextToolbar />
-          <TextField 
-            fullWidth multiline rows={3} placeholder="Type custom terms here..." 
-            value={inputValue} onChange={(e) => setInputValue(e.target.value)}
-            sx={{ '& fieldset': { border: 'none' }, p: 1 }}
-          />
-        </Box>
-
-        <Button 
-          variant="contained" size="small" 
-          onClick={() => handleAddCustom(inputValue, setInputValue, customList, setCustomList, selectedList, setSelectedList)}
-          disabled={!inputValue.trim()}
-          sx={{ bgcolor: '#0ea5e9', color: '#fff', fontWeight: 600, textTransform: 'none', borderRadius: 2, px: 3, '&:hover': { bgcolor: '#0284c7' } }}
-        >
-          {buttonText}
-        </Button>
-      </Paper>
-    );
   };
 
   return (
@@ -293,12 +324,50 @@ export default function TermsAndConditions() {
         <Grid container spacing={3} mb={3}>
           <Grid item xs={12} md={4}>
             <FieldLabel text="Bank Name" />
-            <StyledTextField 
-              fullWidth placeholder="Enter bank name" 
-              value={bankDetails.bankName} 
-              onChange={(e) => handleBankDetailChange('bankName', e.target.value)} 
+            {/* 🚨 AUTOCOMPLETE FOR BANK SUGGESTIONS USING SMART MASTER ENTRIES 🚨 */}
+            <Autocomplete
+              freeSolo
+              options={bankList}
+              getOptionLabel={(option) => typeof option === 'string' ? option : option.bankName || ''}
+              value={bankList.find(b => b.bankName === bankDetails.bankName) || bankDetails.bankName || ''}
+              onInputChange={(event, newInputValue, reason) => {
+                if (reason === 'input') {
+                  handleBankDetailChange('bankName', newInputValue);
+                }
+              }}
+              onChange={(event, selectedOption) => {
+                if (!selectedOption) {
+                  // User cleared the field
+                  handleBankDetailChange('bankName', '');
+                  return;
+                }
+                
+                if (typeof selectedOption === 'string') {
+                  // User typed a custom bank name
+                  handleBankDetailChange('bankName', selectedOption);
+                } else {
+                  // User selected a Master Entry, auto-fill everything!
+                  setBankDetails(prev => ({
+                    ...prev,
+                    bankName: selectedOption.bankName,
+                    accountHolderName: selectedOption.accountHolderName || prev.accountHolderName,
+                    accountNumber: selectedOption.accountNumber || prev.accountNumber,
+                    ifscCode: selectedOption.ifscCode || prev.ifscCode,
+                    branchName: selectedOption.branchName || prev.branchName,
+                    accountType: selectedOption.accountType || prev.accountType,
+                  }));
+                }
+              }}
+              renderInput={(params) => (
+                <StyledTextField 
+                  {...params} 
+                  placeholder="Enter or select bank name" 
+                  fullWidth 
+                />
+              )}
             />
           </Grid>
+          
           <Grid item xs={12} md={4}>
             <FieldLabel text="Account Holder Name" />
             <StyledTextField 

@@ -289,7 +289,7 @@ export default function Settings() {
               .slice(0, 2)
               .toUpperCase() || "AJ"}
           </Avatar>
-          <Button
+          {/* <Button
             variant="outlined"
             startIcon={<CloudUploadOutlined fontSize="small" />}
             sx={{
@@ -302,7 +302,7 @@ export default function Settings() {
             }}
           >
             Upload Photo
-          </Button>
+          </Button> */}
         </Box>
 
         {/* Form Fields - Stacked Vertically, Full Width */}
